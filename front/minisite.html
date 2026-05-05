@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Kanban Board</title>
+    <link rel="stylesheet" href="./minisite.css?v=20260501b" />
+  </head>
+  <body>
+    <div class="board-shell">
+      <aside class="board-sidebar">
+        <div class="sidebar-brand">
+          <span class="brand-mark">ФБ</span>
+          <div>
+            <p class="eyebrow">Командная доска</p>
+            <strong>Философия Бизнеса</strong>
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <label class="sidebar-label" for="board-search">Поиск задачи</label>
+          <input id="board-search" class="sidebar-input" type="search" placeholder="Клиент, услуга, код" />
+        </div>
+
+        <div class="sidebar-card">
+          <label class="sidebar-label" for="board-assignee">Исполнитель</label>
+          <select id="board-assignee" class="sidebar-select">
+            <option value="ALL">Все</option>
+          </select>
+        </div>
+
+        <div class="sidebar-card">
+          <p class="sidebar-label">Статусы</p>
+          <ul class="status-legend" id="status-legend"></ul>
+        </div>
+
+        <div class="sidebar-card sidebar-card-muted">
+          <p class="sidebar-label">Синхронизация</p>
+          <p class="sidebar-copy">
+            Доска читает задачи из Spring API. Новые заявки попадают в колонку <strong>To Do</strong>,
+            а возврат клиента на исправление отправляет задачу в <strong>Rework</strong>.
+          </p>
+          <button class="ghost-button" id="refresh-board" type="button">Обновить доску</button>
+        </div>
+      </aside>
+
+      <main class="board-main">
+        <header class="board-header">
+          <div>
+            <p class="eyebrow">Kanban workflow</p>
+            <h1>Рабочая доска юридической команды</h1>
+          </div>
+          <div class="header-meta">
+            <span class="header-badge" id="sync-state">Загрузка…</span>
+            <span class="header-meta-text" id="task-total">0 задач</span>
+          </div>
+        </header>
+
+        <div class="board-alert" id="board-alert" hidden></div>
+
+        <section class="board-layout">
+          <section class="kanban-wrap" aria-label="Доска задач">
+            <div class="kanban-columns" id="kanban-columns"></div>
+          </section>
+        </section>
+      </main>
+    </div>
+
+    <template id="task-card-template">
+      <article class="task-card" draggable="true">
+        <div class="task-card-top">
+          <span class="priority-pill"></span>
+          <span class="task-date"></span>
+        </div>
+        <h3 class="task-title"></h3>
+        <p class="task-client"></p>
+        <div class="task-card-bottom">
+          <span class="task-service"></span>
+          <span class="task-badge"></span>
+        </div>
+        <p class="task-rework-note" hidden></p>
+      </article>
+    </template>
+
+    <script type="module" src="./minisite.js?v=20260501b"></script>
+  </body>
+</html>

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Вход клиента</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260501b" />
+    <script type="module" src="./app/pages/auth-page.js?v=20260501b"></script>
+  </head>
+  <body class="portal-body">
+    <div class="portal-page">
+      <header class="portal-header">
+        <a class="portal-brand" href="./da.html">
+          <span class="portal-brand-mark">ЮК</span>
+          <span class="portal-brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <span>Клиентский вход</span>
+          </span>
+        </a>
+
+        <div class="portal-header-actions">
+          <a class="portal-link" id="auth-back-link" href="./da.html">Вернуться на сайт</a>
+        </div>
+      </header>
+
+      <main class="portal-grid">
+        <section class="portal-card">
+          <div class="portal-card-inner">
+            <p class="portal-eyebrow">Клиентский кабинет</p>
+            <h1 class="portal-title">Войдите или зарегистрируйтесь перед отправкой заявки</h1>
+            <p class="portal-copy">
+              После входа клиент сможет отправлять юридические заявки, прикладывать документы,
+              видеть статус заказа и возвращать его на доработку с комментарием.
+            </p>
+
+            <ul class="auth-hero-points">
+              <li>Все заявки остаются в одном кабинете и не теряются в переписке.</li>
+              <li>Документы доступны юристу и клиенту в рамках конкретного заказа.</li>
+              <li>После завершения заказа документы могут быть помечены backend как удалённые.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="portal-card">
+          <div class="portal-card-inner portal-stack">
+            <div class="auth-tabs" role="tablist" aria-label="Формы авторизации">
+              <button class="auth-tab is-active" id="auth-tab-login" type="button">Вход</button>
+              <button class="auth-tab" id="auth-tab-register" type="button">Регистрация</button>
+            </div>
+
+            <div class="portal-feedback" id="auth-feedback" hidden></div>
+
+            <section id="auth-panel-login">
+              <form class="portal-form" id="login-form">
+                <div class="portal-field">
+                  <label for="login-email">Email</label>
+                  <input class="portal-input" id="login-email" name="email" type="email" required />
+                </div>
+
+                <div class="portal-field">
+                  <label for="login-password">Пароль</label>
+                  <input class="portal-input" id="login-password" name="password" type="password" required />
+                </div>
+
+                <button class="portal-button portal-button--primary" type="submit">Войти</button>
+              </form>
+            </section>
+
+            <section id="auth-panel-register" hidden>
+              <form class="portal-form" id="register-form">
+                <div class="portal-field">
+                  <label for="register-full-name">Имя и фамилия</label>
+                  <input class="portal-input" id="register-full-name" name="fullName" type="text" required />
+                </div>
+
+                <div class="portal-field">
+                  <label for="register-email">Email</label>
+                  <input class="portal-input" id="register-email" name="email" type="email" required />
+                </div>
+
+                <div class="portal-field">
+                  <label for="register-phone">Телефон</label>
+                  <input class="portal-input" id="register-phone" name="phone" type="text" />
+                </div>
+
+                <div class="portal-field">
+                  <label for="register-company-name">Компания</label>
+                  <input class="portal-input" id="register-company-name" name="companyName" type="text" />
+                </div>
+
+                <div class="portal-field">
+                  <label for="register-password">Пароль</label>
+                  <input class="portal-input" id="register-password" name="password" type="password" required />
+                </div>
+
+                <div class="portal-field">
+                  <label for="register-password-repeat">Повторите пароль</label>
+                  <input class="portal-input" id="register-password-repeat" name="passwordRepeat" type="password" required />
+                </div>
+
+                <button class="portal-button portal-button--primary" type="submit">Создать кабинет</button>
+              </form>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

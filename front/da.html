@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса | Юридическая поддержка бизнеса</title>
+    <meta
+      name="description"
+      content="Удаленная юридическая поддержка бизнеса: регистрация компаний, договорная работа, претензии, арбитраж и абонентское сопровождение."
+    />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="stylesheet" href="fa.css?v=20260501b" />
+    <script type="module" defer src="da.js?v=20260501b"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="#top">
+          <span class="brand-mark">ЮК</span>
+          <span class="brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <small>юридическая поддержка бизнеса</small>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Основная навигация">
+          <a href="#services">Услуги</a>
+          <a href="#process">Как работаем</a>
+          <a href="#faq">Вопросы</a>
+          <a href="./api.html">API</a>
+          <a href="#contact">Контакт</a>
+        </nav>
+
+        <div class="site-utility" aria-label="Клиентские действия">
+          <a class="site-utility-link" id="header-login-link" href="./auth.html">Войти</a>
+          <a class="site-utility-link" id="header-register-link" href="./auth.html?mode=register">Зарегистрироваться</a>
+          <a class="site-utility-link" id="header-cabinet-link" href="./cabinet.html" hidden>Личный кабинет</a>
+          <button class="site-utility-link site-utility-button" id="header-logout-button" type="button" hidden>
+            Выйти
+          </button>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="hero section">
+          <div class="hero-copy">
+            <p class="eyebrow">Юридическая поддержка бизнеса</p>
+            <h1>Удаленная юридическая поддержка бизнеса.</h1>
+            <p class="lead">
+              Разовые задачи, договорная работа, взыскание задолженности и абонентское
+              сопровождение. Работаем дистанционно с документами и судебными делами, чтобы
+              вы получали понятный результат без лишних офисных затрат.
+            </p>
+
+            <div class="hero-actions">
+              <a class="button" href="#contact">Оставить заявку</a>
+              <a class="button button-secondary" href="#services">Смотреть услуги</a>
+            </div>
+
+            <ul class="hero-tags" aria-label="Ключевые особенности">
+              <li>Регистрация бизнеса</li>
+              <li>Договорная работа</li>
+              <li>Претензии и иски</li>
+              <li>Юридический аутсорсинг</li>
+            </ul>
+          </div>
+
+          <aside class="hero-panel">
+            <p class="panel-label">Форматы работы</p>
+            <h2>От регистрации компании до арбитража и аутсорса</h2>
+
+            <div class="panel-stack">
+              <div class="panel-item">
+                <strong>01</strong>
+                <p>Разовые задачи: регистрация, изменения по компании, договоры и претензии.</p>
+              </div>
+              <div class="panel-item">
+                <strong>02</strong>
+                <p>Судебные проекты: иски, взыскание задолженности, первая инстанция и арбитраж.</p>
+              </div>
+              <div class="panel-item">
+                <strong>03</strong>
+                <p>Абонентское сопровождение: фиксированный ежемесячный формат без штатного юриста.</p>
+              </div>
+            </div>
+
+            <div class="panel-metric">
+              <span>Почта для связи</span>
+              <strong>businessphilosophyy@gmail.com</strong>
+              <small>
+                Цены ориентированы на рынок Москвы и Московской области. Итоговая стоимость
+                зависит от сложности задачи и объема документов.
+              </small>
+            </div>
+          </aside>
+        </section>
+
+        <section class="section trust-section">
+          <div class="trust-grid">
+            <article class="trust-card">
+              <strong>Удаленно и быстро</strong>
+              <p>Работаем с документами и задачами дистанционно, без привязки к офису и встречам.</p>
+            </article>
+            <article class="trust-card">
+              <strong>Столичный ориентир</strong>
+              <p>Берем за основу практику и ценовой уровень Москвы и Московской области.</p>
+            </article>
+            <article class="trust-card">
+              <strong>Гибкий формат</strong>
+              <p>Можно подключиться на одну задачу, спор в суде или полное абонентское сопровождение.</p>
+            </article>
+            <article class="trust-card">
+              <strong>Прозрачная стоимость</strong>
+              <p>До старта понятны этапы, объем работ и стартовая цена по каждой услуге.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="services" class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Услуги и цены</p>
+              <h2>Юридическая помощь бизнесу удаленно</h2>
+              <p>
+                Ниже указаны ориентиры по рынку Москвы и Московской области. Финальная
+                стоимость зависит от структуры бизнеса, объема документов и сложности спора.
+              </p>
+            </div>
+          </div>
+
+          <div class="service-search-block">
+            <label class="service-search" for="service-search">
+              <span>Поиск конкретной услуги</span>
+              <input
+                id="service-search"
+                type="search"
+                placeholder="Например: ООО, договор, претензия, арбитраж, аутсорсинг"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+              />
+            </label>
+            <p class="service-search-note" id="service-search-note">
+              Начните вводить название услуги или ключевое слово.
+            </p>
+          </div>
+
+          <div class="services-grid">
+            <article class="service-card active" data-service="Регистрация ООО / ИП">
+              <span class="service-index">01</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Регистрация ООО / ИП</span>
+              </button>
+              <p>
+                Подготовка пакета документов, выбор формата регистрации и сопровождение запуска бизнеса.
+              </p>
+              <ul>
+                <li>Подбор организационной формы</li>
+                <li>Подготовка комплекта документов</li>
+                <li>Регистрация под ключ без госпошлины</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Подходит для запуска нового бизнеса с одним или несколькими учредителями,
+                  когда важно быстро пройти регистрацию и сразу получить рабочий комплект документов.
+                </p>
+                <p>
+                  Итоговая стоимость зависит от состава учредителей, организационной структуры и
+                  дополнительной подготовки внутренних документов компании.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 10 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Изменения в учредительные документы / ЕГРЮЛ">
+              <span class="service-index">02</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Изменения в учредительные документы / ЕГРЮЛ</span>
+              </button>
+              <p>
+                Вносим изменения по компании без лишней бюрократии и задержек.
+              </p>
+              <ul>
+                <li>Подготовка решений и заявлений</li>
+                <li>Обновление сведений в ЕГРЮЛ</li>
+                <li>Сопровождение подачи документов</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Услуга нужна при смене адреса, видов деятельности, наименования, размера
+                  уставного капитала и других корпоративных изменениях.
+                </p>
+                <p>
+                  Перед подачей проверяем, какие решения и формы понадобятся именно в вашей
+                  ситуации, чтобы не получить отказ из-за технической ошибки.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 8 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Смена генерального директора / состава учредителей">
+              <span class="service-index">03</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Смена генерального директора / состава учредителей</span>
+              </button>
+              <p>
+                Проводим корпоративные изменения аккуратно и с учетом рисков для бизнеса.
+              </p>
+              <ul>
+                <li>Корректное оформление решений</li>
+                <li>Подготовка регистрационного пакета</li>
+                <li>Снижение рисков корпоративных споров</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Особенно важно корректно оформить передачу полномочий и состав участников,
+                  если у компании есть действующие договоры, обязательства или несколько собственников.
+                </p>
+                <p>
+                  Подготовка включает не только регистрационные действия, но и проверку того,
+                  чтобы изменения не создали почву для будущих корпоративных конфликтов.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 7 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Разработка и правовой аудит устава">
+              <span class="service-index">04</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Разработка и правовой аудит устава</span>
+              </button>
+              <p>
+                Проверяем учредительные документы на риски и готовим устав под структуру компании.
+              </p>
+              <ul>
+                <li>Правовой аудит устава</li>
+                <li>Актуализация положений под задачи бизнеса</li>
+                <li>Подготовка новой редакции</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Аудит устава помогает заранее убрать слабые места в корпоративной конструкции:
+                  порядок принятия решений, выход участников, распределение полномочий и ограничения по сделкам.
+                </p>
+                <p>
+                  Это особенно полезно перед масштабированием, сменой собственников, привлечением
+                  инвестиций или переговорами с банками и контрагентами.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 7 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Корпоративные процедуры и сделки">
+              <span class="service-index">05</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Корпоративные процедуры и сделки</span>
+              </button>
+              <p>
+                Консультируем по собраниям участников, одобрению сделок и внутренним процедурам.
+              </p>
+              <ul>
+                <li>Консультации по корпоративным вопросам</li>
+                <li>Поддержка по собраниям и решениям</li>
+                <li>Снижение рисков спорных сделок</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Подключаемся, когда нужно провести собрание, подготовить повестку, оформить
+                  протокол, проверить порядок одобрения сделки или понять, какие корпоративные шаги обязательны по закону.
+                </p>
+                <p>
+                  Формат удобен как разовая консультация или сопровождение конкретной сделки,
+                  где важна юридическая чистота решений.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 2 000 ₽ / час</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Составление договора под ключ">
+              <span class="service-index">06</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Составление договора под ключ</span>
+              </button>
+              <p>
+                Разрабатываем договоры с нуля под конкретную модель работы, а не по шаблону из интернета.
+              </p>
+              <ul>
+                <li>Поставка, аренда, подряд, услуги</li>
+                <li>Индивидуальные условия под бизнес</li>
+                <li>Защита интересов в формулировках</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Договор собирается под реальный бизнес-процесс: как идет оплата, кто принимает
+                  результат, какие сроки критичны, где основные финансовые и репутационные риски.
+                </p>
+                <p>
+                  Такой документ помогает не просто “иметь бумагу”, а реально управлять
+                  обязательствами, штрафами, сроками и доказательствами на случай спора.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 5 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Правовая экспертиза договора контрагента">
+              <span class="service-index">07</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Правовая экспертиза договора контрагента</span>
+              </button>
+              <p>
+                Разбираем риски по чужому договору до подписания и предлагаем безопасные правки.
+              </p>
+              <ul>
+                <li>Проверка условий и ответственности</li>
+                <li>Комментарии по спорным положениям</li>
+                <li>Рекомендации по согласованию правок</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Проверка особенно полезна перед крупной сделкой, долгосрочным контрактом или
+                  договором, где контрагент навязывает свою форму и переносит на вас большую часть рисков.
+                </p>
+                <p>
+                  В результате вы получаете список уязвимых мест, варианты формулировок и
+                  понятные рекомендации, какие пункты критично изменить до подписания.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 3 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Типовые формы договоров под бизнес">
+              <span class="service-index">08</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Типовые формы договоров под бизнес</span>
+              </button>
+              <p>
+                Выстраиваем пакет рабочих шаблонов, чтобы команда быстро запускала сделки без хаоса.
+              </p>
+              <ul>
+                <li>Базовые шаблоны под ваши процессы</li>
+                <li>Допсоглашения и протоколы разногласий</li>
+                <li>Актуализация договорной базы компании</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Это удобно для компаний, у которых много однотипных сделок: продажи, закупки,
+                  подряд, услуги, работа с исполнителями и постоянными контрагентами.
+                </p>
+                <p>
+                  Внутри пакета можно подготовить основной шаблон, дополнительные соглашения,
+                  акты, протоколы разногласий и другие документы, чтобы команда работала быстрее и ровнее.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 7 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Претензии и анализ перспектив спора">
+              <span class="service-index">09</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Претензии и анализ перспектив спора</span>
+              </button>
+              <p>
+                Помогаем до суда: оцениваем перспективу и готовим грамотную претензионную позицию.
+              </p>
+              <ul>
+                <li>Письменное заключение по перспективам</li>
+                <li>Претензии и деловые письма контрагенту</li>
+                <li>Подготовка к взысканию задолженности</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Досудебный этап часто позволяет либо урегулировать конфликт без суда, либо
+                  собрать сильную позицию для последующего иска и взыскания расходов.
+                </p>
+                <p>
+                  Письменный анализ нужен, когда важно трезво оценить перспективу: стоит ли идти
+                  в спор, сколько реально можно взыскать и какие доказательства критичны.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 3 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Исковое заявление и взыскание задолженности">
+              <span class="service-index">10</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Исковое заявление и взыскание задолженности</span>
+              </button>
+              <p>
+                Берем на себя подготовку иска и выстраиваем позицию по возврату долга через суд.
+              </p>
+              <ul>
+                <li>Исковое заявление в суд</li>
+                <li>Расчет требований и приложений</li>
+                <li>Логика взыскания от претензии до листа</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Услуга включает подготовку процессуальной позиции, расчет суммы долга, процентов,
+                  неустойки, подбор доказательств и формирование полного комплекта приложений.
+                </p>
+                <p>
+                  Она подходит, когда досудебная претензия уже не сработала и нужно переводить
+                  спор в понятный и юридически выстроенный судебный формат.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 7 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Суд первой инстанции и арбитраж">
+              <span class="service-index">11</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Суд первой инстанции и арбитраж</span>
+              </button>
+              <p>
+                Полное судебное сопровождение по коммерческим спорам, включая отдельные заседания и жалобы.
+              </p>
+              <ul>
+                <li>Первая инстанция от 50 000 ₽</li>
+                <li>Арбитраж от 70 000 ₽</li>
+                <li>Апелляция, кассация и заседания от 10 000 ₽</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Здесь уже идет полноценная процессуальная работа: позиция по делу, документы,
+                  участие в заседаниях, реакция на ходатайства и сопровождение до результата.
+                </p>
+                <p>
+                  Если нужен не весь проект, можно подключиться на отдельное заседание,
+                  подготовку апелляционной или кассационной жалобы и точечные процессуальные задачи.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 50 000 ₽</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Абонентское обслуживание «Базовый»">
+              <span class="service-index">12</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Абонентское обслуживание «Базовый»</span>
+              </button>
+              <p>
+                Формат для малого бизнеса, которому нужна постоянная юридическая опора без найма в штат.
+              </p>
+              <ul>
+                <li>Консультации и проверка контрагентов</li>
+                <li>До 5 договоров в месяц</li>
+                <li>Претензионная работа</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Подходит компаниям, где вопросы появляются регулярно, но объем работы еще не
+                  требует полноценного внутреннего юриста на зарплате.
+                </p>
+                <p>
+                  Тариф помогает закрывать повседневные задачи бизнеса на фиксированной
+                  ежемесячной основе и держать юридическую часть под контролем.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 30 000 ₽ / мес.</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+
+            <article class="service-card" data-service="Абонентское обслуживание «Оптимальный»">
+              <span class="service-index">13</span>
+              <button class="service-title" type="button" aria-expanded="false">
+                <span>Абонентское обслуживание «Оптимальный»</span>
+              </button>
+              <p>
+                Расширенный аутсорсинг для бизнеса, которому нужен постоянный юридический партнер.
+              </p>
+              <ul>
+                <li>Все из тарифа «Базовый»</li>
+                <li>Неограниченная договорная работа</li>
+                <li>Переговоры и полное претензионно-исковое сопровождение</li>
+              </ul>
+              <div class="service-detail" hidden>
+                <p>
+                  Это формат для бизнеса с более плотным потоком задач: много договоров,
+                  постоянные переговоры, регулярные споры с контрагентами и необходимость быстро подключаться к процессам.
+                </p>
+                <p>
+                  Такой тариф ближе всего к модели внешнего юридического отдела, когда важно
+                  иметь партнера на связи, а не точечно искать помощь под каждый новый вопрос.
+                </p>
+              </div>
+              <div class="card-footer">
+                <strong>от 50 000 ₽ / мес.</strong>
+                <button class="card-action" type="button">Выбрать</button>
+              </div>
+            </article>
+          </div>
+
+          <div class="services-empty" id="services-empty" hidden>
+            По вашему запросу ничего не найдено. Попробуйте другое слово: например,
+            "договор", "арбитраж", "ООО" или "аутсорсинг".
+          </div>
+        </section>
+
+        <section id="process" class="section spotlight">
+          <div class="spotlight-copy">
+            <p class="eyebrow">Почему выбирают удаленного юриста</p>
+            <h2>Гибкий формат для бизнеса без расходов на штатного сотрудника</h2>
+            <p>
+              Вы платите за конкретную задачу или понятный ежемесячный объем работ. Документы,
+              переписка, согласования и значительная часть сопровождения идут дистанционно,
+              поэтому запуск работы занимает меньше времени.
+            </p>
+          </div>
+
+          <div class="benefits-grid">
+            <article class="benefit-card">
+              <strong>Экономия ресурсов</strong>
+              <p>Абонентское сопровождение часто выгоднее содержания штатного юриста в офисе.</p>
+            </article>
+            <article class="benefit-card">
+              <strong>Быстрый документооборот</strong>
+              <p>Проекты, договоры и замечания можно согласовывать без личных встреч и задержек.</p>
+            </article>
+            <article class="benefit-card">
+              <strong>Гибкие форматы</strong>
+              <p>Подключаемся на разовую задачу, спор в суде или полное юридическое сопровождение.</p>
+            </article>
+            <article class="benefit-card">
+              <strong>Экспертный уровень</strong>
+              <p>Ориентируемся на столичный рынок и рабочие подходы, сохраняя удобный удаленный формат.</p>
+            </article>
+          </div>
+        </section>
+
+        <section id="faq" class="section faq-section">
+          <div>
+            <div class="section-head">
+              <div>
+                <p class="eyebrow">Популярные вопросы</p>
+                <h2>Ответы, которые снижают тревогу до звонка</h2>
+              </div>
+            </div>
+
+            <div class="faq-list">
+              <article class="faq-item open">
+                <button class="faq-question" type="button" aria-expanded="true">
+                  Можно ли работать полностью удаленно?
+                </button>
+                <div class="faq-answer">
+                  <p>
+                    Да. Договоры, корпоративные документы, претензионная работа и значительная
+                    часть судебного сопровождения могут вестись дистанционно. Для старта
+                    достаточно прислать задачу и документы в электронном виде.
+                  </p>
+                </div>
+              </article>
+
+              <article class="faq-item">
+                <button class="faq-question" type="button" aria-expanded="false">
+                  Как формируется стоимость?
+                </button>
+                <div class="faq-answer">
+                  <p>
+                    На цену влияет объем документов, срочность, количество участников сделки
+                    или спора и глубина сопровождения. Базовые цены на сайте дают понятный
+                    ориентир, а точную стоимость согласуем после разбора задачи.
+                  </p>
+                </div>
+              </article>
+
+              <article class="faq-item">
+                <button class="faq-question" type="button" aria-expanded="false">
+                  Чем абонентское сопровождение отличается от разовых задач?
+                </button>
+                <div class="faq-answer">
+                  <p>
+                    Разовая работа подходит для конкретной задачи: зарегистрировать бизнес,
+                    проверить договор или подать иск. Абонентский формат нужен, когда вопросы
+                    появляются регулярно и бизнесу важно иметь юриста на связи каждый месяц.
+                  </p>
+                </div>
+              </article>
+
+              <article class="faq-item">
+                <button class="faq-question" type="button" aria-expanded="false">
+                  Можно ли обратиться только за договором или претензией?
+                </button>
+                <div class="faq-answer">
+                  <p>
+                    Да. Не обязательно заказывать полный пакет. Можно подключиться только на
+                    составление договора, анализ документов, досудебную претензию или иск.
+                  </p>
+                </div>
+              </article>
+
+              <article class="faq-item">
+                <button class="faq-question" type="button" aria-expanded="false">
+                  Что подготовить перед обращением?
+                </button>
+                <div class="faq-answer">
+                  <p>
+                    Пришлите договоры, переписку, учредительные документы, претензии, судебные
+                    акты и короткое описание ситуации. Так мы быстрее оценим объем работ и
+                    предложим подходящий формат сотрудничества.
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <aside class="speech-card">
+            <p class="eyebrow">Обращение</p>
+            <h2>Подберем формат работы под задачу бизнеса</h2>
+            <p>
+              Можно прийти с одной задачей, спором в суде или запросом на ежемесячное
+              сопровождение. Начнем с разбора ситуации и предложим понятный следующий шаг.
+            </p>
+            <a class="button" href="#contact">Задать вопрос</a>
+          </aside>
+        </section>
+
+
+
+        
+
+        <section id="contact" class="section contact-section">
+          <div class="contact-card">
+            <p class="eyebrow">Контакт</p>
+            <h2>Оставьте заявку на юридическую задачу</h2>
+            <p>
+              Клиент создаёт заявку только после входа или регистрации. Это нужно, чтобы
+              документы, статусы и доработки были привязаны к личному кабинету, а не терялись
+              между письмами и мессенджерами.
+            </p>
+
+            <div class="contact-points">
+              <a href="mailto:businessphilosophyy@gmail.com">businessphilosophyy@gmail.com</a>
+            </div>
+          </div>
+
+          <div class="auth-gate-card" id="application-auth-gate">
+            <p class="eyebrow">Клиентский доступ</p>
+            <h3>Войдите, чтобы отправить заявку и прикрепить документы</h3>
+            <p>
+              После входа заявка появится в вашем кабинете, а юрист увидит её на рабочей доске.
+            </p>
+            <div class="auth-gate-actions">
+              <a class="button" id="application-login-link" href="./auth.html">Войти</a>
+              <a class="button button-secondary" id="application-register-link" href="./auth.html">Регистрация</a>
+            </div>
+          </div>
+
+          <div class="auth-session-card" id="application-auth-session" hidden>
+            <p class="eyebrow">Кабинет клиента</p>
+            <h3 id="application-user-name">Авторизованный клиент</h3>
+            <p id="application-user-email"></p>
+            <div class="auth-session-actions">
+              <a class="button button-secondary" href="./cabinet.html">Открыть кабинет</a>
+              <button class="button button-ghost" id="application-logout-button" type="button">Выйти</button>
+            </div>
+          </div>
+
+          <form class="contact-form" id="contact-form" hidden>
+            <label>
+              Имя
+              <input type="text" name="name" placeholder="Как к вам обращаться" required />
+            </label>
+
+            <label>
+              Телефон или Telegram
+              <input
+                type="text"
+                name="contact"
+                placeholder="+7 (...) или @username"
+                required
+              />
+            </label>
+
+            <label>
+              Компания
+              <input
+                type="text"
+                name="companyName"
+                placeholder="ООО, ИП или название компании"
+              />
+            </label>
+
+            <label>
+              Услуга
+              <select id="service-select" name="service">
+                <option>Регистрация ООО / ИП</option>
+                <option>Изменения в учредительные документы / ЕГРЮЛ</option>
+                <option>Смена генерального директора / состава учредителей</option>
+                <option>Разработка и правовой аудит устава</option>
+                <option>Корпоративные процедуры и сделки</option>
+                <option>Составление договора под ключ</option>
+                <option>Правовая экспертиза договора контрагента</option>
+                <option>Типовые формы договоров под бизнес</option>
+                <option>Претензии и анализ перспектив спора</option>
+                <option>Исковое заявление и взыскание задолженности</option>
+                <option>Суд первой инстанции и арбитраж</option>
+                <option>Абонентское обслуживание «Базовый»</option>
+                <option>Абонентское обслуживание «Оптимальный»</option>
+              </select>
+            </label>
+
+            <label>
+              Ваш вопрос
+              <textarea
+                name="message"
+                rows="5"
+                placeholder="Кратко опишите задачу: регистрация, договор, претензия, взыскание долга, судебный спор или сопровождение бизнеса"
+              ></textarea>
+            </label>
+
+            <label class="documents-field">
+              Документы для юриста
+              <input
+                id="application-documents"
+                type="file"
+                name="documents"
+                multiple
+                accept=".pdf,.doc,.docx,.xls,.xlsx,.zip,.jpg,.jpeg,.png"
+              />
+              <small id="documents-summary">
+                Можно приложить договоры, переписку, расчёты, учредительные документы или сканы.
+              </small>
+            </label>
+
+            <button class="button" type="submit">Отправить запрос</button>
+            <p class="form-note" id="form-status" aria-live="polite">
+              <span id="status-prefix">Сейчас выбрано:</span>
+              <span id="selected-service">Регистрация ООО / ИП</span>
+            </p>
+          </form>
+        </section>
+
+      </main>
+
+      <div
+        class="service-modal"
+        id="service-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-hidden="true"
+        aria-labelledby="service-modal-title"
+        hidden
+      >
+        <div class="service-modal-backdrop" data-close-modal></div>
+        <div class="service-modal-panel" id="service-modal-panel" role="document">
+          <button
+            class="service-modal-close"
+            id="service-modal-close"
+            type="button"
+            aria-label="Закрыть описание услуги"
+            data-close-modal
+          >
+            ×
+          </button>
+          <span class="service-modal-kicker">Подробнее об услуге</span>
+          <h3 class="service-modal-title" id="service-modal-title"></h3>
+          <div class="service-modal-body" id="service-modal-body"></div>
+        </div>
+      </div>
+
+      <footer class="site-footer">
+        <span>© <span id="year"></span> Философия Бизнеса</span>
+        <a href="./api.html">Карта API проекта</a>
+      </footer>
+    </div>
+  </body>
+</html>

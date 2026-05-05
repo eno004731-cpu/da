@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Личный кабинет</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260501b" />
+    <script type="module" src="./app/pages/cabinet-page.js?v=20260501b"></script>
+  </head>
+  <body class="portal-body">
+    <div class="portal-page">
+      <header class="portal-header">
+        <a class="portal-brand" href="./da.html">
+          <span class="portal-brand-mark">ЮК</span>
+          <span class="portal-brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <span>Личный кабинет клиента</span>
+          </span>
+        </a>
+
+        <div class="portal-header-actions">
+          <a class="portal-link" href="./da.html">На сайт</a>
+          <button class="portal-button" id="cabinet-logout" type="button">Выйти</button>
+        </div>
+      </header>
+
+      <main class="portal-grid">
+        <section class="portal-card">
+          <div class="portal-card-inner">
+            <p class="portal-eyebrow">Профиль клиента</p>
+            <h1 class="portal-title" id="cabinet-user-name">Клиент</h1>
+            <p class="portal-copy" id="cabinet-user-meta"></p>
+
+            <div class="summary-grid">
+              <article class="summary-card">
+                <span class="portal-eyebrow">Заказы</span>
+                <strong id="cabinet-total-orders">0 заказов</strong>
+              </article>
+              <article class="summary-card">
+                <span class="portal-eyebrow">Документы</span>
+                <strong>Через заказ</strong>
+              </article>
+              <article class="summary-card">
+                <span class="portal-eyebrow">Доработка</span>
+                <strong>Через детали заказа</strong>
+              </article>
+            </div>
+
+            <div class="profile-actions">
+              <button class="portal-button portal-button--danger" id="cabinet-delete-account" type="button">
+                Удалить аккаунт
+              </button>
+              <p class="portal-helper">
+                Действие необратимо. Frontend ожидает backend endpoint `DELETE /api/auth/account`.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="portal-card">
+          <div class="portal-card-inner">
+            <p class="portal-eyebrow">Ваши заказы</p>
+            <h2 class="portal-section-title">Список заявок и текущих работ</h2>
+            <p class="portal-copy">
+              Здесь появятся все ваши обращения, отправленные после авторизации. Каждый заказ
+              можно открыть, посмотреть документы и вернуть юристу на доработку.
+            </p>
+
+            <div class="portal-feedback" id="cabinet-feedback" hidden></div>
+
+            <div class="orders-list" id="cabinet-orders-list"></div>
+
+            <div class="empty-inline-state" id="cabinet-empty-state">
+              Пока у вас нет заказов. После отправки заявки она появится здесь автоматически.
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

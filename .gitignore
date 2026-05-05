@@ -1,0 +1,43 @@
+# macOS system files
+.DS_Store
+
+# Editor settings
+.idea/
+.vscode/
+
+# Python virtual environments and caches
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Node / frontend build artifacts
+node_modules/
+dist/
+build/
+coverage/
+
+# Java / Maven / Gradle build artifacts
+target/
+out/
+*.class
+
+# Logs
+*.log
+*.pid
+
+# Local environment files
+.env
+.env.*
+!.env.example
+
+# Project runtime data
+uploads/
+bd/demo/uploads/
+
+# Local database / temp artifacts if they appear in the workspace
+*.sqlite
+*.sqlite3
+*.db
+tmp/
+temp/

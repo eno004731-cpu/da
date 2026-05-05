@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Заказ</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260501b" />
+    <script type="module" src="./app/pages/order-page.js?v=20260501b"></script>
+  </head>
+  <body class="portal-body">
+    <div class="portal-page">
+      <header class="portal-header">
+        <a class="portal-brand" href="./da.html">
+          <span class="portal-brand-mark">ЮК</span>
+          <span class="portal-brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <span>Карточка заказа клиента</span>
+          </span>
+        </a>
+
+        <div class="portal-header-actions">
+          <a class="portal-link" id="order-back-link" href="./cabinet.html">Назад в кабинет</a>
+          <button class="portal-button" id="order-logout" type="button">Выйти</button>
+        </div>
+      </header>
+
+      <main class="portal-detail-grid">
+        <section class="portal-card">
+          <div class="portal-card-inner">
+            <p class="portal-eyebrow">Клиент</p>
+            <h1 class="portal-title" id="order-user-name">Клиент</h1>
+            <p class="portal-copy" id="order-user-meta"></p>
+
+            <div class="portal-feedback" id="order-feedback" hidden></div>
+
+            <div class="timeline" id="order-timeline"></div>
+
+            <div class="detail-meta-grid">
+              <article class="detail-meta">
+                <span>Заказ</span>
+                <strong id="order-title"></strong>
+                <small id="order-service"></small>
+              </article>
+
+              <article class="detail-meta">
+                <span>Статус</span>
+                <strong class="status-pill" id="order-status"></strong>
+                <small id="order-revision-count"></small>
+              </article>
+
+              <article class="detail-meta">
+                <span>Даты</span>
+                <strong id="order-created-at"></strong>
+                <small id="order-updated-at"></small>
+              </article>
+            </div>
+
+            <section class="portal-stack" style="margin-top: 24px;">
+              <div>
+                <h2 class="portal-section-title">Описание проблемы</h2>
+                <p class="portal-copy" id="order-description"></p>
+              </div>
+
+              <div class="info-panel" id="last-rework-card" hidden>
+                <div>
+                  <strong>Последнее замечание клиента</strong>
+                  <span id="last-rework-comment"></span>
+                </div>
+                <span id="last-rework-date"></span>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <aside class="portal-stack">
+          <section class="portal-card">
+            <div class="portal-card-inner">
+              <p class="portal-eyebrow">Документы</p>
+              <h2 class="portal-section-title">Приложенные файлы</h2>
+              <p class="portal-copy">
+                После статуса <strong>Done</strong> backend может удалить документы. На frontend
+                они будут помечены как недоступные.
+              </p>
+
+              <div class="deleted-documents-notice" id="deleted-documents-notice" hidden>
+                Заказ завершён. Связанные документы должны считаться удаляемыми и могут быть уже
+                удалены backend.
+              </div>
+
+              <div class="documents-list" id="order-documents"></div>
+            </div>
+          </section>
+
+          <section class="portal-card">
+            <div class="portal-card-inner">
+              <p class="portal-eyebrow">Доработка</p>
+              <h2 class="portal-section-title">Вернуть юристу на исправление</h2>
+              <p class="portal-copy">
+                Если нужно изменить формулировки, документы или расчёты, опиши замечание ниже.
+                Без текста отправка на доработку невозможна.
+              </p>
+
+              <form class="portal-form" id="client-rework-form">
+                <div class="portal-field">
+                  <label for="client-rework-text">Что нужно доработать</label>
+                  <textarea
+                    class="portal-textarea"
+                    id="client-rework-text"
+                    rows="5"
+                    placeholder="Например: исправить договор, добавить расчёт, уточнить формулировки"
+                    required
+                  ></textarea>
+                </div>
+
+                <button class="portal-button portal-button--primary" type="submit">Отправить на доработку</button>
+              </form>
+            </div>
+          </section>
+        </aside>
+      </main>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса | API карта проекта</title>
+    <meta
+      name="description"
+      content="Текущая карта API проекта: реализованные backend endpoint'ы и planned-контракты, которые уже использует frontend."
+    />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./fa.css?v=20260502b" />
+    <script defer src="./app/api/api-catalog.js?v=20260502b"></script>
+    <script defer src="./app/pages/api-page.js?v=20260502b"></script>
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="site-header">
+        <a class="brand" href="./da.html">
+          <span class="brand-mark">ЮК</span>
+          <span class="brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <small>карта backend api</small>
+          </span>
+        </a>
+
+        <nav class="site-nav" aria-label="Навигация по API странице">
+          <a href="#implemented">Реализовано</a>
+          <a href="#planned">Запланировано</a>
+          <a href="#notes">Заметки</a>
+        </nav>
+
+        <div class="site-utility" aria-label="Навигация по проекту">
+          <a class="site-utility-link" href="./da.html">На сайт</a>
+          <a class="site-utility-link" href="./auth.html">Вход</a>
+        </div>
+      </header>
+
+      <main id="top">
+        <section class="section api-hero">
+          <div class="api-hero-copy">
+            <p class="eyebrow">API map</p>
+            <h1>Текущее API проекта в одном месте.</h1>
+            <p class="lead">
+              Эта страница показывает два слоя сразу: что уже реально объявлено в Spring backend
+              и какие endpoint'ы уже ожидает frontend для клиентского кабинета и доски юриста.
+            </p>
+
+            <div class="api-summary-grid">
+              <article class="api-summary-card">
+                <span>Реализовано в backend</span>
+                <strong id="implemented-api-count">0</strong>
+                <small>endpoint'а найдены в Spring-контроллерах</small>
+              </article>
+
+              <article class="api-summary-card">
+                <span>Ожидает frontend</span>
+                <strong id="planned-api-count">0</strong>
+                <small>контрактов уже описаны в JS-слое</small>
+              </article>
+            </div>
+          </div>
+
+          <aside class="api-hero-panel">
+            <p class="panel-label">Архитектурная заметка</p>
+            <h2>Фронт и backend пока живут в двух моделях авторизации.</h2>
+            <div class="panel-stack">
+              <div class="panel-item">
+                <strong>Backend</strong>
+                <p id="api-backend-style"></p>
+              </div>
+              <div class="panel-item">
+                <strong>Frontend</strong>
+                <p id="api-frontend-style"></p>
+              </div>
+            </div>
+            <div class="panel-metric">
+              <span>Базовый URL</span>
+              <strong><code>http://localhost:8080/api</code></strong>
+              <small>
+                Удобно использовать как живую карту проекта, когда проектируешь новые controller,
+                service и DTO слои.
+              </small>
+            </div>
+          </aside>
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Как читать таблицу</p>
+              <h2>Сначала текущее состояние, потом целевая модель.</h2>
+            </div>
+            <p>
+              Для junior backend это полезно как мини-спецификация: видно HTTP метод, путь,
+              ожидаемую авторизацию, форму запроса и где уже есть расхождения между слоями.
+            </p>
+          </div>
+        </section>
+
+        <section class="section api-section" id="implemented">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Backend now</p>
+              <h2>Реально реализованные endpoint'ы</h2>
+            </div>
+            <p>
+              Это маршруты, которые уже объявлены в Spring-контроллерах на текущий момент.
+            </p>
+          </div>
+
+          <div class="api-table-shell">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Path</th>
+                  <th>Access</th>
+                  <th>Status</th>
+                  <th>Назначение</th>
+                  <th>Request</th>
+                  <th>Response</th>
+                  <th>Комментарий</th>
+                </tr>
+              </thead>
+              <tbody id="implemented-api-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section api-section" id="planned">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Frontend contract</p>
+              <h2>Endpoint'ы, которые уже ждёт frontend</h2>
+            </div>
+            <p>
+              Это хорошая дорожная карта для следующих backend задач: кабинет клиента, заказы,
+              комментарии, статусы и канбан-доска юриста.
+            </p>
+          </div>
+
+          <div class="api-table-shell">
+            <table class="api-table">
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th>Path</th>
+                  <th>Access</th>
+                  <th>Status</th>
+                  <th>Назначение</th>
+                  <th>Request</th>
+                  <th>Response</th>
+                  <th>Комментарий</th>
+                </tr>
+              </thead>
+              <tbody id="planned-api-table"></tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="section api-notes-section" id="notes">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Что важно</p>
+              <h2>Ключевые наблюдения по архитектуре</h2>
+            </div>
+            <p>
+              Это уже не просто UI-таблица, а подсказка, как развивать backend без хаоса.
+            </p>
+          </div>
+
+          <div class="benefits-grid">
+            <article class="benefit-card">
+              <strong>1. Контракт авторизации пока расходится</strong>
+              <p>
+                Backend использует `HttpSession`, а frontend подготовлен под token-based API.
+                Это нужно либо выровнять, либо явно поддержать оба сценария на этапе миграции.
+              </p>
+            </article>
+
+            <article class="benefit-card">
+              <strong>2. У клиента уже просматривается application/order слой</strong>
+              <p>
+                Для проекта это хороший enterprise-подход: отделять регистрацию пользователя от
+                бизнес-сущности заказа и его жизненного цикла.
+              </p>
+            </article>
+
+            <article class="benefit-card">
+              <strong>3. Статусы и комментарии лучше сразу проектировать отдельно</strong>
+              <p>
+                Это похоже на Spring-подход с отдельными entity, service и history таблицами, а
+                не с одним большим orders controller.
+              </p>
+            </article>
+
+            <article class="benefit-card">
+              <strong>4. Эта страница может стать твоей мини-спецификацией</strong>
+              <p>
+                Когда будешь добавлять новый endpoint, обновляй таблицу вместе с кодом. Так проще
+                держать frontend, backend и БД в одной картине.
+              </p>
+            </article>
+          </div>
+        </section>
+      </main>
+
+      <footer class="site-footer">
+        <span>© <span id="year"></span> Философия Бизнеса</span>
+        <a href="./da.html">Вернуться на основной сайт</a>
+      </footer>
+    </div>
+  </body>
+</html>
