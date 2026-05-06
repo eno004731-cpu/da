@@ -2,7 +2,9 @@
  * Centralized API endpoint catalog for the frontend.
  * Backend implementation is intentionally left to the user.
  */
-export const API_BASE_URL = window.__LEGAL_API_BASE_URL__ || "http://localhost:8080/api";
+// By default, call the backend on the same host that serves the frontend.
+// This avoids sending browser requests to a user's own localhost in production.
+export const API_BASE_URL = window.__LEGAL_API_BASE_URL__ || `${window.location.origin}/api`;
 
 export const ENDPOINTS = {
   auth: {
