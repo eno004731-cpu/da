@@ -1,4 +1,4 @@
-package my_jira.users;
+package my_jira.users.servletConfig;
 
 // Говорим Spring, что это конфигурационный класс
 import org.springframework.context.annotation.Bean;
@@ -12,6 +12,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 // Реализация BCrypt для паролей
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 //
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 
 import static jakarta.servlet.DispatcherType.ERROR;
 import static jakarta.servlet.DispatcherType.FORWARD;
@@ -38,7 +39,11 @@ public class SecurityConfig {
             .httpBasic(AbstractHttpConfigurer::disable)
 
             
-            .formLogin(AbstractHttpConfigurer::disable);
+            .formLogin(AbstractHttpConfigurer::disable)
+            .csrf((csrf) -> csrf
+
+                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+            );
             
         
 

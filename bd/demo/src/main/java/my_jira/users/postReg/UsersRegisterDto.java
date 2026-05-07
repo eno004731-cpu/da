@@ -1,4 +1,4 @@
-package my_jira.users;
+package my_jira.users.postReg;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

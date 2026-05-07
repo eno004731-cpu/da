@@ -5,6 +5,19 @@ function buildUrl(path) {
   return `${API_BASE_URL}${path}`;
 }
 
+function readCookie(name) {
+  const cookie = document.cookie
+    .split("; ")
+    .find((item) => item.startsWith(`${name}=`));
+
+  return cookie ? decodeURIComponent(cookie.split("=").slice(1).join("=")) : null;
+}
+
+function needsCsrf(method) {
+  const safeMethods = ["GET", "HEAD", "OPTIONS", "TRACE"];
+  return !safeMethods.includes(String(method).toUpperCase());
+}
+
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const isJson = contentType.includes("application/json");
@@ -55,10 +68,22 @@ export async function request(path, options = {}) {
     headers,
   } = options;
 
+  const finalHeaders = new Headers(headers || createHeaders({ auth, json }));
+
+  // For session-based auth + CSRF protection, browser cookies must be sent
+  // and the CSRF token must be echoed back in the request header.
+  if (needsCsrf(method)) {
+    const csrfToken = readCookie("XSRF-TOKEN") || readCookie("CSRF-TOKEN");
+    if (csrfToken) {
+      finalHeaders.set("X-XSRF-TOKEN", csrfToken);
+    }
+  }
+
   const response = await fetch(buildUrl(path), {
     method,
-    headers: headers || createHeaders({ auth, json }),
+    headers: finalHeaders,
     body,
+    credentials: "include",
   });
 
   return parseResponse(response);
@@ -80,4 +105,3 @@ export function formDataRequest(path, { method = "POST", auth = false, body } = 
     body,
   });
 }
-

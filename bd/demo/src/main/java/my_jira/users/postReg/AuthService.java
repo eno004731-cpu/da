@@ -10,7 +10,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.RequiredArgsConstructor;
 import my_jira.users.UsersEntity;
-import my_jira.users.UsersRegisterDto;
 import my_jira.users.UsersRepo;
 
 @Service
@@ -21,12 +20,12 @@ public class AuthService {
     
 
     
-    public boolean registerUser (UsersRegisterDto request){
+    public UsersEntity registerUser (UsersRegisterDto request){
         String email = request.getEmail();
     
         boolean haveEmail =usersRepo.existsByEmail(email);
     if (haveEmail){
-        return false;
+        throw new RuntimeException("проблема с email");
     }
     else{
         String pass= request.getPassword();
@@ -43,7 +42,7 @@ public class AuthService {
         user.setCreatedAt(LocalDateTime.now());
         user.setUpdatedAt(LocalDateTime.now());
         usersRepo.save(user);
-        return true;
+        return user;
     }
     
 } 
