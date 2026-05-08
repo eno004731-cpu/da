@@ -17,7 +17,7 @@ public class UserResponse {
 //   "phone": "+7999...",
 //   "companyName": "ООО Ромашка",
 //   "role": "CLIENT"
-    @NotBlank
+    
     private Long id;
     private String fullName;
     @Email
@@ -25,6 +25,7 @@ public class UserResponse {
     private String email;
     private String phone;
     private String companyName;
+    @NotBlank
     private String role;
 
 }

@@ -24,6 +24,10 @@ function createMockSession(user) {
   };
 }
 
+function createSessionFromUser(user) {
+  return { user };
+}
+
 function shouldUseDevFallback(error) {
   // Dev fallback нужен только когда backend endpoint пока не поднят
   // или локально недоступен. Ошибки валидации от живого backend не прячем.
@@ -105,29 +109,50 @@ async function withDevFallback(requestFn, fallbackFn) {
   }
 }
 
+async function fetchCurrentUserFromBackend() {
+  return jsonRequest(ENDPOINTS.auth.me, {
+    method: "GET",
+  });
+}
+
 /**
- * Login contract expected by the frontend.
- * Suggested backend response shape:
- * { accessToken, refreshToken, user: { id, fullName, email, phone, companyName, role } }
+ * Session-based login contract:
+ * backend returns boolean success, then frontend loads current user via GET /auth/me.
  */
 export function loginClient(payload) {
   return withDevFallback(
-    () =>
-      jsonRequest(ENDPOINTS.auth.login, {
+    async () => {
+      const success = await jsonRequest(ENDPOINTS.auth.login, {
         method: "POST",
         body: payload,
-      }),
+      });
+
+      if (success !== true) {
+        throw new Error("Backend не подтвердил вход.");
+      }
+
+      const user = await fetchCurrentUserFromBackend();
+      return createSessionFromUser(user);
+    },
     () => loginClientLocally(payload)
   );
 }
 
 export function registerClient(payload) {
   return withDevFallback(
-    () =>
-      jsonRequest(ENDPOINTS.auth.register, {
+    async () => {
+      const success = await jsonRequest(ENDPOINTS.auth.register, {
         method: "POST",
         body: payload,
-      }),
+      });
+
+      if (success !== true) {
+        throw new Error("Backend не подтвердил регистрацию.");
+      }
+
+      const user = await fetchCurrentUserFromBackend();
+      return createSessionFromUser(user);
+    },
     () => registerClientLocally(payload)
   );
 }
@@ -145,11 +170,7 @@ export function logoutClient() {
 
 export function fetchCurrentUser() {
   return withDevFallback(
-    () =>
-      jsonRequest(ENDPOINTS.auth.me, {
-        method: "GET",
-        auth: true,
-      }),
+    () => fetchCurrentUserFromBackend(),
     () => getSession()?.user || null
   );
 }

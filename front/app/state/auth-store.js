@@ -35,7 +35,7 @@ export function getCurrentUser() {
 }
 
 export function isAuthenticated() {
-  return Boolean(getAccessToken());
+  return Boolean(getCurrentUser());
 }
 
 export function buildAuthUrl(mode = "login", next = "./cabinet.html", options = {}) {

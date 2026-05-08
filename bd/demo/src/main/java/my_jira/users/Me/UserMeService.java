@@ -13,10 +13,11 @@ import my_jira.users.UsersRepo;
 @RequiredArgsConstructor
 public class UserMeService {
     final private UsersRepo usersRepo;
-    public UserResponse getMe(Long id, UserResponse response){
-        Optional<UsersEntity> userOp = usersRepo.findById(id);
+    public UserResponse getMe(String email){
+        Optional<UsersEntity> userOp = usersRepo.findByEmail(email);
         if (userOp.isPresent()){
             UsersEntity user = userOp.get();
+            UserResponse response = new UserResponse();
             response.setCompanyName(user.getCompanyName());
             response.setEmail(user.getEmail());
             response.setFullName(user.getFullName());
@@ -24,7 +25,7 @@ public class UserMeService {
             response.setId(user.getId());
             response.setRole(user.getRole());
             return response;
-            
+
         } else {
             throw new RuntimeException("нет пользователя");
         }

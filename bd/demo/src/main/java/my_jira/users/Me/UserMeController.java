@@ -1,7 +1,9 @@
 package my_jira.users.Me;
 
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
-
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,14 +21,14 @@ public class UserMeController {
     }
 
     @GetMapping("/me")
-    public UserResponse getMe(HttpSession session,@Valid UserResponse response){
-
-        Object userIdRaw = session.getAttribute("userId");
-        if(userIdRaw == null){
-            throw new RuntimeException("da");
+    public UserResponse getMe(Authentication authentication){
+        String email = authentication.getName();
+        
+        if(email == null){
+            throw new RuntimeException("нет такго email");
         }
-        Long id = (Long) userIdRaw;
+        
 
-        return userMeService.getMe(id, response);
+        return userMeService.getMe(email);
     }
 }
