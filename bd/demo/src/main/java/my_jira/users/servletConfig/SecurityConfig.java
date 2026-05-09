@@ -54,6 +54,7 @@ public class SecurityConfig {
         
         .authorizeHttpRequests((authorize) -> authorize
             .dispatcherTypeMatchers(FORWARD, ERROR).permitAll()
+            .requestMatchers("/api/auth/csrf").permitAll()
             .requestMatchers("/api/auth/register").permitAll()
             .requestMatchers("/api/auth/login").permitAll()
             

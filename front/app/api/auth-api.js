@@ -115,6 +115,12 @@ async function fetchCurrentUserFromBackend() {
   });
 }
 
+async function ensureCsrfCookie() {
+  return jsonRequest(ENDPOINTS.auth.csrf, {
+    method: "GET",
+  });
+}
+
 /**
  * Session-based login contract:
  * backend returns boolean success, then frontend loads current user via GET /auth/me.
@@ -122,6 +128,8 @@ async function fetchCurrentUserFromBackend() {
 export function loginClient(payload) {
   return withDevFallback(
     async () => {
+      await ensureCsrfCookie();
+
       const success = await jsonRequest(ENDPOINTS.auth.login, {
         method: "POST",
         body: payload,
@@ -141,6 +149,8 @@ export function loginClient(payload) {
 export function registerClient(payload) {
   return withDevFallback(
     async () => {
+      await ensureCsrfCookie();
+
       const success = await jsonRequest(ENDPOINTS.auth.register, {
         method: "POST",
         body: payload,

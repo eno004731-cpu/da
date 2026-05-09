@@ -8,6 +8,7 @@ export const API_BASE_URL = window.__LEGAL_API_BASE_URL__ || `${window.location.
 
 export const ENDPOINTS = {
   auth: {
+    csrf: "/auth/csrf",
     login: "/auth/login",
     register: "/auth/register",
     logout: "/auth/logout",
