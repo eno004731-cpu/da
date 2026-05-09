@@ -29,7 +29,7 @@ public class OrdersService {
     private final ServiceRepository serviceRepository;
     private final DocumentsRepo documentsRepo;
 
-    public AnswerDto postOrder(OrdersDTO request, Long rawId, List<MultipartFile> documents) {
+    public AnswerDto postOrder(OrdersDTO request, String email, List<MultipartFile> documents) {
         Path uploadDir = Path.of("uploads", "orders");
         List<MultipartFile> safeDocuments = documents == null ? Collections.emptyList() : documents;
 
@@ -39,7 +39,7 @@ public class OrdersService {
             throw new RuntimeException("Не удалось создать папку: " + uploadDir, e);
         }
 
-        UsersEntity user = usersRepo.findById(rawId)
+        UsersEntity user = usersRepo.findByEmail(email)
             .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
 
         ServiceEntity service = serviceRepository.findByCode(request.getServiceCode());
@@ -98,7 +98,7 @@ public class OrdersService {
 
         }
         AnswerDto answerDto = new AnswerDto();
-        answerDto.setOrderId(rawId);
+        answerDto.setOrderId(user.getId());
         answerDto.setPublicCode(order.getPublicCode());
         answerDto.setStatus(order.getStatus());
         return answerDto;

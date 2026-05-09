@@ -70,7 +70,17 @@ public class SecurityConfig {
                 .sessionManagement((session) -> session
                 // Разрешаем только одну активную сессию на пользователя
                 .maximumSessions(1)
-            );
+            )
+            .logout((logout) -> logout
+            // URL для выхода
+            .logoutUrl("/api/auth/logout")
+
+            // Удаляем cookie сессии
+            .deleteCookies("JSESSIONID")
+
+            // Разрешаем logout всем
+            .permitAll()
+        );
 
 
     return http.build();
