@@ -1,6 +1,8 @@
 import { API_BASE_URL } from "./endpoints.js";
 import { getAccessToken } from "../state/auth-store.js";
 
+let csrfTokenFromBackend = null;
+
 function buildUrl(path) {
   return `${API_BASE_URL}${path}`;
 }
@@ -16,6 +18,10 @@ function readCookie(name) {
 function needsCsrf(method) {
   const safeMethods = ["GET", "HEAD", "OPTIONS", "TRACE"];
   return !safeMethods.includes(String(method).toUpperCase());
+}
+
+export function setCsrfToken(token) {
+  csrfTokenFromBackend = token || null;
 }
 
 async function parseResponse(response) {
@@ -73,7 +79,10 @@ export async function request(path, options = {}) {
   // For session-based auth + CSRF protection, browser cookies must be sent
   // and the CSRF token must be echoed back in the request header.
   if (needsCsrf(method)) {
-    const csrfToken = readCookie("XSRF-TOKEN") || readCookie("CSRF-TOKEN");
+    const csrfToken =
+      csrfTokenFromBackend ||
+      readCookie("XSRF-TOKEN") ||
+      readCookie("CSRF-TOKEN");
     if (csrfToken) {
       finalHeaders.set("X-XSRF-TOKEN", csrfToken);
     }

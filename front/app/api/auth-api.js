@@ -1,5 +1,5 @@
 import { ENDPOINTS } from "./endpoints.js";
-import { jsonRequest } from "./http-client.js";
+import { jsonRequest, setCsrfToken } from "./http-client.js";
 import { getSession } from "../state/auth-store.js";
 
 const MOCK_USERS_STORAGE_KEY = "philosophy-business-mock-users";
@@ -116,9 +116,12 @@ async function fetchCurrentUserFromBackend() {
 }
 
 async function ensureCsrfCookie() {
-  return jsonRequest(ENDPOINTS.auth.csrf, {
+  const csrfPayload = await jsonRequest(ENDPOINTS.auth.csrf, {
     method: "GET",
   });
+
+  setCsrfToken(csrfPayload?.token);
+  return csrfPayload;
 }
 
 /**
