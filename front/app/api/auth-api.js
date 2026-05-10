@@ -17,11 +17,7 @@ function writeMockUsers(users) {
 }
 
 function createMockSession(user) {
-  return {
-    accessToken: `mock-access-${user.id}`,
-    refreshToken: `mock-refresh-${user.id}`,
-    user,
-  };
+  return createSessionFromUser(user);
 }
 
 function createSessionFromUser(user) {
@@ -33,6 +29,11 @@ function shouldUseDevFallback(error) {
   // или локально недоступен. Ошибки валидации от живого backend не прячем.
   const status = typeof error === "object" && error !== null ? error.status : undefined;
   return typeof status === "undefined" || [404, 405, 500, 502, 503].includes(status);
+}
+
+export function isUnauthorizedError(error) {
+  const status = typeof error === "object" && error !== null ? error.status : undefined;
+  return status === 401 || status === 403;
 }
 
 function registerClientLocally(payload) {
@@ -172,11 +173,12 @@ export function registerClient(payload) {
 
 export function logoutClient() {
   return withDevFallback(
-    () =>
-      jsonRequest(ENDPOINTS.auth.logout, {
+    async () => {
+      await ensureCsrfCookie();
+      return jsonRequest(ENDPOINTS.auth.logout, {
         method: "POST",
-        auth: true,
-      }),
+      });
+    },
     () => ({ success: true })
   );
 }
@@ -189,19 +191,18 @@ export function fetchCurrentUser() {
 }
 
 /**
- * Account deletion contract expected by the frontend.
- * Suggested backend response shape:
- * { success: true }
- * Endpoint expectation:
- * DELETE /api/auth/account with current Authorization token.
+ * Account deletion is session-based:
+ * backend resolves the current user from the active server session.
+ * Current Spring controller accepts POST /api/auth/account.
  */
 export function deleteClientAccount() {
   return withDevFallback(
-    () =>
-      jsonRequest(ENDPOINTS.auth.deleteAccount, {
-        method: "DELETE",
-        auth: true,
-      }),
+    async () => {
+      await ensureCsrfCookie();
+      return jsonRequest(ENDPOINTS.auth.deleteAccount, {
+        method: "POST",
+      });
+    },
     () => deleteClientLocally()
   );
 }

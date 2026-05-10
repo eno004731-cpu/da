@@ -1,5 +1,4 @@
 import { API_BASE_URL } from "./endpoints.js";
-import { getAccessToken } from "../state/auth-store.js";
 
 let csrfTokenFromBackend = null;
 
@@ -45,36 +44,30 @@ async function parseResponse(response) {
   return payload;
 }
 
-function createHeaders({ auth = false, json = false } = {}) {
+function createHeaders({ json = false } = {}) {
   const headers = new Headers();
 
   if (json) {
     headers.set("Content-Type", "application/json");
   }
 
-  if (auth) {
-    const token = getAccessToken();
-    if (token) {
-      headers.set("Authorization", `Bearer ${token}`);
-    }
-  }
-
   return headers;
 }
 
 /**
- * Shared HTTP wrapper. Keeps auth handling in one place.
+ * Shared HTTP wrapper.
+ * Browser cookies are always sent, so protected session endpoints
+ * work через JSESSIONID, а не через Bearer token в заголовке.
  */
 export async function request(path, options = {}) {
   const {
     method = "GET",
-    auth = false,
     json = false,
     body,
     headers,
   } = options;
 
-  const finalHeaders = new Headers(headers || createHeaders({ auth, json }));
+  const finalHeaders = new Headers(headers || createHeaders({ json }));
 
   // For session-based auth + CSRF protection, browser cookies must be sent
   // and the CSRF token must be echoed back in the request header.
@@ -98,19 +91,17 @@ export async function request(path, options = {}) {
   return parseResponse(response);
 }
 
-export function jsonRequest(path, { method = "GET", auth = false, body } = {}) {
+export function jsonRequest(path, { method = "GET", body } = {}) {
   return request(path, {
     method,
-    auth,
     json: true,
     body: body ? JSON.stringify(body) : undefined,
   });
 }
 
-export function formDataRequest(path, { method = "POST", auth = false, body } = {}) {
+export function formDataRequest(path, { method = "POST", body } = {}) {
   return request(path, {
     method,
-    auth,
     body,
   });
 }

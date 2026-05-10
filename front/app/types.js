@@ -27,8 +27,6 @@
 
 /**
  * @typedef {Object} AuthSession
- * @property {string} accessToken
- * @property {string | null} refreshToken
  * @property {AuthUser} user
  */
 

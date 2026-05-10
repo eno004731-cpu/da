@@ -25,7 +25,7 @@
       responseShape: "boolean",
       source: "Spring: UsersController",
       notes:
-        "Фронт сейчас ожидает после регистрации сессию или токены, а backend возвращает boolean.",
+        "Frontend после успешного boolean-ответа запрашивает /api/auth/me и сохраняет пользователя в локальное session-state.",
     },
     {
       method: "POST",
@@ -36,7 +36,7 @@
       requestShape: "{ email, password }",
       responseShape: "boolean",
       source: "Spring: UserLoginController",
-      notes: "По архитектуре это ближе к session-based auth, а не к JWT/Bearer.",
+      notes: "По архитектуре это session-based auth на cookies + CSRF, без JWT/Bearer в frontend.",
     },
     {
       method: "POST",
@@ -48,7 +48,7 @@
       responseShape: "void",
       source: "Spring: UserDelController",
       notes:
-        "Контроллер объявлен, но в коде есть синтаксическая ошибка. Кроме того, фронт ожидает DELETE, а backend сейчас использует POST.",
+        "Текущий backend-контракт построен вокруг серверной сессии; frontend теперь тоже шлёт session-based POST-запрос.",
     },
   ];
 
@@ -184,7 +184,7 @@
       implementedCount: IMPLEMENTED_API.length,
       plannedCount: PLANNED_API.length,
       backendStyle: "Сейчас backend ближе к HttpSession-подходу.",
-      frontendStyle: "Фронт уже ориентирован на токены и более широкое API.",
+      frontendStyle: "Фронт выровнен под HttpSession/cookie auth и ожидает более широкий прикладной API.",
     },
   };
 })(window);

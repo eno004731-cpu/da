@@ -1,0 +1,16 @@
+services:
+  app:
+    # Собираем образ из Dockerfile
+    build: .
+
+    # Имя контейнера
+    container_name: site-app
+
+    # Пробрасываем порт
+    ports:
+      - "8080:8080"
+
+    # Автоматически перезапускать контейнер
+    restart: unless-stopped
+
+

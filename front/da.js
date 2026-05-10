@@ -1,5 +1,16 @@
 import { createClientApplication } from "./app/api/orders-api.js";
-import { buildAuthUrl, clearSession, getCurrentUser, isAuthenticated } from "./app/state/auth-store.js";
+import {
+  fetchCurrentUser,
+  isUnauthorizedError,
+  logoutClient,
+} from "./app/api/auth-api.js";
+import {
+  buildAuthUrl,
+  clearSession,
+  getCurrentUser,
+  isAuthenticated,
+  setSession,
+} from "./app/state/auth-store.js";
 
 const serviceCards = Array.from(document.querySelectorAll(".service-card"));
 const serviceSelect = document.querySelector("#service-select");
@@ -358,6 +369,25 @@ function syncClientAuthState() {
   }
 }
 
+async function syncClientAuthStateWithBackend() {
+  try {
+    const user = await fetchCurrentUser();
+
+    if (!user) {
+      clearSession();
+    } else {
+      setSession({ user });
+    }
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+    }
+  }
+
+  syncClientAuthState();
+  return Boolean(getCurrentUser());
+}
+
 function getContactScrollOffset() {
   if (!siteHeader) {
     return 24;
@@ -594,6 +624,12 @@ if (contactForm && formStatus) {
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     if (!isAuthenticated()) {
+      const hasActiveSession = await syncClientAuthStateWithBackend();
+      if (hasActiveSession) {
+        contactForm.requestSubmit();
+        return;
+      }
+
       showFormError("Для отправки заявки сначала войдите в кабинет клиента.");
       window.location.href = buildAuthUrl("login", getReturnToContactUrl());
       return;
@@ -655,14 +691,20 @@ if (contactForm && formStatus) {
   });
 }
 
-applicationLogoutButton?.addEventListener("click", () => {
+applicationLogoutButton?.addEventListener("click", async () => {
+  applicationLogoutButton.disabled = true;
+  await logoutClient().catch(() => null);
   clearSession();
   syncClientAuthState();
+  applicationLogoutButton.disabled = false;
 });
 
-headerLogoutButton?.addEventListener("click", () => {
+headerLogoutButton?.addEventListener("click", async () => {
+  headerLogoutButton.disabled = true;
+  await logoutClient().catch(() => null);
   clearSession();
   syncClientAuthState();
+  headerLogoutButton.disabled = false;
 });
 
 documentsInput?.addEventListener("change", updateDocumentsSummary);
@@ -672,7 +714,7 @@ if (yearNode) {
 }
 
 showIdleStatus();
-syncClientAuthState();
+syncClientAuthStateWithBackend();
 updateDocumentsSummary();
 resetServiceSearchOnSmallScreens();
 setupServiceAnimations();

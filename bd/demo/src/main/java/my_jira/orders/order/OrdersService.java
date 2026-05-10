@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import lombok.RequiredArgsConstructor;
+import my_jira.common.exception.ServiceNotFoundException;
+import my_jira.common.exception.StorageOperationException;
+import my_jira.common.exception.UserNotFoundException;
 import my_jira.orders.documentss.DocumentsRepo;
 import my_jira.orders.documentss.OrdersDocuments;
 import my_jira.services.ServiceEntity;
@@ -36,15 +39,15 @@ public class OrdersService {
         try {
             Files.createDirectories(uploadDir);
         } catch (IOException e) {
-            throw new RuntimeException("Не удалось создать папку: " + uploadDir, e);
+            throw new StorageOperationException("Не удалось создать папку: " + uploadDir, e);
         }
 
         UsersEntity user = usersRepo.findByEmail(email)
-            .orElseThrow(() -> new RuntimeException("Пользователь не найден"));
+            .orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
 
         ServiceEntity service = serviceRepository.findByCode(request.getServiceCode());
         if (service == null) {
-            throw new RuntimeException("Услуга не найдена");
+            throw new ServiceNotFoundException("Услуга не найдена");
         }
 
         LocalDateTime now = LocalDateTime.now();
@@ -82,7 +85,7 @@ public class OrdersService {
             try {
                 file.transferTo(targetPath.toFile());
             } catch (IOException error) {
-                throw new RuntimeException("Не удалось сохранить файл " + targetPath, error);
+                throw new StorageOperationException("Не удалось сохранить файл " + targetPath, error);
             }
 
             OrdersDocuments document = new OrdersDocuments();
@@ -98,7 +101,7 @@ public class OrdersService {
 
         }
         AnswerDto answerDto = new AnswerDto();
-        answerDto.setOrderId(user.getId());
+        answerDto.setOrderId(order.getId());
         answerDto.setPublicCode(order.getPublicCode());
         answerDto.setStatus(order.getStatus());
         return answerDto;

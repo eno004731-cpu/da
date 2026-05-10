@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import lombok.RequiredArgsConstructor;
+import my_jira.common.exception.DuplicateEmailException;
 import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
@@ -25,7 +26,7 @@ public class AuthService {
     
         boolean haveEmail =usersRepo.existsByEmail(email);
     if (haveEmail){
-        throw new RuntimeException("проблема с email");
+        throw new DuplicateEmailException("Пользователь с таким email уже существует");
     }
     else{
         String pass= request.getPassword();

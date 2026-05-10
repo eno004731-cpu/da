@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Optional;
 
+import my_jira.common.exception.UserNotFoundException;
 import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
@@ -27,7 +28,7 @@ public class UserMeService {
             return response;
 
         } else {
-            throw new RuntimeException("нет пользователя");
+            throw new UserNotFoundException("Пользователь не найден");
         }
     }
 }

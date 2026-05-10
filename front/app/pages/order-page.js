@@ -1,4 +1,5 @@
 import { fetchClientOrderDetails, submitClientOrderRework } from "../api/orders-api.js";
+import { fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js";
 import { formatDate, formatDateTime } from "../lib/date.js";
 import { formatFileSize } from "../lib/files.js";
 import {
@@ -8,7 +9,7 @@ import {
   normalizeOrderStatus,
   ORDER_STATUS_TIMELINE,
 } from "../lib/status.js";
-import { clearSession, getCurrentUser, requireAuth } from "../state/auth-store.js";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js";
 
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId");
@@ -141,6 +142,12 @@ async function loadOrder() {
     renderOrder(order);
     setFeedback("");
   } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return;
+    }
+
     setFeedback(
       error.message || "Не удалось загрузить заказ. Проверь backend endpoint /client/orders/:id.",
       true
@@ -165,6 +172,12 @@ async function handleReworkSubmit(event) {
     reworkForm.reset();
     setFeedback("Замечание отправлено. Заказ переведён в статус «На доработке».");
   } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return;
+    }
+
     setFeedback(
       error.message || "Не удалось отправить заказ на доработку. Проверь backend endpoint /rework.",
       true
@@ -173,17 +186,44 @@ async function handleReworkSubmit(event) {
 }
 
 function attachEvents() {
-  logoutButton?.addEventListener("click", () => {
+  logoutButton?.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    await logoutClient().catch(() => null);
     clearSession();
-    window.location.href = "./auth.html?mode=login&next=./cabinet.html";
+    window.location.href = buildAuthUrl("login", "./cabinet.html");
   });
 
   reworkForm?.addEventListener("submit", handleReworkSubmit);
   backLink?.setAttribute("href", "./cabinet.html");
 }
 
-function init() {
-  if (!requireAuth(window.location.pathname + window.location.search)) {
+async function ensureActiveSession() {
+  try {
+    const user = await fetchCurrentUser();
+
+    if (!user) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return false;
+    }
+
+    setSession({ user });
+    return true;
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return false;
+    }
+
+    setFeedback(error.message || "Не удалось проверить активную сессию.", true);
+    return false;
+  }
+}
+
+async function init() {
+  const sessionIsActive = await ensureActiveSession();
+  if (!sessionIsActive) {
     return;
   }
 

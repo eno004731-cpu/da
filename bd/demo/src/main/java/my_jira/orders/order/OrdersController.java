@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import jakarta.servlet.http.HttpSession;
+
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -20,10 +20,6 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class OrdersController {
     private final OrdersService ordersService;
-    private final SecurityContextRepository securityContextRepository;
-    private final Authentication authentication;
-
-    
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public AnswerDto requestMap(

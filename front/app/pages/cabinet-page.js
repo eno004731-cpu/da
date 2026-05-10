@@ -1,8 +1,8 @@
-import { deleteClientAccount } from "../api/auth-api.js";
+import { deleteClientAccount, fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js";
 import { fetchClientOrders } from "../api/orders-api.js";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
-import { clearSession, getCurrentUser, requireAuth } from "../state/auth-store.js";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js";
 
 const userName = document.querySelector("#cabinet-user-name");
 const userMeta = document.querySelector("#cabinet-user-meta");
@@ -65,6 +65,12 @@ async function loadOrders() {
     renderOrders(orders);
     setFeedback("");
   } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", "./cabinet.html");
+      return;
+    }
+
     renderOrders([]);
     setFeedback(
       error.message || "Не удалось загрузить список заказов. Проверь backend endpoint /client/orders.",
@@ -74,9 +80,11 @@ async function loadOrders() {
 }
 
 function attachEvents() {
-  logoutButton?.addEventListener("click", () => {
+  logoutButton?.addEventListener("click", async () => {
+    logoutButton.disabled = true;
+    await logoutClient().catch(() => null);
     clearSession();
-    window.location.href = "./auth.html?mode=login&next=./cabinet.html";
+    window.location.href = buildAuthUrl("login", "./cabinet.html");
   });
 
   deleteAccountButton?.addEventListener("click", async () => {
@@ -97,7 +105,7 @@ function attachEvents() {
       window.location.href = "./da.html?accountDeleted=1";
     } catch (error) {
       setFeedback(
-        error.message || "Не удалось удалить аккаунт. Проверь backend endpoint DELETE /auth/account.",
+        error.message || "Не удалось удалить аккаунт. Проверь backend endpoint POST /auth/account.",
         true
       );
       deleteAccountButton.disabled = false;
@@ -105,8 +113,33 @@ function attachEvents() {
   });
 }
 
-function init() {
-  if (!requireAuth("./cabinet.html")) {
+async function ensureActiveSession() {
+  try {
+    const user = await fetchCurrentUser();
+
+    if (!user) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", "./cabinet.html");
+      return false;
+    }
+
+    setSession({ user });
+    return true;
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      clearSession();
+      window.location.href = buildAuthUrl("login", "./cabinet.html");
+      return false;
+    }
+
+    setFeedback(error.message || "Не удалось проверить сессию пользователя.", true);
+    return false;
+  }
+}
+
+async function init() {
+  const sessionIsActive = await ensureActiveSession();
+  if (!sessionIsActive) {
     return;
   }
 

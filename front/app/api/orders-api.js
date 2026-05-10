@@ -23,27 +23,21 @@ export function createClientApplication(payload) {
 
   return formDataRequest(ENDPOINTS.client.applications, {
     method: "POST",
-    auth: true,
     body: formData,
   });
 }
 
 export function fetchClientOrders() {
-  return request(ENDPOINTS.client.orders, {
-    auth: true,
-  });
+  return request(ENDPOINTS.client.orders);
 }
 
 export function fetchClientOrderDetails(orderId) {
-  return request(ENDPOINTS.client.orderDetails(orderId), {
-    auth: true,
-  });
+  return request(ENDPOINTS.client.orderDetails(orderId));
 }
 
 export function submitClientOrderRework(orderId, comment) {
   return jsonRequest(ENDPOINTS.client.orderRework(orderId), {
     method: "POST",
-    auth: true,
     body: { comment },
   });
 }

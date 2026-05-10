@@ -174,8 +174,8 @@
             <article class="benefit-card">
               <strong>1. Контракт авторизации пока расходится</strong>
               <p>
-                Backend использует `HttpSession`, а frontend подготовлен под token-based API.
-                Это нужно либо выровнять, либо явно поддержать оба сценария на этапе миграции.
+                Backend использует `HttpSession`, поэтому frontend тоже должен жить в модели
+                `cookie + CSRF`, а не в модели `Bearer token в localStorage`.
               </p>
             </article>
 

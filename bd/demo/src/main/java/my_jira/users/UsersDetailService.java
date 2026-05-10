@@ -18,6 +18,8 @@ class UsersDetailService implements UserDetailsService {
 
         // Ищем пользователя в БД
         UsersEntity user = usersRepo.findByEmail(email)
+        
+        
                 .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         return  User.builder()
                 .username(user.getEmail())
@@ -27,6 +29,8 @@ class UsersDetailService implements UserDetailsService {
 
                 // Например ROLE_USER
                 .authorities(user.getRole())
+                
+                .disabled(!user.isActive())
 
                 .build();
 }

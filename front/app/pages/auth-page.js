@@ -1,4 +1,4 @@
-import { loginClient, registerClient } from "../api/auth-api.js?v=20260501b";
+import { loginClient, logoutClient, registerClient } from "../api/auth-api.js?v=20260501b";
 import { buildAuthUrl, clearSession, setSession } from "../state/auth-store.js?v=20260501b";
 
 const loginTab = document.querySelector("#auth-tab-login");
@@ -85,10 +85,12 @@ async function handleRegisterSubmit(event) {
   }
 }
 
-function init() {
+async function init() {
   if (shouldClearSession) {
+    await logoutClient().catch(() => null);
     clearSession();
   }
+
   backLink?.setAttribute("href", nextUrl.includes("da.html") ? nextUrl : "./da.html");
   activateMode(params.get("mode") === "register" ? "register" : "login");
 

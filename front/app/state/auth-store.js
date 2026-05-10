@@ -26,10 +26,6 @@ export function clearSession() {
   window.dispatchEvent(new CustomEvent("auth:changed", { detail: null }));
 }
 
-export function getAccessToken() {
-  return getSession()?.accessToken || null;
-}
-
 export function getCurrentUser() {
   return getSession()?.user || null;
 }
@@ -49,13 +45,4 @@ export function buildAuthUrl(mode = "login", next = "./cabinet.html", options = 
   }
 
   return `./auth.html?${params.toString()}`;
-}
-
-export function requireAuth(next = "./cabinet.html") {
-  if (isAuthenticated()) {
-    return true;
-  }
-
-  window.location.href = buildAuthUrl("login", next);
-  return false;
 }
