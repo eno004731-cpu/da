@@ -1,6 +1,7 @@
-import { API_BASE_URL } from "./endpoints.js";
+import { API_BASE_URL } from "./endpoints.js?v=20260510a";
 
 let csrfTokenFromBackend = null;
+const CSRF_ENDPOINT_PATH = "/auth/csrf";
 
 function buildUrl(path) {
   return `${API_BASE_URL}${path}`;
@@ -21,6 +22,22 @@ function needsCsrf(method) {
 
 export function setCsrfToken(token) {
   csrfTokenFromBackend = token || null;
+}
+
+async function refreshCsrfToken() {
+  const response = await fetch(buildUrl(CSRF_ENDPOINT_PATH), {
+    method: "GET",
+    credentials: "include",
+  });
+
+  const payload = await parseResponse(response);
+  const csrfToken =
+    payload?.token ||
+    readCookie("XSRF-TOKEN") ||
+    readCookie("CSRF-TOKEN");
+
+  setCsrfToken(csrfToken);
+  return csrfToken;
 }
 
 async function parseResponse(response) {
@@ -71,7 +88,11 @@ export async function request(path, options = {}) {
 
   // For session-based auth + CSRF protection, browser cookies must be sent
   // and the CSRF token must be echoed back in the request header.
+  // Перед mutating-запросами заново забираем актуальный token,
+  // потому что после login/register Spring может выдать новый CSRF token.
   if (needsCsrf(method)) {
+    await refreshCsrfToken();
+
     const csrfToken =
       csrfTokenFromBackend ||
       readCookie("XSRF-TOKEN") ||

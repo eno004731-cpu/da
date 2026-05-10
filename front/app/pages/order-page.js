@@ -1,5 +1,5 @@
-import { fetchClientOrderDetails, submitClientOrderRework } from "../api/orders-api.js";
-import { fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js";
+import { fetchClientOrderDetails, submitClientOrderRework } from "../api/orders-api.js?v=20260510a";
+import { fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js?v=20260510a";
 import { formatDate, formatDateTime } from "../lib/date.js";
 import { formatFileSize } from "../lib/files.js";
 import {
@@ -9,7 +9,7 @@ import {
   normalizeOrderStatus,
   ORDER_STATUS_TIMELINE,
 } from "../lib/status.js";
-import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510a";
 
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId");

@@ -1,6 +1,6 @@
-import { ENDPOINTS } from "./endpoints.js";
-import { jsonRequest, setCsrfToken } from "./http-client.js";
-import { getSession } from "../state/auth-store.js";
+import { ENDPOINTS } from "./endpoints.js?v=20260510a";
+import { jsonRequest } from "./http-client.js?v=20260510a";
+import { getSession } from "../state/auth-store.js?v=20260510a";
 
 const MOCK_USERS_STORAGE_KEY = "philosophy-business-mock-users";
 
@@ -116,15 +116,6 @@ async function fetchCurrentUserFromBackend() {
   });
 }
 
-async function ensureCsrfCookie() {
-  const csrfPayload = await jsonRequest(ENDPOINTS.auth.csrf, {
-    method: "GET",
-  });
-
-  setCsrfToken(csrfPayload?.token);
-  return csrfPayload;
-}
-
 /**
  * Session-based login contract:
  * backend returns boolean success, then frontend loads current user via GET /auth/me.
@@ -132,8 +123,6 @@ async function ensureCsrfCookie() {
 export function loginClient(payload) {
   return withDevFallback(
     async () => {
-      await ensureCsrfCookie();
-
       const success = await jsonRequest(ENDPOINTS.auth.login, {
         method: "POST",
         body: payload,
@@ -153,8 +142,6 @@ export function loginClient(payload) {
 export function registerClient(payload) {
   return withDevFallback(
     async () => {
-      await ensureCsrfCookie();
-
       const success = await jsonRequest(ENDPOINTS.auth.register, {
         method: "POST",
         body: payload,
@@ -173,12 +160,9 @@ export function registerClient(payload) {
 
 export function logoutClient() {
   return withDevFallback(
-    async () => {
-      await ensureCsrfCookie();
-      return jsonRequest(ENDPOINTS.auth.logout, {
-        method: "POST",
-      });
-    },
+    () => jsonRequest(ENDPOINTS.auth.logout, {
+      method: "POST",
+    }),
     () => ({ success: true })
   );
 }
@@ -197,12 +181,9 @@ export function fetchCurrentUser() {
  */
 export function deleteClientAccount() {
   return withDevFallback(
-    async () => {
-      await ensureCsrfCookie();
-      return jsonRequest(ENDPOINTS.auth.deleteAccount, {
-        method: "POST",
-      });
-    },
+    () => jsonRequest(ENDPOINTS.auth.deleteAccount, {
+      method: "POST",
+    }),
     () => deleteClientLocally()
   );
 }

@@ -1,16 +1,16 @@
-import { createClientApplication } from "./app/api/orders-api.js";
+import { createClientApplication } from "./app/api/orders-api.js?v=20260510a";
 import {
   fetchCurrentUser,
   isUnauthorizedError,
   logoutClient,
-} from "./app/api/auth-api.js";
+} from "./app/api/auth-api.js?v=20260510a";
 import {
   buildAuthUrl,
   clearSession,
   getCurrentUser,
   isAuthenticated,
   setSession,
-} from "./app/state/auth-store.js";
+} from "./app/state/auth-store.js?v=20260510a";
 
 const serviceCards = Array.from(document.querySelectorAll(".service-card"));
 const serviceSelect = document.querySelector("#service-select");

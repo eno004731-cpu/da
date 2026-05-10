@@ -1,5 +1,5 @@
-import { loginClient, logoutClient, registerClient } from "../api/auth-api.js?v=20260501b";
-import { buildAuthUrl, clearSession, setSession } from "../state/auth-store.js?v=20260501b";
+import { loginClient, logoutClient, registerClient } from "../api/auth-api.js?v=20260510a";
+import { buildAuthUrl, clearSession, setSession } from "../state/auth-store.js?v=20260510a";
 
 const loginTab = document.querySelector("#auth-tab-login");
 const registerTab = document.querySelector("#auth-tab-register");

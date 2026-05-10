@@ -1,8 +1,8 @@
-import { deleteClientAccount, fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js";
-import { fetchClientOrders } from "../api/orders-api.js";
+import { deleteClientAccount, fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js?v=20260510a";
+import { fetchClientOrders } from "../api/orders-api.js?v=20260510a";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
-import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510a";
 
 const userName = document.querySelector("#cabinet-user-name");
 const userMeta = document.querySelector("#cabinet-user-meta");
