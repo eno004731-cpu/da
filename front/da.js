@@ -1,16 +1,18 @@
-import { createClientApplication } from "./app/api/orders-api.js?v=20260510a";
+import { createClientApplication } from "./app/api/orders-api.js?v=20260510b";
 import {
+  checkBackendAvailability,
   fetchCurrentUser,
+  isBackendUnavailableError,
   isUnauthorizedError,
   logoutClient,
-} from "./app/api/auth-api.js?v=20260510a";
+} from "./app/api/auth-api.js?v=20260510b";
 import {
   buildAuthUrl,
   clearSession,
   getCurrentUser,
   isAuthenticated,
   setSession,
-} from "./app/state/auth-store.js?v=20260510a";
+} from "./app/state/auth-store.js?v=20260510b";
 
 const serviceCards = Array.from(document.querySelectorAll(".service-card"));
 const serviceSelect = document.querySelector("#service-select");
@@ -49,6 +51,7 @@ const applicationRegisterLink = document.querySelector("#application-register-li
 const applicationLogoutButton = document.querySelector("#application-logout-button");
 const documentsInput = document.querySelector("#application-documents");
 const documentsSummary = document.querySelector("#documents-summary");
+const backendStatus = document.querySelector("#backend-status");
 const revealTargets = Array.from(
   document.querySelectorAll(
     ".section:not(#services), .trust-card, .benefit-card, .timeline-step, .faq-item"
@@ -56,6 +59,7 @@ const revealTargets = Array.from(
 );
 let activeService = serviceSelect?.value || "Регистрация ООО / ИП";
 let activeMoreButton = null;
+let backendIsAvailable = true;
 
 const SERVICE_CODE_BY_LABEL = {
   "Регистрация ООО / ИП": "REGISTRATION",
@@ -301,7 +305,7 @@ function updateDocumentsSummary() {
 }
 
 function syncClientAuthState() {
-  const authenticated = isAuthenticated();
+  const authenticated = backendIsAvailable && isAuthenticated();
   const user = getCurrentUser();
   const loginHref = buildAuthUrl("login", getReturnToContactUrl(), {
     switchAccount: authenticated,
@@ -311,21 +315,21 @@ function syncClientAuthState() {
   if (headerLoginLink) {
     headerLoginLink.href = loginHref;
     headerLoginLink.textContent = "Войти";
-    headerLoginLink.hidden = authenticated;
+    headerLoginLink.hidden = authenticated || !backendIsAvailable;
   }
 
   if (headerRegisterLink) {
     headerRegisterLink.href = registerHref;
-    headerRegisterLink.hidden = authenticated;
+    headerRegisterLink.hidden = authenticated || !backendIsAvailable;
   }
 
   if (headerCabinetLink) {
     headerCabinetLink.href = "./cabinet.html";
-    headerCabinetLink.hidden = !authenticated;
+    headerCabinetLink.hidden = !authenticated || !backendIsAvailable;
   }
 
   if (headerLogoutButton) {
-    headerLogoutButton.hidden = !authenticated;
+    headerLogoutButton.hidden = !authenticated || !backendIsAvailable;
   }
 
   if (applicationLoginLink) {
@@ -337,15 +341,15 @@ function syncClientAuthState() {
   }
 
   if (applicationAuthGate) {
-    applicationAuthGate.hidden = authenticated;
+    applicationAuthGate.hidden = authenticated || !backendIsAvailable;
   }
 
   if (applicationAuthSession) {
-    applicationAuthSession.hidden = !authenticated;
+    applicationAuthSession.hidden = !authenticated || !backendIsAvailable;
   }
 
   if (contactForm) {
-    contactForm.hidden = !authenticated;
+    contactForm.hidden = !authenticated || !backendIsAvailable;
   }
 
   if (!authenticated || !user) {
@@ -369,23 +373,64 @@ function syncClientAuthState() {
   }
 }
 
+function setBackendAvailabilityState(isAvailable, message = "") {
+  backendIsAvailable = isAvailable;
+
+  if (!backendStatus) {
+    return;
+  }
+
+  backendStatus.hidden = isAvailable;
+  backendStatus.textContent =
+    message || "Backend временно недоступен. Личный кабинет и отправка заявок сейчас не работают.";
+}
+
 async function syncClientAuthStateWithBackend() {
+  if (!getCurrentUser()) {
+    try {
+      await checkBackendAvailability();
+      setBackendAvailabilityState(true);
+    } catch (error) {
+      if (isBackendUnavailableError(error)) {
+        setBackendAvailabilityState(
+          false,
+          "Backend временно недоступен. Проверь, что API запущен и отвечает через proxy."
+        );
+      } else {
+        setBackendAvailabilityState(true);
+      }
+    }
+
+    syncClientAuthState();
+    return false;
+  }
+
   try {
     const user = await fetchCurrentUser();
 
     if (!user) {
       clearSession();
+      setBackendAvailabilityState(true);
     } else {
       setSession({ user });
+      setBackendAvailabilityState(true);
     }
   } catch (error) {
     if (isUnauthorizedError(error)) {
       clearSession();
+      setBackendAvailabilityState(true);
+    } else if (isBackendUnavailableError(error)) {
+      setBackendAvailabilityState(
+        false,
+        "Backend временно недоступен. Шапка и кабинет скрыты, пока API снова не начнёт отвечать."
+      );
+    } else {
+      setBackendAvailabilityState(true);
     }
   }
 
   syncClientAuthState();
-  return Boolean(getCurrentUser());
+  return backendIsAvailable && Boolean(getCurrentUser());
 }
 
 function getContactScrollOffset() {
@@ -623,6 +668,11 @@ faqItems.forEach((item) => {
 if (contactForm && formStatus) {
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!backendIsAvailable) {
+      showFormError("Backend временно недоступен. Отправка заявки сейчас невозможна.");
+      return;
+    }
+
     if (!isAuthenticated()) {
       const hasActiveSession = await syncClientAuthStateWithBackend();
       if (hasActiveSession) {
@@ -683,8 +733,19 @@ if (contactForm && formStatus) {
           window.location.href = `./order.html?orderId=${encodeURIComponent(result.orderId)}`;
         }, 900);
       }
-    } catch (_error) {
+    } catch (error) {
+      if (isBackendUnavailableError(error)) {
+        setBackendAvailabilityState(
+          false,
+          "Backend перестал отвечать во время отправки заявки. Попробуй ещё раз после восстановления API."
+        );
+        showFormError("Backend временно недоступен. Не удалось отправить заявку.");
+        syncClientAuthState();
+        return;
+      }
+
       showFormError(
+        error.message ||
         "Не удалось создать заявку. Проверь backend endpoint /client/applications и multipart-контракт."
       );
     }

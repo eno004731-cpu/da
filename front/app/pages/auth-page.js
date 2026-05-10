@@ -1,5 +1,10 @@
-import { loginClient, logoutClient, registerClient } from "../api/auth-api.js?v=20260510a";
-import { buildAuthUrl, clearSession, setSession } from "../state/auth-store.js?v=20260510a";
+import {
+  isBackendUnavailableError,
+  loginClient,
+  logoutClient,
+  registerClient,
+} from "../api/auth-api.js?v=20260510b";
+import { buildAuthUrl, clearSession, setSession } from "../state/auth-store.js?v=20260510b";
 
 const loginTab = document.querySelector("#auth-tab-login");
 const registerTab = document.querySelector("#auth-tab-register");
@@ -48,6 +53,13 @@ async function handleLoginSubmit(event) {
     setFeedback("Вход выполнен. Перенаправляем…");
     window.location.href = nextUrl;
   } catch (error) {
+    if (isBackendUnavailableError(error)) {
+      // Показываем понятное сообщение вместо сырого 502/Bad Gateway,
+      // чтобы пользователь сразу понимал, что проблема не в логине/пароле.
+      setFeedback("Backend временно недоступен. Войти сейчас нельзя, попробуйте позже.", true);
+      return;
+    }
+
     setFeedback(error.message || "Не удалось войти. Проверь backend endpoint /auth/login.", true);
   }
 }
@@ -81,6 +93,16 @@ async function handleRegisterSubmit(event) {
     setFeedback("Аккаунт создан. Перенаправляем…");
     window.location.href = nextUrl;
   } catch (error) {
+    if (isBackendUnavailableError(error)) {
+      // Аналогично для регистрации: если API не отвечает,
+      // не вводим пользователя в заблуждение сообщением про форму.
+      setFeedback(
+        "Backend временно недоступен. Зарегистрироваться сейчас нельзя, попробуйте позже.",
+        true
+      );
+      return;
+    }
+
     setFeedback(error.message || "Не удалось зарегистрироваться. Проверь backend endpoint /auth/register.", true);
   }
 }

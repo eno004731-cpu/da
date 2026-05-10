@@ -1,5 +1,5 @@
-import { ENDPOINTS } from "./endpoints.js?v=20260510a";
-import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260510a";
+import { ENDPOINTS } from "./endpoints.js?v=20260510b";
+import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260510b";
 
 export function fetchServices() {
   return request(ENDPOINTS.services.list);

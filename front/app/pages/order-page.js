@@ -1,5 +1,10 @@
-import { fetchClientOrderDetails, submitClientOrderRework } from "../api/orders-api.js?v=20260510a";
-import { fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js?v=20260510a";
+import { fetchClientOrderDetails, submitClientOrderRework } from "../api/orders-api.js?v=20260510b";
+import {
+  fetchCurrentUser,
+  isBackendUnavailableError,
+  isUnauthorizedError,
+  logoutClient,
+} from "../api/auth-api.js?v=20260510b";
 import { formatDate, formatDateTime } from "../lib/date.js";
 import { formatFileSize } from "../lib/files.js";
 import {
@@ -9,7 +14,7 @@ import {
   normalizeOrderStatus,
   ORDER_STATUS_TIMELINE,
 } from "../lib/status.js";
-import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510a";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510b";
 
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId");
@@ -148,6 +153,11 @@ async function loadOrder() {
       return;
     }
 
+    if (isBackendUnavailableError(error)) {
+      setFeedback("Backend временно недоступен. Не удалось загрузить заказ.", true);
+      return;
+    }
+
     setFeedback(
       error.message || "Не удалось загрузить заказ. Проверь backend endpoint /client/orders/:id.",
       true
@@ -175,6 +185,11 @@ async function handleReworkSubmit(event) {
     if (isUnauthorizedError(error)) {
       clearSession();
       window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return;
+    }
+
+    if (isBackendUnavailableError(error)) {
+      setFeedback("Backend временно недоступен. Замечание не удалось отправить.", true);
       return;
     }
 
@@ -213,6 +228,11 @@ async function ensureActiveSession() {
     if (isUnauthorizedError(error)) {
       clearSession();
       window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      return false;
+    }
+
+    if (isBackendUnavailableError(error)) {
+      setFeedback("Backend временно недоступен. Не удалось проверить активную сессию.", true);
       return false;
     }
 

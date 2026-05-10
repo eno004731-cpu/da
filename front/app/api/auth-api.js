@@ -1,6 +1,6 @@
-import { ENDPOINTS } from "./endpoints.js?v=20260510a";
-import { jsonRequest } from "./http-client.js?v=20260510a";
-import { getSession } from "../state/auth-store.js?v=20260510a";
+import { ENDPOINTS } from "./endpoints.js?v=20260510b";
+import { jsonRequest } from "./http-client.js?v=20260510b";
+import { getSession } from "../state/auth-store.js?v=20260510b";
 
 const MOCK_USERS_STORAGE_KEY = "philosophy-business-mock-users";
 
@@ -25,15 +25,21 @@ function createSessionFromUser(user) {
 }
 
 function shouldUseDevFallback(error) {
-  // Dev fallback нужен только когда backend endpoint пока не поднят
-  // или локально недоступен. Ошибки валидации от живого backend не прячем.
+  // Dev fallback нужен только для локальной разработки,
+  // когда endpoint ещё не реализован или backend не запущен.
+  // Продовые 5xx/502 не прячем, чтобы не маскировать реальные сбои.
   const status = typeof error === "object" && error !== null ? error.status : undefined;
-  return typeof status === "undefined" || [404, 405, 500, 502, 503].includes(status);
+  return typeof status === "undefined" || [404, 405].includes(status);
 }
 
 export function isUnauthorizedError(error) {
   const status = typeof error === "object" && error !== null ? error.status : undefined;
   return status === 401 || status === 403;
+}
+
+export function isBackendUnavailableError(error) {
+  const status = typeof error === "object" && error !== null ? error.status : undefined;
+  return typeof status === "undefined" || [502, 503, 504].includes(status);
 }
 
 function registerClientLocally(payload) {
@@ -112,6 +118,12 @@ async function withDevFallback(requestFn, fallbackFn) {
 
 async function fetchCurrentUserFromBackend() {
   return jsonRequest(ENDPOINTS.auth.me, {
+    method: "GET",
+  });
+}
+
+export function checkBackendAvailability() {
+  return jsonRequest(ENDPOINTS.auth.csrf, {
     method: "GET",
   });
 }

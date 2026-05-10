@@ -1,8 +1,14 @@
-import { deleteClientAccount, fetchCurrentUser, isUnauthorizedError, logoutClient } from "../api/auth-api.js?v=20260510a";
-import { fetchClientOrders } from "../api/orders-api.js?v=20260510a";
+import {
+  deleteClientAccount,
+  fetchCurrentUser,
+  isBackendUnavailableError,
+  isUnauthorizedError,
+  logoutClient,
+} from "../api/auth-api.js?v=20260510b";
+import { fetchClientOrders } from "../api/orders-api.js?v=20260510b";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
-import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510a";
+import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510b";
 
 const userName = document.querySelector("#cabinet-user-name");
 const userMeta = document.querySelector("#cabinet-user-meta");
@@ -71,6 +77,12 @@ async function loadOrders() {
       return;
     }
 
+    if (isBackendUnavailableError(error)) {
+      renderOrders([]);
+      setFeedback("Кабинет временно недоступен. Backend не отвечает, попробуйте позже.", true);
+      return;
+    }
+
     renderOrders([]);
     setFeedback(
       error.message || "Не удалось загрузить список заказов. Проверь backend endpoint /client/orders.",
@@ -129,6 +141,11 @@ async function ensureActiveSession() {
     if (isUnauthorizedError(error)) {
       clearSession();
       window.location.href = buildAuthUrl("login", "./cabinet.html");
+      return false;
+    }
+
+    if (isBackendUnavailableError(error)) {
+      setFeedback("Backend временно недоступен. Не удалось проверить активную сессию.", true);
       return false;
     }
 

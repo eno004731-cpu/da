@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./endpoints.js?v=20260510a";
+import { API_BASE_URL } from "./endpoints.js?v=20260510b";
 
 let csrfTokenFromBackend = null;
 const CSRF_ENDPOINT_PATH = "/auth/csrf";
