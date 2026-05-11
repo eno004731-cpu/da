@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.OrderNotFoundException;
 import my_jira.common.exception.StorageOperationException;
@@ -38,6 +39,7 @@ public class OrdersGetService {
     private final UsersRepo usersRepo;
     private final DocumentsRepo documentsRepo;
 
+    @Transactional(readOnly = true)
     public OrderRespons getOrder(Long id,String email){
         OrdersEntity order = getOwnedOrder(id, email);
 
