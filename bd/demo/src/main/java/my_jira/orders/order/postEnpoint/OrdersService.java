@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +37,7 @@ public class OrdersService {
     private final ServiceRepository serviceRepository;
     private final DocumentsRepo documentsRepo;
 
+    @Autowired
     public OrdersService(
             @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
             OrdersRepo ordersRepo,

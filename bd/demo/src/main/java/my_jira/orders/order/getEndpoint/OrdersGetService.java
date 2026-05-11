@@ -7,6 +7,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -36,6 +37,7 @@ public class OrdersGetService {
     private final UsersRepo usersRepo;
     private final DocumentsRepo documentsRepo;
 
+    @Autowired
     public OrdersGetService(
             @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
             OrdersRepo ordersRepo,
