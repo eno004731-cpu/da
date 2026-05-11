@@ -10,12 +10,12 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.ServiceNotFoundException;
 import my_jira.common.exception.StorageOperationException;
 import my_jira.common.exception.UserNotFoundException;
@@ -29,31 +29,18 @@ import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
 @Service
+@RequiredArgsConstructor
 @Transactional
 public class OrdersService {
-    private final Path uploadDir;
     private final OrdersRepo ordersRepo;
     private final UsersRepo usersRepo;
     private final ServiceRepository serviceRepository;
     private final DocumentsRepo documentsRepo;
-
-    @Autowired
-    public OrdersService(
-            @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
-            OrdersRepo ordersRepo,
-            UsersRepo usersRepo,
-            ServiceRepository serviceRepository,
-            DocumentsRepo documentsRepo
-    ) {
-        // Нормализуем путь один раз, чтобы upload и download работали с одинаковым расположением файлов.
-        this.uploadDir = Path.of(ordersUploadDir).toAbsolutePath().normalize();
-        this.ordersRepo = ordersRepo;
-        this.usersRepo = usersRepo;
-        this.serviceRepository = serviceRepository;
-        this.documentsRepo = documentsRepo;
-    }
+    @Value("${app.storage.orders-dir:uploads/orders}")
+    private String ordersUploadDir;
 
     public AnswerDto postOrder(OrdersDTO request, String email, List<MultipartFile> documents) {
+        Path uploadDir = getUploadDir();
         List<MultipartFile> safeDocuments = documents == null ? Collections.emptyList() : documents;
 
         try {
@@ -126,5 +113,10 @@ public class OrdersService {
         answerDto.setPublicCode(order.getPublicCode());
         answerDto.setStatus(order.getStatus());
         return answerDto;
+    }
+
+    private Path getUploadDir() {
+        // Путь к хранилищу конфигурируется снаружи, но сервис остаётся простым для Spring DI.
+        return Path.of(ordersUploadDir).toAbsolutePath().normalize();
     }
 }

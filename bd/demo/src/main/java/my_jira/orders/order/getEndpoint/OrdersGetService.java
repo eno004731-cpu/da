@@ -7,7 +7,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -18,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
+import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.OrderNotFoundException;
 import my_jira.common.exception.StorageOperationException;
 import my_jira.common.exception.UserNotFoundException;
@@ -30,26 +30,14 @@ import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
 @Service
+@RequiredArgsConstructor
 public class OrdersGetService {
 
-    private final Path uploadDir;
     private final OrdersRepo ordersRepo;
     private final UsersRepo usersRepo;
     private final DocumentsRepo documentsRepo;
-
-    @Autowired
-    public OrdersGetService(
-            @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
-            OrdersRepo ordersRepo,
-            UsersRepo usersRepo,
-            DocumentsRepo documentsRepo
-    ) {
-        // Используем тот же конфиг, что и при загрузке, чтобы скачивание смотрело туда же.
-        this.uploadDir = Path.of(ordersUploadDir).toAbsolutePath().normalize();
-        this.ordersRepo = ordersRepo;
-        this.usersRepo = usersRepo;
-        this.documentsRepo = documentsRepo;
-    }
+    @Value("${app.storage.orders-dir:uploads/orders}")
+    private String ordersUploadDir;
 
     @Transactional(readOnly = true)
     public OrderRespons getOrder(Long id,String email){
@@ -97,7 +85,7 @@ public class OrdersGetService {
             throw new OrderNotFoundException("Документ не найден");
         }
 
-        Path filePath = uploadDir.resolve(document.getStorageKey()).normalize();
+        Path filePath = getUploadDir().resolve(document.getStorageKey()).normalize();
         if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
             throw new StorageOperationException("Файл документа не найден в хранилище", null);
         }
@@ -139,6 +127,11 @@ public class OrdersGetService {
 
     private String buildDownloadUrl(Long orderId, Long documentId) {
         return "/api/client/orders/" + orderId + "/documents/" + documentId + "/download";
+    }
+
+    private Path getUploadDir() {
+        // Путь берём из конфига, но сам bean не усложняем кастомным конструктором.
+        return Path.of(ordersUploadDir).toAbsolutePath().normalize();
     }
 
     private String resolveMimeType(Path filePath, String storedMimeType) {
