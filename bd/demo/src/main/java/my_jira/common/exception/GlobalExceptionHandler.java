@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 // Глобальный обработчик переводит доменные ошибки в понятные HTTP-ответы.
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<ApiErrorResponse> handleDuplicateEmail(
@@ -80,6 +83,7 @@ public class GlobalExceptionHandler {
             StorageOperationException exception,
             HttpServletRequest request
     ) {
+        log.error("Ошибка файлового хранилища для запроса {}", request.getRequestURI(), exception);
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception.getMessage(),
@@ -115,6 +119,7 @@ public class GlobalExceptionHandler {
             Exception exception,
             HttpServletRequest request
     ) {
+        log.error("Необработанная ошибка для запроса {}", request.getRequestURI(), exception);
         return buildResponse(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 "Внутренняя ошибка сервера",

@@ -6,8 +6,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.http.ContentDisposition;
@@ -33,11 +33,23 @@ import my_jira.users.UsersRepo;
 @RequiredArgsConstructor
 public class OrdersGetService {
 
-    private static final Path UPLOAD_DIR = Path.of("uploads", "orders");
-    
+    private final Path uploadDir;
     private final OrdersRepo ordersRepo;
     private final UsersRepo usersRepo;
     private final DocumentsRepo documentsRepo;
+
+    public OrdersGetService(
+            @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
+            OrdersRepo ordersRepo,
+            UsersRepo usersRepo,
+            DocumentsRepo documentsRepo
+    ) {
+        // Используем тот же конфиг, что и при загрузке, чтобы скачивание смотрело туда же.
+        this.uploadDir = Path.of(ordersUploadDir).toAbsolutePath().normalize();
+        this.ordersRepo = ordersRepo;
+        this.usersRepo = usersRepo;
+        this.documentsRepo = documentsRepo;
+    }
 
     @Transactional(readOnly = true)
     public OrderRespons getOrder(Long id,String email){
@@ -85,7 +97,7 @@ public class OrdersGetService {
             throw new OrderNotFoundException("Документ не найден");
         }
 
-        Path filePath = UPLOAD_DIR.resolve(document.getStorageKey()).normalize();
+        Path filePath = uploadDir.resolve(document.getStorageKey()).normalize();
         if (!Files.exists(filePath) || !Files.isRegularFile(filePath)) {
             throw new StorageOperationException("Файл документа не найден в хранилище", null);
         }

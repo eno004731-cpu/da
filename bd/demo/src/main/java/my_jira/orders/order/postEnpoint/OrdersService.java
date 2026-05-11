@@ -1,13 +1,16 @@
 package my_jira.orders.order.postEnpoint;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -29,13 +32,28 @@ import my_jira.users.UsersRepo;
 @RequiredArgsConstructor
 @Transactional
 public class OrdersService {
+    private final Path uploadDir;
     private final OrdersRepo ordersRepo;
     private final UsersRepo usersRepo;
     private final ServiceRepository serviceRepository;
     private final DocumentsRepo documentsRepo;
 
+    public OrdersService(
+            @Value("${app.storage.orders-dir:uploads/orders}") String ordersUploadDir,
+            OrdersRepo ordersRepo,
+            UsersRepo usersRepo,
+            ServiceRepository serviceRepository,
+            DocumentsRepo documentsRepo
+    ) {
+        // Нормализуем путь один раз, чтобы upload и download работали с одинаковым расположением файлов.
+        this.uploadDir = Path.of(ordersUploadDir).toAbsolutePath().normalize();
+        this.ordersRepo = ordersRepo;
+        this.usersRepo = usersRepo;
+        this.serviceRepository = serviceRepository;
+        this.documentsRepo = documentsRepo;
+    }
+
     public AnswerDto postOrder(OrdersDTO request, String email, List<MultipartFile> documents) {
-        Path uploadDir = Path.of("uploads", "orders");
         List<MultipartFile> safeDocuments = documents == null ? Collections.emptyList() : documents;
 
         try {
@@ -84,8 +102,9 @@ public class OrdersService {
 
             String storageKey = UUID.randomUUID().toString() + extension;
             Path targetPath = uploadDir.resolve(storageKey);
-            try {
-                file.transferTo(targetPath.toFile());
+            try (InputStream inputStream = file.getInputStream()) {
+                // Сохраняем поток явно через NIO: на сервере это стабильнее, чем transferTo(...).
+                Files.copy(inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException error) {
                 throw new StorageOperationException("Не удалось сохранить файл " + targetPath, error);
             }

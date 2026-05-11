@@ -31,6 +31,12 @@ spring:
 server:
   port: 8080
 
+app:
+  storage:
+    # Папка для документов заказов. По умолчанию остаётся внутри проекта, но путь теперь можно
+    # переопределить через APP_STORAGE_ORDERS_DIR или в systemd env без правки Java-кода.
+    orders-dir: ${APP_STORAGE_ORDERS_DIR:uploads/orders}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
