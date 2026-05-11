@@ -1,4 +1,4 @@
-package my_jira.orders.order;
+package my_jira.orders.order.postEnpoint;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -18,6 +18,8 @@ import my_jira.common.exception.StorageOperationException;
 import my_jira.common.exception.UserNotFoundException;
 import my_jira.orders.documentss.DocumentsRepo;
 import my_jira.orders.documentss.OrdersDocuments;
+import my_jira.orders.order.OrdersEntity;
+import my_jira.orders.order.OrdersRepo;
 import my_jira.services.ServiceEntity;
 import my_jira.services.ServiceRepository;
 import my_jira.users.UsersEntity;

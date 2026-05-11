@@ -12,11 +12,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 
 import jakarta.persistence.Table;
+import lombok.Getter;
 import my_jira.orders.order.OrdersEntity;
 import my_jira.users.UsersEntity;
 
 @Entity
 @Table(name = "orders_documents")
+@Getter
 public class OrdersDocuments {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -1,4 +1,4 @@
-package my_jira.users;
+package my_jira.users.userLogin;
 
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -7,6 +7,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import my_jira.users.UsersEntity;
+import my_jira.users.UsersRepo;
 @Service
 @RequiredArgsConstructor
 class UsersDetailService implements UserDetailsService {

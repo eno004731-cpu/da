@@ -39,6 +39,18 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(OrderNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleOrderNotFound(
+            OrderNotFoundException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                request.getRequestURI()
+        );
+    }
+
     @ExceptionHandler(ServiceNotFoundException.class)
     public ResponseEntity<ApiErrorResponse> handleServiceNotFound(
             ServiceNotFoundException exception,

@@ -1,4 +1,4 @@
-package my_jira.users.servletConfig;
+package my_jira.servletConfig;
 
 import java.util.Map;
 

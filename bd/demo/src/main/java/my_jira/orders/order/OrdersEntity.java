@@ -36,8 +36,8 @@ public class OrdersEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_to_user_id")
-    
     private UsersEntity assignedToUser;
+
     @Column(name="title",length = 255,nullable = false)
     private String title ;
     @Column(name = "description")

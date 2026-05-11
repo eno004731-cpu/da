@@ -1,0 +1,8 @@
+.git
+.github
+.idea
+.vscode
+target
+uploads
+postgres_data
+.DS_Store

@@ -1,4 +1,4 @@
-package my_jira.orders.order;
+package my_jira.orders.order.postEnpoint;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

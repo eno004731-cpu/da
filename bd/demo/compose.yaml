@@ -1,16 +1,41 @@
 services:
   app:
-    # Собираем образ из Dockerfile
     build: .
-
-    # Имя контейнера
-    container_name: site-app
-
-    # Пробрасываем порт
+    container_name: legal-backend-app
     ports:
       - "8080:8080"
-
-    # Автоматически перезапускать контейнер
+    environment:
+      # В контейнере база живёт не на localhost, а в сервисе db.
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/legal_crm
+      SPRING_DATASOURCE_USERNAME: legal_user
+      SPRING_DATASOURCE_PASSWORD: legal_pass
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Отдельный volume нужен, чтобы загруженные документы
+      # не терялись при пересоздании контейнера.
+      - backend_uploads:/app/uploads
     restart: unless-stopped
 
+  db:
+    image: postgres:16
+    container_name: legal-backend-db
+    environment:
+      POSTGRES_DB: legal_crm
+      POSTGRES_USER: legal_user
+      POSTGRES_PASSWORD: legal_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legal_user -d legal_crm"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
 
+volumes:
+  postgres_data:
+  backend_uploads:

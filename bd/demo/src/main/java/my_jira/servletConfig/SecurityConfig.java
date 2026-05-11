@@ -1,4 +1,4 @@
-package my_jira.users.servletConfig;
+package my_jira.servletConfig;
 
 // Говорим Spring, что это конфигурационный класс
 import org.springframework.context.annotation.Bean;

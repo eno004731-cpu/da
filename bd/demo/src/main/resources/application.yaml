@@ -3,9 +3,11 @@ spring:
     name: legal-services-demo
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/legal_crm
-    username: legal_user
-    password: legal_pass
+    # По умолчанию локальный запуск остаётся как раньше.
+    # В Docker эти значения удобно переопределять через env.
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/legal_crm}
+    username: ${SPRING_DATASOURCE_USERNAME:legal_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:legal_pass}
     driver-class-name: org.postgresql.Driver
 
   jpa:
@@ -33,4 +35,3 @@ logging:
   level:
     org.hibernate.SQL: DEBUG
     org.springframework.security: DEBUG
-

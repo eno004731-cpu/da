@@ -1,4 +1,4 @@
-package my_jira.orders.order;
+package my_jira.orders.order.postEnpoint;
 
 public class OrdersDTO {
     private String serviceCode;
