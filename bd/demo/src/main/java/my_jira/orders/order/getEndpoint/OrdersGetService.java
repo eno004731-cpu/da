@@ -17,7 +17,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.OrderNotFoundException;
 import my_jira.common.exception.StorageOperationException;
 import my_jira.common.exception.UserNotFoundException;
@@ -30,7 +29,6 @@ import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
 @Service
-@RequiredArgsConstructor
 public class OrdersGetService {
 
     private final Path uploadDir;

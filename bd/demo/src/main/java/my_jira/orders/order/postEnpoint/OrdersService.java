@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.ServiceNotFoundException;
 import my_jira.common.exception.StorageOperationException;
 import my_jira.common.exception.UserNotFoundException;
@@ -29,7 +28,6 @@ import my_jira.users.UsersEntity;
 import my_jira.users.UsersRepo;
 
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class OrdersService {
     private final Path uploadDir;
