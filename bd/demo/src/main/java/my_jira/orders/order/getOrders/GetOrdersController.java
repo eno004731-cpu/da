@@ -14,7 +14,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class GetOrdersController {
     private final GetOrdersService getOrdersService;
-    @GetMapping("/orders")
+    @GetMapping
     public List< ClientOrders> getOrders(Authentication authentication){
 
         String email = authentication.getName();
