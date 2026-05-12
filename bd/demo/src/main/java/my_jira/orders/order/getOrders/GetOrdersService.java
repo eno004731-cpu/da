@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+
 import lombok.RequiredArgsConstructor;
 import my_jira.common.exception.OrderNotFoundException;
 import my_jira.common.exception.UserNotFoundException;
@@ -23,6 +24,7 @@ public class GetOrdersService {
     private final UsersRepo usersRepo;
     private final OrdersRepo ordersRepo;
     private final ServiceRepository serviceRepository;
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public List<ClientOrders> getOrders(String email){
 
         UsersEntity user = usersRepo.findByEmail(email)
