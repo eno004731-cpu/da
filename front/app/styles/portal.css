@@ -320,9 +320,19 @@ body.portal-body {
   color: #7c3f33;
 }
 
+.status-pill[data-status="ON_REVIEW"] {
+  background: rgba(242, 178, 74, 0.16);
+  color: #82561c;
+}
+
 .status-pill[data-status="DONE"] {
   background: rgba(41, 87, 60, 0.14);
   color: #25513a;
+}
+
+.status-pill[data-status="REJECTED"] {
+  background: rgba(143, 79, 65, 0.18);
+  color: #7a3426;
 }
 
 .text-link {
@@ -384,6 +394,12 @@ body.portal-body {
   border-color: rgba(143, 79, 65, 0.2);
 }
 
+.timeline-pill[data-state="rejected"] {
+  background: rgba(143, 79, 65, 0.16);
+  color: #7a3426;
+  border-color: rgba(143, 79, 65, 0.24);
+}
+
 .documents-list,
 .portal-panel-stack {
   display: grid;
@@ -432,6 +448,65 @@ body.portal-body {
 .portal-section-title {
   margin: 0 0 14px;
   font-size: 1.1rem;
+}
+
+.portal-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.portal-modal-open {
+  overflow: hidden;
+}
+
+.portal-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(10, 17, 13, 0.48);
+  backdrop-filter: blur(10px);
+  z-index: 20;
+}
+
+.portal-modal {
+  width: min(720px, calc(100vw - 24px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  border-radius: 20px;
+  border: 1px solid rgba(20, 32, 23, 0.08);
+  background: var(--portal-surface);
+  color: var(--portal-text);
+  box-shadow: var(--portal-shadow);
+  padding: 24px;
+}
+
+.portal-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.portal-modal-close {
+  appearance: none;
+  border: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(20, 32, 23, 0.06);
+  color: var(--portal-text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.portal-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
 }
 
 .auth-hero-points {
@@ -486,6 +561,11 @@ body.portal-body {
     justify-content: center;
     text-align: center;
     flex: 1 1 0;
+  }
+
+  .portal-action-row,
+  .portal-modal-actions {
+    flex-direction: column;
   }
 }
 

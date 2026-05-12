@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Философия Бизнеса — Kanban Board</title>
-    <link rel="stylesheet" href="./minisite.css?v=20260501b" />
+    <link rel="stylesheet" href="./minisite.css?v=20260512a" />
   </head>
   <body>
     <div class="board-shell">
@@ -38,7 +38,7 @@
           <p class="sidebar-label">Синхронизация</p>
           <p class="sidebar-copy">
             Доска читает задачи из Spring API. Новые заявки попадают в колонку <strong>To Do</strong>,
-            а возврат клиента на исправление отправляет задачу в <strong>Rework</strong>.
+            а статус <strong>В проверке</strong> и отклонение управляются отдельными staff-action'ами.
           </p>
           <button class="ghost-button" id="refresh-board" type="button">Обновить доску</button>
         </div>
@@ -79,9 +79,84 @@
           <span class="task-badge"></span>
         </div>
         <p class="task-rework-note" hidden></p>
+        <div class="task-card-actions">
+          <button class="task-action-button" data-task-action="edit" type="button">Редактировать</button>
+          <button class="task-action-button" data-task-action="reject" type="button">Отклонить</button>
+          <button class="task-action-button task-action-button--danger" data-task-action="delete" type="button">
+            Удалить
+          </button>
+        </div>
       </article>
     </template>
 
-    <script type="module" src="./minisite.js?v=20260501b"></script>
+    <div class="board-modal-backdrop" id="board-edit-modal" hidden>
+      <div class="board-modal" role="dialog" aria-modal="true" aria-labelledby="board-edit-title">
+        <div class="board-modal-head">
+          <div>
+            <p class="eyebrow">Заявка</p>
+            <h2 id="board-edit-title">Редактировать заявку</h2>
+          </div>
+          <button class="board-modal-close" id="board-edit-close" type="button" aria-label="Закрыть окно">×</button>
+        </div>
+
+        <form class="board-form" id="board-edit-form">
+          <label class="board-form-field">
+            <span>Код услуги</span>
+            <input id="board-edit-service-code" type="text" required />
+          </label>
+
+          <label class="board-form-field">
+            <span>Имя клиента</span>
+            <input id="board-edit-client-name" type="text" required />
+          </label>
+
+          <label class="board-form-field">
+            <span>Контакт</span>
+            <input id="board-edit-contact" type="text" required />
+          </label>
+
+          <label class="board-form-field">
+            <span>Компания</span>
+            <input id="board-edit-company-name" type="text" />
+          </label>
+
+          <label class="board-form-field">
+            <span>Описание</span>
+            <textarea id="board-edit-description" rows="6" required></textarea>
+          </label>
+
+          <div class="board-form-actions">
+            <button class="ghost-button" id="board-edit-cancel" type="button">Отмена</button>
+            <button class="primary-button" id="board-edit-submit" type="submit">Сохранить</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="board-modal-backdrop" id="board-reject-modal" hidden>
+      <div class="board-modal" role="dialog" aria-modal="true" aria-labelledby="board-reject-title">
+        <div class="board-modal-head">
+          <div>
+            <p class="eyebrow">Отклонение</p>
+            <h2 id="board-reject-title">Отклонить заявку</h2>
+          </div>
+          <button class="board-modal-close" id="board-reject-close" type="button" aria-label="Закрыть окно">×</button>
+        </div>
+
+        <form class="board-form" id="board-reject-form">
+          <label class="board-form-field">
+            <span>Причина отклонения</span>
+            <textarea id="board-reject-reason" rows="6" required></textarea>
+          </label>
+
+          <div class="board-form-actions">
+            <button class="ghost-button" id="board-reject-cancel" type="button">Отмена</button>
+            <button class="primary-button" id="board-reject-submit" type="submit">Отклонить заявку</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="./minisite.js?v=20260512a"></script>
   </body>
 </html>

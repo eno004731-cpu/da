@@ -43,6 +43,8 @@ function normalizeTask(task = {}) {
     title: task.title || "Задача без названия",
     clientName: task.clientName || "Клиент не указан",
     contact: task.contact || task.clientContact || "Контакт не указан",
+    companyName: task.companyName || null,
+    serviceCode: task.serviceCode || null,
     serviceType: task.serviceType || task.serviceName || "Услуга не указана",
     description: task.description || task.problemDescription || "",
     status: normalizeOrderStatus(task.status || task.statusCode || "TODO"),
@@ -52,6 +54,13 @@ function normalizeTask(task = {}) {
     priority: task.priority || "MEDIUM",
     clientRevisionComment: task.clientRevisionComment || null,
     clientRevisionRequestedAt: task.clientRevisionRequestedAt || null,
+    rejectionReason:
+      task.rejectionReason ||
+      task.rejectedReason ||
+      task.rejectionComment ||
+      task.rejectedComment ||
+      null,
+    rejectedAt: task.rejectedAt || null,
     revisionCount: Number(task.revisionCount ?? 0),
     documents: Array.isArray(task.documents) ? task.documents.map(normalizeDocument) : [],
     comments: Array.isArray(task.comments) ? task.comments.map(normalizeComment) : [],
@@ -96,6 +105,30 @@ export async function updateStaffTaskStatus(taskId, status) {
   });
 
   return normalizeTask(payload);
+}
+
+export async function updateStaffTask(taskId, body) {
+  const payload = await jsonRequest(ENDPOINTS.staff.boardTaskUpdate(taskId), {
+    method: "PATCH",
+    body,
+  });
+
+  return normalizeTask(payload);
+}
+
+export async function rejectStaffTask(taskId, reason) {
+  const payload = await jsonRequest(ENDPOINTS.staff.boardTaskReject(taskId), {
+    method: "POST",
+    body: { reason },
+  });
+
+  return normalizeTask(payload);
+}
+
+export async function deleteStaffTask(taskId) {
+  return request(ENDPOINTS.staff.boardTaskDelete(taskId), {
+    method: "DELETE",
+  });
 }
 
 export async function addStaffTaskComment(taskId, body) {

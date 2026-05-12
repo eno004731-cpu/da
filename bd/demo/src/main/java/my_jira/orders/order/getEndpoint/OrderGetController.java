@@ -13,8 +13,8 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/client/orders")
-public class OrdersGetController {
-    private final OrdersGetService ordersGetService;
+public class OrderGetController {
+    private final OrderGetService ordersGetService;
     @GetMapping("/{id}")
     public OrderRespons getOrder(@PathVariable Long id,Authentication authentication){
         String email= authentication.getName();

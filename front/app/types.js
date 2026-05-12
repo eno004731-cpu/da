@@ -8,7 +8,7 @@
  */
 
 /**
- * @typedef {"TODO" | "IN_PROGRESS" | "ON_REVIEW" | "REWORK" | "DONE"} OrderStatusCode
+ * @typedef {"TODO" | "IN_PROGRESS" | "ON_REVIEW" | "REWORK" | "DONE" | "REJECTED"} OrderStatusCode
  */
 
 /**
@@ -68,12 +68,17 @@
  * @property {string} title
  * @property {string} serviceCode
  * @property {string} serviceName
+ * @property {string | null} clientName
+ * @property {string | null} contact
+ * @property {string | null} companyName
  * @property {string} problemDescription
  * @property {OrderStatusCode} status
  * @property {string} createdAt
  * @property {string} updatedAt
  * @property {string | null} clientRevisionComment
  * @property {string | null} clientRevisionRequestedAt
+ * @property {string | null} rejectionReason
+ * @property {string | null} rejectedAt
  * @property {number} revisionCount
  * @property {UploadedDocument[]} documents
  */
@@ -145,9 +150,13 @@
  * @property {string} createdAt
  * @property {string} updatedAt
  * @property {string | null} assignedTo
+ * @property {string | null} companyName
+ * @property {string | null} serviceCode
  * @property {PriorityCode} priority
  * @property {string | null} clientRevisionComment
  * @property {string | null} clientRevisionRequestedAt
+ * @property {string | null} rejectionReason
+ * @property {string | null} rejectedAt
  * @property {number} revisionCount
  * @property {UploadedDocument[]} documents
  * @property {TeamComment[]} comments

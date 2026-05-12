@@ -1,25 +1,28 @@
 export const ORDER_STATUS_LABELS = {
-  TODO: "To Do",
-  NEW: "To Do",
-  IN_PROGRESS: "In Progress",
-  ON_REVIEW: "In Progress",
-  REVIEW: "In Progress",
+  TODO: "Новая",
+  NEW: "Новая",
+  IN_PROGRESS: "В работе",
+  ON_REVIEW: "В проверке",
+  REVIEW: "В проверке",
   REWORK: "На доработке",
   DONE: "Завершено",
+  REJECTED: "Отклонено",
 };
 
 export const ORDER_STATUS_TIMELINE = [
-  { code: "TODO", label: "To Do" },
-  { code: "IN_PROGRESS", label: "In Progress" },
+  { code: "TODO", label: "Новая" },
+  { code: "IN_PROGRESS", label: "В работе" },
+  { code: "ON_REVIEW", label: "В проверке" },
   { code: "REWORK", label: "На доработке" },
-  { code: "DONE", label: "Done" },
+  { code: "DONE", label: "Завершено" },
 ];
 
 export const ORDER_STATUS_COLUMNS = [
-  { code: "TODO", title: "To Do", accent: "#4e8cff" },
-  { code: "IN_PROGRESS", title: "In Progress", accent: "#3fb884" },
-  { code: "REWORK", title: "Rework", accent: "#b27cff" },
-  { code: "DONE", title: "Done", accent: "#76879b" },
+  { code: "TODO", title: "Новые", accent: "#4e8cff" },
+  { code: "IN_PROGRESS", title: "В работе", accent: "#3fb884" },
+  { code: "ON_REVIEW", title: "В проверке", accent: "#f2b24a" },
+  { code: "REWORK", title: "На доработке", accent: "#b27cff" },
+  { code: "DONE", title: "Завершено", accent: "#76879b" },
 ];
 
 export function getOrderStatusLabel(status) {
@@ -31,6 +34,15 @@ export function isCompletedStatus(status) {
   return normalizeOrderStatus(status) === "DONE";
 }
 
+export function isRejectedStatus(status) {
+  return normalizeOrderStatus(status) === "REJECTED";
+}
+
+export function isUnavailableDocumentStatus(status) {
+  const normalizedStatus = normalizeOrderStatus(status);
+  return normalizedStatus === "DONE" || normalizedStatus === "REJECTED";
+}
+
 export function isReworkStatus(status) {
   return normalizeOrderStatus(status) === "REWORK";
 }
@@ -40,8 +52,8 @@ export function normalizeOrderStatus(status) {
     return "TODO";
   }
 
-  if (status === "REVIEW" || status === "ON_REVIEW") {
-    return "IN_PROGRESS";
+  if (status === "REVIEW") {
+    return "ON_REVIEW";
   }
 
   return status;

@@ -288,7 +288,7 @@ textarea {
 
 .kanban-columns {
   display: grid;
-  grid-template-columns: repeat(4, minmax(272px, 1fr));
+  grid-template-columns: repeat(5, minmax(272px, 1fr));
   gap: 16px;
   overflow-x: auto;
   align-items: start;
@@ -434,6 +434,31 @@ textarea {
   font-size: 0.85rem;
 }
 
+.task-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(173, 192, 216, 0.08);
+}
+
+.task-action-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(173, 192, 216, 0.18);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.task-action-button--danger {
+  color: #ffdce0;
+  border-color: rgba(239, 95, 103, 0.28);
+  background: rgba(239, 95, 103, 0.12);
+}
+
 .empty-column {
   padding: 16px;
   border-radius: 10px;
@@ -470,9 +495,19 @@ textarea {
   background: rgba(178, 124, 255, 0.18);
 }
 
+.detail-status[data-status="ON_REVIEW"] {
+  color: #fff2d7;
+  background: rgba(242, 178, 74, 0.18);
+}
+
 .detail-status[data-status="DONE"] {
   color: #d8e4da;
   background: rgba(118, 135, 155, 0.18);
+}
+
+.detail-status[data-status="REJECTED"] {
+  color: #ffdce0;
+  background: rgba(239, 95, 103, 0.18);
 }
 
 .detail-meta-grid {
@@ -640,6 +675,96 @@ textarea {
   font-weight: 700;
 }
 
+.board-modal-open {
+  overflow: hidden;
+}
+
+.board-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(4, 10, 18, 0.64);
+  backdrop-filter: blur(10px);
+  z-index: 30;
+}
+
+.board-modal {
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100vh - 40px);
+  overflow: auto;
+  padding: 22px;
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(17, 28, 42, 0.98), rgba(10, 18, 30, 1));
+  box-shadow: var(--shadow);
+}
+
+.board-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.board-modal-close {
+  appearance: none;
+  border: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.board-form {
+  display: grid;
+  gap: 16px;
+}
+
+.board-form-field {
+  display: grid;
+  gap: 8px;
+}
+
+.board-form-field span {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.board-form-field input,
+.board-form-field textarea {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  outline: none;
+  padding: 12px 14px;
+  font: inherit;
+}
+
+.board-form-field textarea {
+  resize: vertical;
+  min-height: 140px;
+}
+
+.board-form-field input:focus,
+.board-form-field textarea:focus {
+  border-color: rgba(78, 140, 255, 0.56);
+  box-shadow: 0 0 0 4px rgba(78, 140, 255, 0.12);
+}
+
+.board-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
 @media (max-width: 1100px) {
   .board-shell {
     grid-template-columns: 1fr;
@@ -665,6 +790,11 @@ textarea {
 
   .document-item {
     align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .task-card-actions,
+  .board-form-actions {
     flex-direction: column;
   }
 }

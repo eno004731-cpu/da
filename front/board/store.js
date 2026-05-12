@@ -8,6 +8,7 @@ export function createBoardStore() {
       search: "",
       assignee: "ALL",
     },
+    activeTaskId: null,
     draggingTaskId: null,
     syncState: "idle",
     errorMessage: "",

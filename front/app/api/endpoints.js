@@ -22,13 +22,18 @@ export const ENDPOINTS = {
     applications: "/client/applications",
     orders: "/client/orders",
     orderDetails: (orderId) => `/client/orders/${encodeURIComponent(orderId)}`,
+    orderUpdate: (orderId) => `/client/orders/${encodeURIComponent(orderId)}`,
+    orderDelete: (orderId) => `/client/orders/${encodeURIComponent(orderId)}`,
     orderRework: (orderId) => `/client/orders/${encodeURIComponent(orderId)}/rework`,
     orderDocuments: (orderId) => `/client/orders/${encodeURIComponent(orderId)}/documents`,
   },
   staff: {
     boardTasks: "/staff/board/tasks",
     boardTaskDetails: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}`,
+    boardTaskUpdate: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}`,
     boardTaskStatus: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}/status`,
+    boardTaskReject: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}/reject`,
+    boardTaskDelete: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}`,
     boardTaskComments: (taskId) => `/staff/board/tasks/${encodeURIComponent(taskId)}/comments`,
   },
 };

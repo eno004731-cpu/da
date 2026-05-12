@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Философия Бизнеса — Заказ</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./app/styles/portal.css?v=20260510b" />
-    <script type="module" src="./app/pages/order-page.js?v=20260510b"></script>
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260512a" />
+    <script type="module" src="./app/pages/order-page.js?v=20260512a"></script>
   </head>
   <body class="portal-body">
     <div class="portal-page">
@@ -62,12 +62,29 @@
                 <p class="portal-copy" id="order-description"></p>
               </div>
 
+              <div class="info-panel" id="order-rejected-card" hidden>
+                <div>
+                  <strong>Решение юриста</strong>
+                  <span id="order-rejected-reason"></span>
+                </div>
+                <span id="order-rejected-date"></span>
+              </div>
+
               <div class="info-panel" id="last-rework-card" hidden>
                 <div>
                   <strong>Последнее замечание клиента</strong>
                   <span id="last-rework-comment"></span>
                 </div>
                 <span id="last-rework-date"></span>
+              </div>
+
+              <div class="portal-action-row">
+                <button class="portal-button portal-button--primary" id="order-edit-button" type="button">
+                  Редактировать заявку
+                </button>
+                <button class="portal-button portal-button--danger" id="order-delete-button" type="button">
+                  Удалить заявку
+                </button>
               </div>
             </section>
           </div>
@@ -92,7 +109,7 @@
             </div>
           </section>
 
-          <section class="portal-card">
+          <section class="portal-card" id="client-rework-section">
             <div class="portal-card-inner">
               <p class="portal-eyebrow">Доработка</p>
               <h2 class="portal-section-title">Вернуть юристу на исправление</h2>
@@ -119,6 +136,54 @@
           </section>
         </aside>
       </main>
+    </div>
+
+    <div class="portal-modal-backdrop" id="order-edit-modal" hidden>
+      <div class="portal-modal" role="dialog" aria-modal="true" aria-labelledby="order-edit-modal-title">
+        <div class="portal-modal-head">
+          <div>
+            <p class="portal-eyebrow">Редактирование</p>
+            <h2 class="portal-section-title" id="order-edit-modal-title">Изменить заявку</h2>
+          </div>
+          <button class="portal-modal-close" id="order-edit-close" type="button" aria-label="Закрыть окно">
+            ×
+          </button>
+        </div>
+
+        <form class="portal-form" id="order-edit-form">
+          <div class="portal-field">
+            <label for="order-edit-service">Услуга</label>
+            <select class="portal-select" id="order-edit-service" required></select>
+          </div>
+
+          <div class="portal-field">
+            <label for="order-edit-client-name">Имя клиента</label>
+            <input class="portal-input" id="order-edit-client-name" type="text" />
+          </div>
+
+          <div class="portal-field">
+            <label for="order-edit-contact">Контакт</label>
+            <input class="portal-input" id="order-edit-contact" type="text" />
+          </div>
+
+          <div class="portal-field">
+            <label for="order-edit-company-name">Компания</label>
+            <input class="portal-input" id="order-edit-company-name" type="text" />
+          </div>
+
+          <div class="portal-field">
+            <label for="order-edit-description">Описание</label>
+            <textarea class="portal-textarea" id="order-edit-description" rows="6" required></textarea>
+          </div>
+
+          <div class="portal-modal-actions">
+            <button class="portal-button" id="order-edit-cancel" type="button">Отмена</button>
+            <button class="portal-button portal-button--primary" id="order-edit-submit" type="submit">
+              Сохранить изменения
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   </body>
 </html>

@@ -31,7 +31,7 @@ import my_jira.users.UsersRepo;
 
 @Service
 @RequiredArgsConstructor
-public class OrdersGetService {
+public class OrderGetService {
 
     private final OrdersRepo ordersRepo;
     private final UsersRepo usersRepo;

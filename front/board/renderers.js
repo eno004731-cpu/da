@@ -37,7 +37,17 @@ export function renderStatusLegend(node, tasks) {
   ).join("");
 }
 
-export function renderColumns({ container, tasks, selectedTaskId, onTaskSelect, onTaskDragStart, onTaskDragEnd }) {
+export function renderColumns({
+  container,
+  tasks,
+  selectedTaskId,
+  onTaskSelect,
+  onTaskDragStart,
+  onTaskDragEnd,
+  onTaskEdit,
+  onTaskReject,
+  onTaskDelete,
+}) {
   container.innerHTML = "";
 
   BOARD_COLUMNS.forEach((column) => {
@@ -82,6 +92,19 @@ export function renderColumns({ container, tasks, selectedTaskId, onTaskSelect, 
         reworkNote.hidden = false;
         reworkNote.textContent = `Клиент вернул на доработку: ${truncate(task.clientRevisionComment, 84)}`;
       }
+
+      card.querySelector('[data-task-action="edit"]')?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onTaskEdit(task.id);
+      });
+      card.querySelector('[data-task-action="reject"]')?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onTaskReject(task.id);
+      });
+      card.querySelector('[data-task-action="delete"]')?.addEventListener("click", (event) => {
+        event.stopPropagation();
+        onTaskDelete(task.id);
+      });
 
       card.addEventListener("click", () => onTaskSelect(task.id));
       card.addEventListener("dragstart", () => onTaskDragStart(task.id));

@@ -5,7 +5,7 @@ import {
   isUnauthorizedError,
   logoutClient,
 } from "../api/auth-api.js?v=20260510b";
-import { fetchClientOrders } from "../api/orders-api.js?v=20260510b";
+import { fetchClientOrders } from "../api/orders-api.js?v=20260512a";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
 import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510b";
@@ -18,6 +18,8 @@ const ordersList = document.querySelector("#cabinet-orders-list");
 const emptyState = document.querySelector("#cabinet-empty-state");
 const feedbackNode = document.querySelector("#cabinet-feedback");
 const totalOrders = document.querySelector("#cabinet-total-orders");
+const pageParams = new URLSearchParams(window.location.search);
+const orderDeletedFlash = pageParams.get("orderDeleted") === "1";
 
 function setFeedback(message = "", isError = false) {
   if (!feedbackNode) {
@@ -69,7 +71,7 @@ async function loadOrders() {
   try {
     const orders = await fetchClientOrders();
     renderOrders(orders);
-    setFeedback("");
+    setFeedback(orderDeletedFlash ? "Заявка удалена. Список заказов обновлён." : "");
   } catch (error) {
     if (isUnauthorizedError(error)) {
       clearSession();
@@ -158,6 +160,10 @@ async function init() {
   const sessionIsActive = await ensureActiveSession();
   if (!sessionIsActive) {
     return;
+  }
+
+  if (orderDeletedFlash) {
+    setFeedback("Заявка удалена. Список заказов обновлён.");
   }
 
   renderUser();
