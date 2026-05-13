@@ -1,5 +1,5 @@
-import { ENDPOINTS } from "./endpoints.js?v=20260512a";
-import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512a";
+import { ENDPOINTS } from "./endpoints.js?v=20260512b";
+import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512b";
 import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
 
 function normalizeDocument(documentItem = {}) {

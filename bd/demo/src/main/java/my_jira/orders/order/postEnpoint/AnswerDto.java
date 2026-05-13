@@ -9,6 +9,10 @@ import lombok.Setter;
 @RequiredArgsConstructor
 public class AnswerDto {
     private Long orderId;
+    private String clientName;
+    private String contact;
+    private String companyName;
     private String status;
     private String publicCode;
+    // private List<String> errors;
 }

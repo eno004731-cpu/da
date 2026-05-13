@@ -1,6 +1,7 @@
 package my_jira.common.exception;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -91,6 +92,19 @@ public class GlobalExceptionHandler {
         );
     }
 
+    @ExceptionHandler(FileValidationException.class)
+    public ResponseEntity<ApiErrorResponse> handleFileValidation(
+            FileValidationException exception,
+            HttpServletRequest request
+    ) {
+        return buildResponse(
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                request.getRequestURI(),
+                exception.getErrors()
+        );
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiErrorResponse> handleValidation(
             MethodArgumentNotValidException exception,
@@ -132,12 +146,22 @@ public class GlobalExceptionHandler {
             String message,
             String path
     ) {
+        return buildResponse(status, message, path, null);
+    }
+
+    private ResponseEntity<ApiErrorResponse> buildResponse(
+            HttpStatus status,
+            String message,
+            String path,
+            List<String> details
+    ) {
         ApiErrorResponse response = new ApiErrorResponse(
                 LocalDateTime.now(),
                 status.value(),
                 status.getReasonPhrase(),
                 message,
-                path
+                path,
+                details
         );
 
         return ResponseEntity.status(status).body(response);

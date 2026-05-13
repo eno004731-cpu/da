@@ -1,4 +1,4 @@
-import { createClientApplication } from "./app/api/orders-api.js?v=20260510b";
+import { createClientApplication } from "./app/api/orders-api.js?v=20260512b";
 import {
   checkBackendAvailability,
   fetchCurrentUser,

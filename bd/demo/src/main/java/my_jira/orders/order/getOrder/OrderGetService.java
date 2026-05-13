@@ -1,4 +1,4 @@
-package my_jira.orders.order.getEndpoint;
+package my_jira.orders.order.getOrder;
 
 import java.net.MalformedURLException;
 import java.net.URLConnection;

@@ -46,11 +46,22 @@ async function parseResponse(response) {
   const payload = isJson ? await response.json().catch(() => null) : await response.text();
 
   if (!response.ok) {
-    const message =
+    const details =
+      isJson && Array.isArray(payload?.details)
+        ? payload.details.filter(Boolean)
+        : isJson && Array.isArray(payload?.errors)
+          ? payload.errors.filter(Boolean)
+          : [];
+    const detailsMessage = details.join("\n");
+    const baseMessage =
       (isJson && payload?.message) ||
       (isJson && payload?.error) ||
       (typeof payload === "string" && payload) ||
       `Request failed with status ${response.status}`;
+    const message =
+      detailsMessage && baseMessage && baseMessage !== detailsMessage
+        ? `${baseMessage}\n${detailsMessage}`
+        : detailsMessage || baseMessage;
 
     const error = new Error(message);
     error.status = response.status;

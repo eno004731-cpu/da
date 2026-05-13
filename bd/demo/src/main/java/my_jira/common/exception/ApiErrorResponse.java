@@ -1,6 +1,7 @@
 package my_jira.common.exception;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 // Единый формат ошибки для REST API.
 public record ApiErrorResponse(
@@ -8,6 +9,7 @@ public record ApiErrorResponse(
         int status,
         String error,
         String message,
-        String path
+        String path,
+        List<String> details
 ) {
 }

@@ -1,4 +1,4 @@
-package my_jira.orders.order.getEndpoint;
+package my_jira.orders.order.getOrder;
 
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
