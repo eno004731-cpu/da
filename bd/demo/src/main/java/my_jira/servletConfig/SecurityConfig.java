@@ -22,7 +22,7 @@ import org.springframework.security.web.session.HttpSessionEventPublisher;
 import static jakarta.servlet.DispatcherType.ERROR;
 import static jakarta.servlet.DispatcherType.FORWARD;
 
-import java.time.LocalDateTime;
+
 
 @Configuration
 public class SecurityConfig {
@@ -72,7 +72,7 @@ public class SecurityConfig {
     )
                 .sessionManagement((session) -> session
                 // Разрешаем только одну активную сессию на пользователя
-                .maximumSessions(1)
+                .maximumSessions(4)
             )
             .logout((logout) -> logout
             // URL для выхода

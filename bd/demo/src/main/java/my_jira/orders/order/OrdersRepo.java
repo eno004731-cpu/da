@@ -1,6 +1,7 @@
 package my_jira.orders.order;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,5 +22,16 @@ public interface OrdersRepo extends JpaRepository<OrdersEntity, Long>{
     where o.clientUser = :user
 """)
 List<OrdersEntity> findAllByClientUserWithService(@Param("user") UsersEntity user);
+    @Query("""
+            select o
+            from OrdersEntity o
+            join fetch o.clientUser
+            where o.id = :id and o.clientUser = :user
+            """)
+    Optional< OrdersEntity> findByIdAndClientUser(@Param("id") Long id,
+        @Param("user") UsersEntity user);
+
+
+    
 
 }

@@ -15,5 +15,5 @@ public interface DocumentsRepo extends JpaRepository<OrdersDocuments,Long> {
     // Ищем конкретный документ только внутри конкретного заказа,
     // чтобы нельзя было скачать чужой файл по одному documentId.
     Optional<OrdersDocuments> findByIdAndOrder(Long id, OrdersEntity order);
-
+    void deleteAllByOrder(OrdersEntity id);
 }

@@ -94,7 +94,9 @@ public class OrdersService {
         ordersRepo.save(order);
 
         List<Path> savedFiles = new ArrayList<>();
+        List<OrdersDocuments> documentsForSave= new ArrayList<>();
         try {
+
             for (MultipartFile file : safeDocuments) {
                 if (file == null || file.isEmpty()) {
                     continue;
@@ -125,8 +127,9 @@ public class OrdersService {
                 document.setOriginalFileName(originalName == null ? storageKey : originalName);
                 document.setStorageKey(storageKey);
                 document.setCreatedAt(now);
-                documentsRepo.save(document);
+                documentsForSave.add(document);
             }
+            documentsRepo.saveAll(documentsForSave);
         } catch (IOException error) {
             cleanupSavedFiles(savedFiles);
             throw new StorageOperationException("Не удалось сохранить один из файлов заявки", error);
