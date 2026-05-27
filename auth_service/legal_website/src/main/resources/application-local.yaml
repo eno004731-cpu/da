@@ -1,0 +1,12 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/legal_auth
+    username: legal_user
+    password: legal_pass
+
+jwt:
+  # Локальный fallback для разработки на своём компьютере.
+  # На сервере и в реальном окружении секрет должен приходить из env/.env.
+  secret: 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+  access-minutes: 15
+  refresh-days: 30

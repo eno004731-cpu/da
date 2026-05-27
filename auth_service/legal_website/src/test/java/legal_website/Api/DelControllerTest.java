@@ -1,0 +1,43 @@
+package legal_website.Api;
+
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import legal_website.Services.auth.DelService;
+import legal_website.common.GlobalExceptionHandler;
+
+@ExtendWith(MockitoExtension.class)
+class DelControllerTest {
+
+    private MockMvc mockMvc;
+
+    @Mock
+    private DelService delService;
+
+    @BeforeEach
+    void setUp() {
+        mockMvc = MockMvcBuilders
+                .standaloneSetup(new DelController(delService))
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
+    }
+
+    @Test
+    void shouldReturnNoContentWhenDeleteAccountSucceeds() throws Exception {
+        mockMvc.perform(delete("/api/auth/account")
+                        .principal(new UsernamePasswordAuthenticationToken("7", null)))
+                .andExpect(status().isNoContent());
+
+        verify(delService).delUser(7L);
+    }
+}
