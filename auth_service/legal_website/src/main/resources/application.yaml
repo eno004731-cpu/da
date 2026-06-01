@@ -3,13 +3,16 @@ spring:
     name: legal-website-auth
 
   config:
-    import: optional:file:/Users/nikitatukan/Documents/.env[.properties]
+    import: optional:file:.env[.properties]
 
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/legal_auth}
     username: ${SPRING_DATASOURCE_USERNAME:legal_user}
     password: ${SPRING_DATASOURCE_PASSWORD:legal_pass}
     driver-class-name: org.postgresql.Driver
+
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
 
   jpa:
     hibernate:
@@ -38,6 +41,9 @@ jwt:
 google:
   # Client ID нужен для проверки audience у Google ID token.
   client-id: ${GOOGLE_CLIENT_ID:}
+
+app:
+  frontend-base-url: ${APP_FRONTEND_BASE_URL:http://localhost:3000}
 
 logging:
   level:

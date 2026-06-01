@@ -15,7 +15,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import legal_website.common.GlobalExceptionHandler;
-import legal_website.common.errors.UserAlreadyExistsException;
+import legal_website.common.errors.User.UserAlreadyExistsException;
 import legal_website.Services.auth.register.RegService;
 
 @ExtendWith(MockitoExtension.class)

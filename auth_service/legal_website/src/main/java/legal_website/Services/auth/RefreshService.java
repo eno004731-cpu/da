@@ -12,7 +12,7 @@ import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Jwt.JwtEntity;
 import legal_website.EntityAndRepo.Jwt.JwtRepo;
 import legal_website.Services.Jwt.JwtService;
-import legal_website.common.errors.InactiveUserException;
+import legal_website.common.errors.User.InactiveUserException;
 import lombok.RequiredArgsConstructor;
 
 @Service

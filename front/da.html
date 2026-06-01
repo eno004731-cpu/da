@@ -10,7 +10,9 @@
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="stylesheet" href="fa.css?v=20260510b" />
-    <script type="module" defer src="da.js?v=20260510b"></script>
+    <script src="./runtime-config.js?v=20260601a"></script>
+    <script src="./local-dev-config.js"></script>
+    <script type="module" defer src="da.js?v=20260524c"></script>
   </head>
   <body>
     <div class="page-shell">
@@ -655,11 +657,11 @@
         <section id="contact" class="section contact-section">
           <div class="contact-card">
             <p class="eyebrow">Контакт</p>
-            <h2>Оставьте заявку на юридическую задачу</h2>
-            <p>
-              Клиент создаёт заявку только после входа или регистрации. Это нужно, чтобы
-              документы, статусы и доработки были привязаны к личному кабинету, а не терялись
-              между письмами и мессенджерами.
+            <h2 id="contact-title">Клиентский доступ и будущая форма заявки</h2>
+            <p id="contact-description">
+              Локально в этом режиме уже можно проверить регистрацию, вход и личный кабинет
+              клиента. Отправка заявок и работа с заказами появятся после подключения отдельного
+              backend API.
             </p>
 
             <div class="contact-points">
@@ -673,9 +675,10 @@
 
           <div class="auth-gate-card" id="application-auth-gate">
             <p class="eyebrow">Клиентский доступ</p>
-            <h3>Войдите, чтобы отправить заявку и прикрепить документы</h3>
-            <p>
-              После входа заявка появится в вашем кабинете, а юрист увидит её на рабочей доске.
+            <h3 id="application-auth-gate-title">Войдите, чтобы открыть кабинет клиента</h3>
+            <p id="application-auth-gate-copy">
+              Локально в этом режиме доступна только авторизация клиента. Раздел заявок пока
+              отключён и появится позже вместе с отдельным API заказов.
             </p>
             <div class="auth-gate-actions">
               <a class="button" id="application-login-link" href="./auth.html">Войти</a>
@@ -687,8 +690,12 @@
             <p class="eyebrow">Кабинет клиента</p>
             <h3 id="application-user-name">Авторизованный клиент</h3>
             <p id="application-user-email"></p>
+            <p id="application-auth-session-copy">
+              Сессия сохранена. Можно открыть кабинет клиента и проверить авторизацию, reload и
+              logout, а раздел заказов будет подключён отдельно.
+            </p>
             <div class="auth-session-actions">
-              <a class="button button-secondary" href="./cabinet.html">Открыть кабинет</a>
+              <a class="button button-secondary" id="application-cabinet-link" href="./cabinet.html">Открыть кабинет</a>
               <button class="button button-ghost" id="application-logout-button" type="button">Выйти</button>
             </div>
           </div>
@@ -753,11 +760,11 @@
                 type="file"
                 name="documents"
                 multiple
-                accept=".pdf,.doc,.docx,.dotx,.dotm,.jpg,.jpeg,.png,.heic,.heif"
+                accept=".pdf,.doc,.docx,.dotx,.dotm,.jpg,.jpeg,.png,.heic,.heif,.mp4,.mov"
               />
               <small id="documents-summary">
-                Можно приложить договоры, переписку, учредительные документы или сканы.
-                Допустимые форматы: PNG, JPG/JPEG, HEIC/HEIF, PDF, DOC, DOCX, DOTX, DOTM.
+                Можно приложить договоры, переписку, учредительные документы, сканы или короткое видео.
+                Допустимые форматы: PNG, JPG/JPEG, HEIC/HEIF, PDF, DOC, DOCX, DOTX, DOTM, MP4, MOV.
               </small>
             </label>
 

@@ -3,6 +3,31 @@
  * Stored on window so api.html also works when opened directly from the filesystem.
  */
 (function attachApiCatalog(global) {
+  function readBooleanFlag(value, fallback = false) {
+    if (typeof value === "boolean") {
+      return value;
+    }
+
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (["1", "true", "yes", "on"].includes(normalized)) {
+        return true;
+      }
+
+      if (["0", "false", "no", "off"].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return fallback;
+  }
+
+  const localAuthOnlyMode = readBooleanFlag(global.__LEGAL_LOCAL_AUTH_ONLY__, false);
+  const ordersApiEnabled = !readBooleanFlag(
+    global.__LEGAL_DISABLE_ORDERS_API__,
+    localAuthOnlyMode
+  );
+
   const IMPLEMENTED_API = [
     {
       method: "GET",
@@ -13,42 +38,68 @@
       requestShape: "Без тела запроса.",
       responseShape: "Array<{ id, code, name, shortDescription }>",
       source: "Spring: ServiceController",
-      notes: "Этот endpoint уже реально объявлен в backend и подходит для каталога услуг.",
+      notes:
+        "Это endpoint site backend. В локальном auth-only режиме он не обязателен для проверки авторизации и кабинета.",
     },
     {
       method: "POST",
       path: "/api/auth/register",
       access: "Public",
       status: "Implemented",
-      purpose: "Регистрирует нового клиента.",
+      purpose: "Регистрирует нового клиента и сразу возвращает auth-session.",
       requestShape: "{ fullName, email, phone, companyName, password }",
-      responseShape: "boolean",
-      source: "Spring: UsersController",
+      responseShape: "{ accessToken, refreshToken, tokenType, expiresIn, user }",
+      source: "Auth service: RegController",
       notes:
-        "Frontend после успешного boolean-ответа запрашивает /api/auth/me и сохраняет пользователя в локальное session-state.",
+        "Это текущий локальный контракт auth-service на 8081. Фронт сохраняет access/refresh token и профиль пользователя в session-state.",
     },
     {
       method: "POST",
       path: "/api/auth/login",
       access: "Public",
       status: "Implemented",
-      purpose: "Логинит пользователя и кладёт userId/userRole в HttpSession.",
+      purpose: "Логинит пользователя и возвращает токены вместе с профилем.",
       requestShape: "{ email, password }",
-      responseShape: "boolean",
-      source: "Spring: UserLoginController",
-      notes: "По архитектуре это session-based auth на cookies + CSRF, без JWT/Bearer в frontend.",
+      responseShape: "{ accessToken, refreshToken, tokenType, expiresIn, user }",
+      source: "Auth service: LoginController",
+      notes:
+        "Локально фронт работает с отдельным auth-service, поэтому после reload опирается на сохранённые токены и /api/auth/me.",
     },
     {
       method: "POST",
-      path: "/api/auth/account",
-      access: "Session",
-      status: "Implemented with issue",
-      purpose: "Удаляет текущий аккаунт по userId из сессии.",
-      requestShape: "Без тела запроса. Нужна активная серверная сессия.",
-      responseShape: "void",
-      source: "Spring: UserDelController",
+      path: "/api/auth/refresh",
+      access: "Public",
+      status: "Implemented",
+      purpose: "Обменивает refresh token на новую auth-session.",
+      requestShape: "{ refreshToken }",
+      responseShape: "{ accessToken, refreshToken, tokenType, expiresIn, user }",
+      source: "Auth service: RefreshController",
       notes:
-        "Текущий backend-контракт построен вокруг серверной сессии; frontend теперь тоже шлёт session-based POST-запрос.",
+        "Хороший enterprise-подход: access token короткоживущий, а refresh token позволяет не выкидывать пользователя лишний раз.",
+    },
+    {
+      method: "GET",
+      path: "/api/auth/me",
+      access: "Auth",
+      status: "Implemented",
+      purpose: "Возвращает профиль текущего пользователя.",
+      requestShape: "Authorization: Bearer <accessToken>.",
+      responseShape: "{ id, fullName, email, phone, companyName, role }",
+      source: "Auth service: MeController",
+      notes:
+        "Во frontend этот endpoint обновляет только данные пользователя и не должен затирать сохранённые токены в local state.",
+    },
+    {
+      method: "POST",
+      path: "/api/auth/logout",
+      access: "Auth",
+      status: "Implemented",
+      purpose: "Инвалидирует refresh token и завершает клиентскую auth-session.",
+      requestShape: "{ refreshToken }",
+      responseShape: "boolean",
+      source: "Auth service: LogoutController",
+      notes:
+        "Именно этот endpoint используется одинаково из шапки сайта, кабинета и страницы заказа, чтобы logout вел себя предсказуемо.",
     },
   ];
 
@@ -122,25 +173,25 @@
     },
     {
       method: "POST",
-      path: "/api/auth/logout",
-      access: "Auth",
-      status: "Planned",
-      purpose: "Завершает клиентскую сессию или инвалидирует refresh token.",
-      requestShape: "Без тела запроса.",
-      responseShape: "{ success: true }",
+      path: "/api/auth/google/login",
+      access: "Public",
+      status: "Implemented",
+      purpose: "Проверяет Google credential и либо логинит пользователя, либо переводит во flow дозаполнения профиля.",
+      requestShape: "{ credential }",
+      responseShape: "AuthResponce | { status, auth? , authResponce? , flowToken? , profile? , googleResponce? }",
       source: "Frontend: auth-api.js",
-      notes: "Если останешься на HttpSession, логично делать `session.invalidate()`.",
+      notes: "При PROFILE_COMPLETION_REQUIRED фронт открывает complete-profile.html и продолжает flow через отдельный endpoint.",
     },
     {
-      method: "GET",
-      path: "/api/auth/me",
-      access: "Auth",
-      status: "Planned",
-      purpose: "Возвращает профиль текущего пользователя.",
-      requestShape: "Без тела запроса.",
-      responseShape: "{ id, fullName, email, phone, companyName, role }",
+      method: "POST",
+      path: "/api/auth/google/complete",
+      access: "Public",
+      status: "Implemented",
+      purpose: "Завершает регистрацию Google-пользователя через flowToken и создаёт обычную app-session.",
+      requestShape: "{ flowToken, fullName, password }",
+      responseShape: "{ accessToken, refreshToken, tokenType, expiresIn, user }",
       source: "Frontend: auth-api.js",
-      notes: "Аналог Spring Security `Principal`/`Authentication`-based endpoint.",
+      notes: "Используется страницей complete-profile.html после Google first-login.",
     },
     {
       method: "DELETE",
@@ -238,8 +289,12 @@
     API_SUMMARY: {
       implementedCount: IMPLEMENTED_API.length,
       plannedCount: PLANNED_API.length,
-      backendStyle: "Сейчас backend ближе к HttpSession-подходу.",
-      frontendStyle: "Фронт выровнен под HttpSession/cookie auth и ожидает более широкий прикладной API.",
+      backendStyle: localAuthOnlyMode
+        ? "Локально поднят отдельный auth-service с access/refresh token и профилем через /api/auth/me."
+        : "Фронт умеет жить и с отдельным auth-service, и с общим backend-контрактом.",
+      frontendStyle: ordersApiEnabled
+        ? "Фронт читает runtime-флаги из local-dev-config.js и использует включённый orders API."
+        : "Фронт читает runtime-флаги из local-dev-config.js и честно отключает orders API без скрытого fallback-а.",
     },
   };
 })(window);

@@ -243,6 +243,23 @@ body.portal-body {
   gap: 18px;
 }
 
+.auth-social {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(17, 27, 20, 0.04);
+  border: 1px solid rgba(20, 32, 23, 0.08);
+}
+
+.auth-social-button {
+  min-height: 42px;
+}
+
+.auth-social-hint {
+  margin: 0;
+}
+
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -525,6 +542,42 @@ body.portal-body {
   border: 1px solid rgba(20, 32, 23, 0.06);
 }
 
+.completion-points {
+  margin: 24px 0 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+  color: rgba(20, 32, 23, 0.74);
+}
+
+.completion-password-card {
+  display: grid;
+  gap: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  background: rgba(17, 27, 20, 0.05);
+  border: 1px solid rgba(20, 32, 23, 0.08);
+}
+
+.portal-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.portal-field-note {
+  margin: -2px 0 0;
+  color: rgba(20, 32, 23, 0.58);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.portal-link[aria-disabled="true"],
+.portal-button:disabled {
+  opacity: 0.64;
+  cursor: not-allowed;
+}
+
 .portal-file-hint {
   color: rgba(20, 32, 23, 0.62);
   font-size: 0.92rem;
@@ -564,7 +617,8 @@ body.portal-body {
   }
 
   .portal-action-row,
-  .portal-modal-actions {
+  .portal-modal-actions,
+  .portal-inline-actions {
     flex-direction: column;
   }
 }

@@ -1,18 +1,23 @@
 import { createClientApplication } from "./app/api/orders-api.js?v=20260512b";
+import { LOCAL_AUTH_ONLY_MODE, ORDERS_API_ENABLED } from "./app/api/endpoints.js?v=20260524c";
 import {
   checkBackendAvailability,
   fetchCurrentUser,
   isBackendUnavailableError,
   isUnauthorizedError,
   logoutClient,
-} from "./app/api/auth-api.js?v=20260510b";
+  shouldPreserveClientSessionOnOrdersUnauthorized,
+} from "./app/api/auth-api.js?v=20260524c";
 import {
   buildAuthUrl,
+  buildCompleteProfileUrl,
   clearSession,
   getCurrentUser,
   isAuthenticated,
-  setSession,
-} from "./app/state/auth-store.js?v=20260510b";
+  requiresProfileCompletion,
+  shouldRequirePasswordCompletion,
+  updateSessionUser,
+} from "./app/state/auth-store.js?v=20260524a";
 
 const serviceCards = Array.from(document.querySelectorAll(".service-card"));
 const serviceSelect = document.querySelector("#service-select");
@@ -30,6 +35,8 @@ const serviceIntroTargets = Array.from(
   document.querySelectorAll("#services .section-head, #services .service-search-block")
 );
 const contactSection = document.querySelector("#contact");
+const contactTitle = document.querySelector("#contact-title");
+const contactDescription = document.querySelector("#contact-description");
 const contactNameInput = document.querySelector('input[name="name"]');
 const companyNameInput = document.querySelector('input[name="companyName"]');
 const siteHeader = document.querySelector(".site-header");
@@ -43,11 +50,15 @@ const serviceModalTitle = document.querySelector("#service-modal-title");
 const serviceModalBody = document.querySelector("#service-modal-body");
 const serviceModalClose = document.querySelector("#service-modal-close");
 const applicationAuthGate = document.querySelector("#application-auth-gate");
+const applicationAuthGateTitle = document.querySelector("#application-auth-gate-title");
+const applicationAuthGateCopy = document.querySelector("#application-auth-gate-copy");
 const applicationAuthSession = document.querySelector("#application-auth-session");
 const applicationUserName = document.querySelector("#application-user-name");
 const applicationUserEmail = document.querySelector("#application-user-email");
+const applicationAuthSessionCopy = document.querySelector("#application-auth-session-copy");
 const applicationLoginLink = document.querySelector("#application-login-link");
 const applicationRegisterLink = document.querySelector("#application-register-link");
+const applicationCabinetLink = document.querySelector("#application-cabinet-link");
 const applicationLogoutButton = document.querySelector("#application-logout-button");
 const documentsInput = document.querySelector("#application-documents");
 const documentsSummary = document.querySelector("#documents-summary");
@@ -60,6 +71,22 @@ const revealTargets = Array.from(
 let activeService = serviceSelect?.value || "Регистрация ООО / ИП";
 let activeMoreButton = null;
 let backendIsAvailable = true;
+const ALLOWED_DOCUMENT_EXTENSIONS = new Set([
+  ".pdf",
+  ".doc",
+  ".docx",
+  ".dotx",
+  ".dotm",
+  ".jpg",
+  ".jpeg",
+  ".png",
+  ".heic",
+  ".heif",
+  ".mp4",
+  ".mov",
+]);
+const ALLOWED_DOCUMENT_FORMATS_LABEL =
+  "PNG, JPG/JPEG, HEIC/HEIF, PDF, DOC, DOCX, DOTX, DOTM, MP4, MOV";
 
 const SERVICE_CODE_BY_LABEL = {
   "Регистрация ООО / ИП": "REGISTRATION",
@@ -76,6 +103,48 @@ const SERVICE_CODE_BY_LABEL = {
   "Абонентское обслуживание «Базовый»": "OUTSOURCE_BASIC",
   "Абонентское обслуживание «Оптимальный»": "OUTSOURCE_OPTIMAL",
 };
+
+function getAuthOnlyModeMessage() {
+  return "Локально сейчас подключён только сервис авторизации на 8081. Вход и профиль клиента работают, а API заявок будет подключено позже.";
+}
+
+function syncContactRuntimeCopy(authenticated = isAuthenticated()) {
+  const authOnlyRuntime = LOCAL_AUTH_ONLY_MODE || !ORDERS_API_ENABLED;
+
+  if (contactTitle) {
+    contactTitle.textContent = authOnlyRuntime
+      ? "Клиентский доступ и будущая форма заявки"
+      : "Оставьте заявку на юридическую задачу";
+  }
+
+  if (contactDescription) {
+    contactDescription.textContent = authOnlyRuntime
+      ? "Локально сейчас можно полноценно проверить регистрацию, вход, reload, logout и профиль клиента. Отправка заявок, документы и статусы появятся после подключения отдельного API заказов."
+      : "Клиент создаёт заявку только после входа или регистрации. Это нужно, чтобы документы, статусы и доработки были привязаны к личному кабинету, а не терялись между письмами и мессенджерами.";
+  }
+
+  if (applicationAuthGateTitle) {
+    applicationAuthGateTitle.textContent = authOnlyRuntime
+      ? "Войдите, чтобы открыть кабинет клиента"
+      : "Войдите, чтобы отправить заявку и прикрепить документы";
+  }
+
+  if (applicationAuthGateCopy) {
+    applicationAuthGateCopy.textContent = authOnlyRuntime
+      ? "Локально в этом режиме доступна только авторизация клиента. После входа можно открыть кабинет и проверить сохранение сессии, а отправка заявок будет подключена позже."
+      : "После входа заявка появится в вашем кабинете, а юрист увидит её на рабочей доске.";
+  }
+
+  if (applicationAuthSessionCopy) {
+    applicationAuthSessionCopy.textContent = authOnlyRuntime
+      ? "Вы вошли в отдельный auth-service. Сейчас можно проверить кабинет, сохранение сессии после reload и явный logout. Заявки и документы появятся после подключения orders API."
+      : "После входа можно открыть кабинет клиента и продолжить работу с заявками.";
+  }
+
+  if (!authenticated && formStatus && authOnlyRuntime) {
+    showIdleStatus();
+  }
+}
 
 function syncActiveService(serviceName) {
   activeService = serviceName;
@@ -295,7 +364,15 @@ function updateDocumentsSummary() {
 
   if (!files.length) {
     documentsSummary.textContent =
-      "Можно приложить договоры, переписку, расчёты, учредительные документы или сканы.";
+      "Можно приложить договоры, переписку, расчёты, учредительные документы, сканы или короткое видео.";
+    return;
+  }
+
+  const unsupportedFiles = getUnsupportedDocuments(files);
+  if (unsupportedFiles.length) {
+    documentsSummary.textContent =
+      `Неподдерживаемые файлы: ${unsupportedFiles.join(", ")}. ` +
+      `Разрешены: ${ALLOWED_DOCUMENT_FORMATS_LABEL}.`;
     return;
   }
 
@@ -304,32 +381,51 @@ function updateDocumentsSummary() {
   documentsSummary.textContent = `Прикреплено ${files.length}: ${firstFiles.join(", ")}${overflow}.`;
 }
 
+function getUnsupportedDocuments(files) {
+  return files
+    .filter((file) => {
+      const fileName = String(file?.name || "").trim().toLowerCase();
+      const extensionStart = fileName.lastIndexOf(".");
+      if (extensionStart < 0) {
+        return true;
+      }
+
+      const extension = fileName.slice(extensionStart);
+      return !ALLOWED_DOCUMENT_EXTENSIONS.has(extension);
+    })
+    .map((file) => file.name);
+}
+
 function syncClientAuthState() {
-  const authenticated = backendIsAvailable && isAuthenticated();
+  const authenticated = isAuthenticated();
   const user = getCurrentUser();
+  const needsCompletion = requiresProfileCompletion(user);
+  const passwordSetupRequired = shouldRequirePasswordCompletion(user);
   const loginHref = buildAuthUrl("login", getReturnToContactUrl(), {
     switchAccount: authenticated,
   });
   const registerHref = buildAuthUrl("register", getReturnToContactUrl());
+  const completionHref = buildCompleteProfileUrl(getReturnToContactUrl());
 
   if (headerLoginLink) {
     headerLoginLink.href = loginHref;
     headerLoginLink.textContent = "Войти";
-    headerLoginLink.hidden = authenticated || !backendIsAvailable;
+    headerLoginLink.hidden = authenticated;
   }
 
   if (headerRegisterLink) {
     headerRegisterLink.href = registerHref;
-    headerRegisterLink.hidden = authenticated || !backendIsAvailable;
+    headerRegisterLink.hidden = authenticated;
   }
 
   if (headerCabinetLink) {
-    headerCabinetLink.href = "./cabinet.html";
-    headerCabinetLink.hidden = !authenticated || !backendIsAvailable;
+    headerCabinetLink.href = needsCompletion ? completionHref : "./cabinet.html";
+    headerCabinetLink.textContent = needsCompletion ? "Завершить регистрацию" : "Личный кабинет";
+    headerCabinetLink.hidden = !authenticated;
   }
 
   if (headerLogoutButton) {
-    headerLogoutButton.hidden = !authenticated || !backendIsAvailable;
+    headerLogoutButton.hidden = !authenticated;
   }
 
   if (applicationLoginLink) {
@@ -341,27 +437,48 @@ function syncClientAuthState() {
   }
 
   if (applicationAuthGate) {
-    applicationAuthGate.hidden = authenticated || !backendIsAvailable;
+    applicationAuthGate.hidden = authenticated;
   }
 
   if (applicationAuthSession) {
-    applicationAuthSession.hidden = !authenticated || !backendIsAvailable;
+    applicationAuthSession.hidden = !authenticated;
   }
 
   if (contactForm) {
-    contactForm.hidden = !authenticated || !backendIsAvailable;
+    contactForm.hidden = !authenticated || !backendIsAvailable || !ORDERS_API_ENABLED;
   }
+
+  syncContactRuntimeCopy(authenticated);
 
   if (!authenticated || !user) {
     return;
   }
 
   if (applicationUserName) {
-    applicationUserName.textContent = user.fullName || "Клиентский кабинет";
+    applicationUserName.textContent = user.fullName || "Регистрация ещё не завершена";
   }
 
   if (applicationUserEmail) {
-    applicationUserEmail.textContent = [user.email, user.companyName].filter(Boolean).join(" • ");
+    applicationUserEmail.textContent =
+      [user.email, user.companyName].filter(Boolean).join(" • ") ||
+      "Добавьте email и имя, чтобы завершить аккаунт.";
+  }
+
+  if (applicationCabinetLink) {
+    applicationCabinetLink.href = needsCompletion ? completionHref : "./cabinet.html";
+    applicationCabinetLink.textContent = needsCompletion ? "Завершить регистрацию" : "Открыть кабинет";
+  }
+
+  if (applicationAuthSessionCopy) {
+    if (needsCompletion) {
+      applicationAuthSessionCopy.textContent = passwordSetupRequired
+        ? "Вход уже выполнен, но аккаунт ещё не завершён: добавьте имя, email и задайте пароль, чтобы потом входить не только через Google."
+        : "Вход уже выполнен, но аккаунт ещё не завершён: добавьте имя и email, после чего кабинет будет доступен полностью.";
+    } else {
+      applicationAuthSessionCopy.textContent = LOCAL_AUTH_ONLY_MODE
+        ? "Вы вошли в отдельный auth-service. Сейчас можно проверить кабинет, сохранение сессии после reload и явный logout. Заявки и документы появятся после подключения orders API."
+        : "После входа можно открыть кабинет клиента и продолжить работу с заявками.";
+    }
   }
 
   if (contactNameInput && !contactNameInput.value) {
@@ -382,10 +499,45 @@ function setBackendAvailabilityState(isAvailable, message = "") {
 
   backendStatus.hidden = isAvailable;
   backendStatus.textContent =
-    message || "Backend временно недоступен. Личный кабинет и отправка заявок сейчас не работают.";
+    message || "Backend временно недоступен. Вход и навигация остаются доступны, но кабинет и отправка заявок могут не работать.";
 }
 
 async function syncClientAuthStateWithBackend() {
+  if (LOCAL_AUTH_ONLY_MODE) {
+    if (!getCurrentUser()) {
+      setBackendAvailabilityState(false, getAuthOnlyModeMessage());
+      syncClientAuthState();
+      return false;
+    }
+
+    try {
+      const user = await fetchCurrentUser();
+
+      if (!user) {
+        clearSession();
+        setBackendAvailabilityState(false, getAuthOnlyModeMessage());
+      } else {
+        updateSessionUser(user);
+        setBackendAvailabilityState(false, getAuthOnlyModeMessage());
+      }
+    } catch (error) {
+      if (isUnauthorizedError(error)) {
+        clearSession();
+        setBackendAvailabilityState(false, getAuthOnlyModeMessage());
+      } else if (isBackendUnavailableError(error)) {
+        setBackendAvailabilityState(
+          false,
+          "Auth-service на 8081 временно недоступен. Войти сейчас нельзя, а API заявок локально ещё не подключён."
+        );
+      } else {
+        setBackendAvailabilityState(false, getAuthOnlyModeMessage());
+      }
+    }
+
+    syncClientAuthState();
+    return false;
+  }
+
   if (!getCurrentUser()) {
     try {
       await checkBackendAvailability();
@@ -394,7 +546,7 @@ async function syncClientAuthStateWithBackend() {
       if (isBackendUnavailableError(error)) {
         setBackendAvailabilityState(
           false,
-          "Backend временно недоступен. Проверь, что API запущен и отвечает через proxy."
+          "Backend временно недоступен. Можно открыть форму входа, но кабинет и отправка заявок заработают только после запуска API."
         );
       } else {
         setBackendAvailabilityState(true);
@@ -412,7 +564,7 @@ async function syncClientAuthStateWithBackend() {
       clearSession();
       setBackendAvailabilityState(true);
     } else {
-      setSession({ user });
+      updateSessionUser(user);
       setBackendAvailabilityState(true);
     }
   } catch (error) {
@@ -422,7 +574,7 @@ async function syncClientAuthStateWithBackend() {
     } else if (isBackendUnavailableError(error)) {
       setBackendAvailabilityState(
         false,
-        "Backend временно недоступен. Шапка и кабинет скрыты, пока API снова не начнёт отвечать."
+        "Backend временно недоступен. Сессия сохранена локально, но кабинет и отправка заявок будут ограничены, пока API снова не начнёт отвечать."
       );
     } else {
       setBackendAvailabilityState(true);
@@ -668,6 +820,13 @@ faqItems.forEach((item) => {
 if (contactForm && formStatus) {
   contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!ORDERS_API_ENABLED) {
+      showFormError(
+        "Локально сейчас работает только авторизация. Отправка заявок появится после подключения отдельного API заказов."
+      );
+      return;
+    }
+
     if (!backendIsAvailable) {
       showFormError("Backend временно недоступен. Отправка заявки сейчас невозможна.");
       return;
@@ -693,6 +852,7 @@ if (contactForm && formStatus) {
     const companyName = String(formData.get("companyName") || "").trim();
     const message = String(formData.get("message") || "").trim();
     const files = Array.from(documentsInput?.files || []);
+    const unsupportedFiles = getUnsupportedDocuments(files);
 
     syncActiveService(service);
     formStatus.classList.remove("error");
@@ -705,6 +865,13 @@ if (contactForm && formStatus) {
     if (selectedService) {
       selectedService.textContent =
         `${service}. Заявка отправляется в кабинет клиента и рабочую систему.`;
+    }
+
+    if (unsupportedFiles.length) {
+      showFormError(
+        `Формат файлов не поддерживается: ${unsupportedFiles.join(", ")}. Разрешены: ${ALLOWED_DOCUMENT_FORMATS_LABEL}.`
+      );
+      return;
     }
 
     try {
@@ -734,6 +901,19 @@ if (contactForm && formStatus) {
         }, 900);
       }
     } catch (error) {
+      if (isUnauthorizedError(error)) {
+        if (shouldPreserveClientSessionOnOrdersUnauthorized()) {
+          showFormError(
+            "Вы вошли в отдельный auth-service, но backend заявок пока не принимает эту сессию. Отправка заявки временно недоступна."
+          );
+        } else {
+          clearSession();
+          showFormError("Сессия истекла. Войдите снова, чтобы отправить заявку.");
+          window.location.href = buildAuthUrl("login", getReturnToContactUrl());
+        }
+        return;
+      }
+
       if (isBackendUnavailableError(error)) {
         setBackendAvailabilityState(
           false,

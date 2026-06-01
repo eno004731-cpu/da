@@ -27,11 +27,11 @@ import legal_website.EntityAndRepo.Auth.OAuthAccountRepo;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.Services.Jwt.JwtService;
 import legal_website.Services.auth.AuthSessionService;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.TokenValidationException;
 import legal_website.common.errors.OAuht.InvalidGoogleId;
 import legal_website.common.errors.OAuht.OAuthConfigurationException;
 import legal_website.common.errors.OAuht.OAuthProviderUnavailableException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.token.TokenValidationException;
 import lombok.RequiredArgsConstructor;
 
 @Service

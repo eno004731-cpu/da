@@ -3,6 +3,7 @@ CREATE TABLE users (
     role VARCHAR(50) NOT NULL,
     full_name VARCHAR(255) NOT NULL,
     email VARCHAR(255) UNIQUE,
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
     phone VARCHAR(20) UNIQUE,
     company_name VARCHAR(255),
     password_hash VARCHAR(255) NOT NULL,

@@ -13,7 +13,7 @@ import legal_website.Dto.register.RegRequest;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
 import legal_website.Services.auth.AuthSessionService;
-import legal_website.common.errors.UserAlreadyExistsException;
+import legal_website.common.errors.User.UserAlreadyExistsException;
 import lombok.RequiredArgsConstructor;
 
 @Service

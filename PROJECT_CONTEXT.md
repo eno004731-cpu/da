@@ -1,235 +1,239 @@
 # PROJECT_CONTEXT.md
 
-## Текущий этап
-Проект находится в переходе от монолита к микросервисной архитектуре.
-Главный текущий фокус - `auth_service/legal_website`.
+## Назначение
+Этот файл - краткий source of truth по текущему состоянию проекта.
+Если рабочий контекст теряется, сначала смотреть сюда, потом в `AGENTS.md`.
 
-Сейчас задача не в полном распиле системы, а в том, чтобы:
-- довести `auth_service` до рабочего состояния;
-- зафиксировать понятный JWT auth flow;
-- сохранить учебный режим работы, чтобы решения были объяснимыми, а не "магией".
-- не спешить с асинхронностью, пока не завершён базовый protected auth flow.
-- параллельно подготовить Google auth как отдельный frontend-based flow.
-- не тащить Kafka и лишнюю асинхронность, пока не стабилизированы контракты auth и profile flow.
+## Текущий курс проекта
+Проект делается как учебный, но production-like pet-project для юридического сервиса.
+Цель не в том, чтобы написать быстрее, а в том, чтобы показать:
+- зрелое проектирование backend-а;
+- понимание границ сервисов;
+- работу с БД, auth, event flow и надёжностью;
+- осознанные trade-off между монолитом и микросервисами.
 
-## Архитектурный курс проекта
-Проект делается не как "быстрый учебный CRUD", а как серьёзная учебно-практическая система, которая должна показывать:
-- понимание архитектурных границ;
-- умение проектировать сервисы с расчётом на рост нагрузки;
-- осознанный переход от монолита к микросервисам;
-- понимание trade-off, а не просто использование модных технологий.
+Пользователь изучает архитектуру вместе с Codex, поэтому важны не только рабочие фичи, но и понятные причины инженерных решений.
 
-Цель не "написать быстрее и проще", а "сделать качественнее и архитектурно взрослее", даже если иногда допускаются временные упрощения.
+## Что считать актуальным
+- Основной backend сейчас: `auth_service/legal_website`.
+- Отдельно развивается `notification-service/Notification`.
+- Frontend в `front` уже живёт в режиме контрактов с отдельным auth-service.
+- `bd/demo` считается legacy-контуром и не должен использоваться как источник правды для текущей архитектуры и roadmap.
 
-Этот проект одновременно является:
-- pet-project для демонстрации engineering mindset работодателю;
-- площадкой, на которой пользователь вместе с Codex разбирает архитектуру, state machine, контракты, event flow и причины инженерных решений.
+## Активные части системы
 
-Поэтому важен не только рабочий код, но и то, почему выбран именно такой путь.
+### 1. Auth service
+`auth_service/legal_website` - главный текущий сервис.
 
-## Что уже сделано
-### Общая структура
-- В корне есть старый монолит `bd/demo`.
-- Отдельно выделен `auth_service/legal_website`.
-- Frontend уже ожидает отдельный auth API.
-- Для Google auth сейчас менялся только frontend.
+Что уже есть:
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/google/login`
+- `POST /api/auth/google/complete`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `PATCH /api/auth/me`
+- `DELETE /api/auth/account`
 
-### Auth service
-- Реализованы `register`, `login`, `refresh`, `logout` на текущем уровне сервиса.
-- Используется `JWT access token + refresh token`.
-- Refresh token хранится в БД в виде `token_hash`.
-- Поддерживается `revokedAt` для отзыва refresh token.
-- Конфиг читает значения из `application.yaml` и `.env`.
-- Добавлен `JwtAuthenticationFilter` и он подключён в `SecurityConfig`.
-- Фильтр уже умеет читать `Authorization: Bearer ...` и класть `Authentication` в `SecurityContext`.
-- Для access token используется проверка через claims JWT + поиск пользователя в БД.
-- Для refresh token используется отдельная проверка через таблицу `refresh_tokens`.
-- Реализованы backend endpoints Google auth:
-  - `POST /api/auth/google/login`
-  - `POST /api/auth/google/complete`
-- `google/login` проверяет Google ID token и работает через `provider + sub`.
-- Если OAuth-связка уже существует, сервис логинит существующего пользователя.
-- Если OAuth-связки ещё нет, сервис отдаёт `PROFILE_COMPLETION_REQUIRED` + `flowToken`.
-- `google/complete` уже создаёт или связывает локального пользователя внутри транзакционного service-метода.
+Что уже реализовано по auth-модели:
+- JWT access token + refresh token.
+- Refresh token хранится в БД в хэшированном виде.
+- Поддерживается revoke refresh token.
+- `JwtAuthenticationFilter` собирает `Authentication` из Bearer token.
+- `GET /api/auth/me` возвращает профиль и auth/completion-флаги.
+- Есть Google first-login flow с `flowToken` и шагом дозаполнения профиля.
 
-### Frontend auth
-- Во frontend уже добавлен endpoint-каталог для Google auth.
-- На `front/auth.html` добавлен Google Identity Services script и блок кнопки Google login.
-- В `front/app/pages/auth-page.js` уже есть логика:
-  - инициализации Google button;
-  - получения `credential` (`id_token`);
-  - отправки этого `credential` в backend;
-  - сохранения app session через существующий `setSession(...)`.
-- Для сценария `PROFILE_COMPLETION_REQUIRED` фронт уже умеет открывать форму дозаполнения профиля.
+Что добавлено недавно в модель данных:
+- `users.email_verified`
+- `users.email_verified_at`
+- таблица `verification_codes`
+- таблица `outbox_events`
 
-### Тесты
-- Есть тесты на `register` service/controller.
-- Есть тесты на `login` service/controller.
-- Есть тесты на `refresh` service/controller.
-- Есть тесты на `logout` service/controller.
-- `./mvnw -q test` в `auth_service/legal_website` проходит.
-- `./mvnw -q -DskipTests compile` тоже проходит.
-- При этом protected auth flow тестами пока не покрыт.
+Также добавлены:
+- JPA-пакет `verification_codes`
+- JPA-пакет `outbox_events`
+- зависимость `spring-kafka` в `auth_service`
 
-## Что важно помнить по auth
-### Access token
-- Короткоживущий.
-- Ходит в `Authorization: Bearer ...`.
-- Нужен для обычных защищённых API-запросов.
-- Не хранится в таблице `refresh_tokens`.
-- Проверяется не через `token_hash`, а через подпись JWT, expiration и пользователя из claims.
+### 2. Notification service
+`notification-service/Notification` - отдельный сервис под уведомления.
 
-### Refresh token
-- Долгоживущий.
-- Не должен слаться в каждый API-запрос.
-- Используется только для `refresh` и `logout`.
-- При `refresh` старый token revoke-ится, новый создаётся и сохраняется.
-- Именно refresh token ищется в БД по `token_hash`.
+Его роль:
+- не хранить auth-бизнес-логику;
+- не решать, кому и зачем нужен код;
+- принимать события и заниматься доставкой уведомлений.
 
-### RevokedAt
-- Если `revokedAt == null`, refresh token активен.
-- Если `revokedAt != null`, refresh token больше нельзя использовать.
+Что уже подготовлено:
+- Spring Boot сервис с зависимостями:
+  - `web`
+  - `validation`
+  - `actuator`
+  - `data-jpa`
+  - `mail`
+  - `spring-kafka`
+  - `flyway`
+  - `postgresql`
+- таблица `notification_deliveries`
+- таблица `processed_events`
+- локальная БД `legal_notification`
+- конфиг topic через `KafkaTopicsConfig`
 
-### SecurityContext
-- Даже при JWT он нужен.
-- Это не server-side session.
-- Он хранит текущего аутентифицированного пользователя только на время одного запроса.
-- Его заполняет `JwtAuthenticationFilter`, чтобы защищённые controller могли получить `Authentication`.
+Что пока не сделано:
+- consumer бизнес-событий;
+- отправка email;
+- retry/DLT логика;
+- idempotent обработка через service-слой;
+- нормальный producer/consumer DTO contract.
 
-### Google identity
-- Главный внешний идентификатор пользователя Google - это `sub`.
-- `email` важен как локальный логин/контакт, но не должен быть главным идентификатором OAuth-связки.
-- Если в проекте локальный `users.email` обязателен, это должно быть отдельным бизнес-правилом, а не случайным следствием DTO.
-- В `google/complete` source of truth должен быть `flowToken` и claims из него, а не произвольные поля из request body.
+### 3. Frontend
+Frontend уже ориентирован на отдельный auth backend и контрактный режим.
 
-## Что сейчас ещё не завершено
-- Стабилизация контракта `google/login -> google/complete`.
-- Явное решение, какие поля в `google/complete` берутся только из claims, а какие реально можно принимать из body.
-- Нормальный единый обработчик auth-ошибок (`400/401/403/409` вместо ухода в общий `500`).
-- Проверка повторного вызова `google/complete` и защита от дублей OAuth-связок.
-- Проверка сценария "локальный пользователь уже есть по email, OAuth-связки ещё нет".
-- Endpoint `GET /api/auth/me`, если он ещё не доведён до финального контракта и тестов.
-- Profile API для редактирования данных текущего пользователя.
-- Дополнительная чистка нейминга:
-  - `Responce` -> `Response`
-  - возможное упрощение DTO-структуры
-- Тесты именно на protected flow:
-  - валидный Bearer token
-  - невалидный Bearer token
-  - отсутствие Bearer token
-  - `GET /api/auth/me`
-- Тесты именно на Google flow:
-  - первый вход через Google
-  - completion для нового пользователя
-  - completion для существующего локального пользователя
-  - повторный completion
-  - невалидный flow token
+Что уже видно по фронту:
+- auth API вынесен в `front/app/api/auth-api.js`
+- есть endpoint-каталог в `front/app/api/endpoints.js`
+- есть отдельная страница `complete-profile.html`
+- есть Google auth UI и flow completion
+- есть контракты для:
+  - client orders
+  - staff board
+  - admin users
 
-## Что делать следующим
-1. Дочистить Google flow до чёткого state machine и error contract.
-2. Привести `GlobalExceptionHandler` к ожидаемым статусам `400/401/403/409`.
-3. Довести `GET /api/auth/me`, если нужно, и покрыть protected flow тестами.
-4. Добавить profile API (`GET/PATCH /me` или похожий контракт).
-5. Покрыть тестами Google flow.
-6. Только потом решать вопрос о новых сервисах и асинхронных взаимодействиях.
+Важные planning-файлы в корне:
+- `API_ENDPOINT_ROADMAP.md`
+- `ADMIN_PANEL_USERS_V1_PLAN.md`
 
-## Что важно по темпу разработки
-- Не оптимизировать проект под "быстрее дописать фичу".
-- Сначала фиксировать границы ответственности, source of truth и инварианты.
-- Новые микросервисы добавлять только там, где есть ясная ответственность сервиса, а не ради самого слова "микросервис".
-- Если появляется новая технология вроде Kafka, broker, outbox или notification-service, сначала нужно объяснить, какую проблему она решает именно в этой системе.
+## Архитектурные решения, которые уже зафиксированы
 
-## Что уже поправлено недавно
-- У фильтра убраны лишние импорты.
-- Для refresh token в `JwtService` методы переименованы понятнее:
-  - `isValidRefreshToken(...)`
-  - `getValidRefreshToken(...)`
-- В фильтре выбран стиль ролей через `ROLE_...`, чтобы дальше можно было использовать `hasRole(...)`.
-- Добавлена ветка "нет Bearer header -> пропустить запрос дальше по filter chain".
-- Во frontend добавлен Google Sign-In button и вызов `POST /auth/google`.
-- В auth-сервисе добавлены `GoogleLoginService` и `GoogleFillService`.
-- `google/complete` перенесён в транзакционный service-метод.
-- В ходе ревью отдельно зафиксировано, что `@Transactional` не заменяет корректную бизнес-логику и source of truth.
+### 1. Notification - отдельный микросервис
+Notification делаем не как узкий "email verification service", а как отдельный notification-контур.
+Это нужно, чтобы позже он обслуживал не только verification email, но и другие события системы.
 
-## Google auth
-- Выбран сценарий: frontend получает Google `credential` (`id_token`), backend его проверяет и выдаёт обычную app session.
-- Redirect/callback OAuth flow на backend сейчас не нужен.
-- Для Google Cloud в этом сценарии важно:
-  - заполнить `Authorized JavaScript origins`
-  - не заполнять `Authorized redirect URIs`, если не используется callback flow
-- Для локальной разработки обычно нужен origin фронта:
-  - `http://127.0.0.1:8000`
-  - при необходимости `http://localhost:8000`
+### 2. Verification state живёт в auth-service
+`verification_codes` - это бизнес-состояние пользователя, поэтому оно должно жить в `auth_service`, а не в notification-service.
 
-## Потоки / async
-- `AsyncConfig` в проекте уже есть, но бизнес-логика auth пока не должна уезжать в `@Async`.
-- `login`, `refresh`, `logout`, JWT filter и проверка токенов должны оставаться синхронными.
-- Асинхронность имеет смысл только для побочных задач:
-  - audit logging
-  - welcome email
-  - уведомления
-  - фоновая очистка просроченных refresh token
-- Если async-задаче нужен пользователь, лучше передавать `userId/email` явно, а не рассчитывать на `SecurityContext` в другом потоке.
+### 3. Надёжная публикация событий идёт через outbox
+`outbox_events` нужна для схемы:
+1. auth-service сохраняет бизнес-изменение и outbox event в одной транзакции;
+2. отдельный relay публикует событие в Kafka;
+3. если публикация временно упала, событие не теряется, потому что уже лежит в БД.
 
-## Контракт, который ждёт frontend
-### Register / Login / Refresh response
-```json
-{
-  "accessToken": "jwt-access-token",
-  "refreshToken": "raw-refresh-token",
-  "tokenType": "Bearer",
-  "expiresIn": 900,
-  "user": {
-    "id": "1",
-    "fullName": "Иван Иванов",
-    "email": "ivan@test.ru",
-    "phone": "+79991234567",
-    "companyName": "ООО Ромашка",
-    "role": "CLIENT"
-  }
-}
-```
+### 4. Kafka topic - это транспорт, а не business state
+Например:
+- `verification_codes` хранит сам факт и параметры кода;
+- Kafka topic передаёт событие вроде `EMAIL_VERIFICATION_REQUESTED`.
 
-### Refresh request
-```json
-{
-  "refreshToken": "raw-refresh-token"
-}
-```
+## Что важно по безопасности
 
-### Logout request
-```json
-{
-  "refreshToken": "raw-refresh-token"
-}
-```
+### Обычное обновление профиля
+Базовая идея для `PATCH /api/auth/me` такая:
+- без дополнительного подтверждения можно менять только:
+  - `fullName`
+  - `companyName`
 
-### Google auth request
-```json
-{
-  "credential": "google-id-token"
-}
-```
+### Чувствительные изменения
+Следующие поля нельзя считать обычным profile update:
+- `phone`
+- `email`
+- `password`
 
-### Google login response
-- либо обычный auth response, если OAuth-связка уже существует;
-- либо объект со статусом `PROFILE_COMPLETION_REQUIRED`, `flowToken` и prefilled profile.
+Для них нужен отдельный flow подтверждения.
 
-### Google complete request
-- на текущем этапе frontend отправляет `flowToken`, `fullName`, `password`;
-- `email` либо должен быть исключён из body, либо валидироваться против claims из `flowToken`;
-- долгосрочно source of truth для identity должен оставаться в claims.
+Принятый вектор:
+- сначала сделать доверенный email-канал;
+- потом через него подтверждать чувствительные операции;
+- TOTP возможен позже, но не должен быть единственным вариантом;
+- `passkey` / WebAuthn нужен как future roadmap, а не как текущая ближайшая задача.
 
-### Google complete response
-- такой же, как у `register/login/refresh`:
-  - `accessToken`
-  - `refreshToken`
-  - `tokenType`
-  - `expiresIn`
-  - `user`
+## Что уже сделано по email verification foundation
+В БД и архитектуре уже подготовлены основы:
+- `users.email_verified`
+- `users.email_verified_at`
+- `verification_codes`
+- `outbox_events`
+- `notification_deliveries`
+- `processed_events`
 
-## Как со мной работать дальше
-- Если задача про архитектуру или смысл методов, сначала нужно объяснение.
-- Если задача про реализацию, можно переходить к коду и тестам.
-- Если контекст потеряется, сначала смотреть этот файл, потом `AGENTS.md`.
-- По умолчанию лучше учить через разбор состояний, инвариантов, контрактов и trade-off, а не через мгновенную готовую реализацию.
+Что уже реализовано в auth-service:
+1. `VerityEmailService` создаёт `verification_codes`.
+2. `VerityEmailService` пишет `outbox_events` в той же транзакции.
+3. Есть relay `SendEventService`, который читает outbox и публикует в Kafka.
+4. В relay уже используется state machine вокруг статусов `NEW -> PROCESSING -> PUBLISHED` и `FAILED/DEAD` для retry.
+5. В relay уже используется async publish через `kafkaTemplate.send(...).whenComplete(...)`.
+
+Что ещё не завершено в этом flow:
+1. Дочистить relay до более аккуратного вида без дублирования логики между `NEW` и `FAILED`.
+2. Уточнить финальные terminal state правила для доменных случаев вроде `user not found` / `email already verified`.
+3. Добавить consumer и реальную доставку письма в notification-service.
+
+## Текущее фактическое состояние кода
+
+### Сборка
+На момент последней проверки:
+- `auth_service/legal_website`: `./mvnw -q -DskipTests compile` проходит.
+- `notification-service/Notification`: `./mvnw -q -DskipTests compile` проходит.
+
+### Auth / profile
+Есть ранняя реализация `PATCH /api/auth/me`, но её ещё нельзя считать финальной security-моделью.
+Сейчас этот endpoint уже существует, но его контракт и границы ответственности ещё нужно дочистить.
+
+### Kafka / notification
+В auth-service уже есть рабочая заготовка relay-публикации:
+- topic `auth.email-verification.requested`
+- `SendEventService` как poller по `outbox_events`
+- async callback через `whenComplete(...)`
+- retry-статусы `NEW`, `PROCESSING`, `FAILED`, `PUBLISHED`, `DEAD`
+
+Notification-service пока всё ещё на стадии инфраструктурной заготовки:
+- topic config есть;
+- полноценного consumer flow и email delivery ещё нет.
+
+## Что ещё не завершено
+
+### В auth-service
+- финальный contract для `PATCH /api/auth/me`;
+- разделение обычного profile update и чувствительных изменений;
+- маппинг и бизнес-использование `email_verified` в user flow;
+- полноценные endpoints для email verification request/confirm.
+- дочистка `SendEventService`:
+  - убрать дублирование между обработкой `NEW` и `FAILED`
+  - сделать более аккуратные terminal state правила
+  - добавить более надёжную обработку sync/async ошибок Kafka
+
+### В notification-service
+- убрать из `KafkaTopicsConfig` роль отдельной точки входа приложения и оставить нормальный config-класс;
+- описать DTO/event envelope;
+- сделать listener;
+- сделать обработку `processed_events`;
+- сделать создание `notification_deliveries`;
+- подключить mail provider;
+- сделать retry strategy и позже DLT.
+
+### Во frontend/backend контрактах
+Пока backend не закрывает:
+- client orders API;
+- staff board API;
+- admin users API.
+
+Эти контракты уже описаны во frontend-е и planning-файлах, но не являются текущим ближайшим backend-фокусом.
+
+## Следующий правильный порядок работ
+1. Дочистить relay `SendEventService` как надёжный outbox publisher.
+2. Закрыть `email verification` flow до конца:
+   - request
+   - confirm
+   - обновление `users.email_verified`
+3. Сделать consumer в notification-service.
+4. Подключить реальную email delivery и idempotent обработку через `processed_events`.
+5. После доверенного email-канала переходить к:
+   - change password
+   - change phone
+   - change email
+6. Параллельно дочищать `PATCH /api/auth/me` как non-sensitive profile update.
+7. Позже добавить `passkey` / WebAuthn.
+
+## Что помнить при следующих сессиях
+- `bd/demo` не использовать как источник правды.
+- Если спор идёт про архитектуру, сначала разбирать инварианты и source of truth.
+- Если вопрос про Kafka, не путать business state, outbox и сам broker.
+- Notification - это отдельный сервис доставки, а не место для auth-логики.
+- Для чувствительных изменений сначала нужен доверенный канал подтверждения.

@@ -22,9 +22,9 @@ import legal_website.EntityAndRepo.Jwt.JwtEntity;
 import legal_website.EntityAndRepo.Jwt.JwtRepo;
 import legal_website.Services.Jwt.JwtService;
 import legal_website.Services.auth.login.LogoutService;
-import legal_website.common.errors.RefreshTokenNotFoundException;
-import legal_website.common.errors.RefreshTokenRevokedException;
-import legal_website.common.errors.TokenValidationException;
+import legal_website.common.errors.token.RefreshTokenNotFoundException;
+import legal_website.common.errors.token.RefreshTokenRevokedException;
+import legal_website.common.errors.token.TokenValidationException;
 
 @ExtendWith(MockitoExtension.class)
 class LogoutServiceTest {

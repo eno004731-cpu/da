@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Завершение регистрации</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260525a" />
+    <script src="./runtime-config.js?v=20260601a"></script>
+    <script src="./local-dev-config.js?v=20260525a"></script>
+    <script type="module" src="./app/pages/complete-profile-page.js?v=20260525a"></script>
+  </head>
+  <body class="portal-body">
+    <div class="portal-page">
+      <header class="portal-header">
+        <a class="portal-brand" href="./da.html">
+          <span class="portal-brand-mark">ЮК</span>
+          <span class="portal-brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <span>Завершение регистрации</span>
+          </span>
+        </a>
+
+        <div class="portal-header-actions">
+          <a class="portal-link" id="complete-profile-next-link" href="./cabinet.html">Продолжить позже</a>
+          <button class="portal-button" id="complete-profile-logout" type="button">Выйти</button>
+        </div>
+      </header>
+
+      <main class="portal-grid">
+        <section class="portal-card">
+          <div class="portal-card-inner">
+            <p class="portal-eyebrow">Аккаунт клиента</p>
+            <h1 class="portal-title">Завершите регистрацию</h1>
+            <p class="portal-copy">
+              Вход уже выполнен, но аккаунт пока не заполнен полностью. Добавьте недостающие
+              данные, чтобы кабинет и дальнейшие сценарии работали стабильно.
+            </p>
+
+            <ul class="completion-points">
+              <li>Имя нужно, чтобы кабинет отображался корректно и не выглядел как сломанный.</li>
+              <li id="completion-password-point" hidden>Для аккаунта из Google дополнительно нужен локальный пароль.</li>
+              <li>После сохранения вы автоматически вернётесь туда, куда шли изначально.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section class="portal-card">
+          <div class="portal-card-inner portal-stack">
+            <div class="portal-feedback" id="complete-profile-feedback" hidden></div>
+
+            <form class="portal-form" id="complete-profile-form">
+              <div class="portal-field">
+                <label for="complete-profile-full-name">Имя и фамилия</label>
+                <input class="portal-input" id="complete-profile-full-name" name="fullName" type="text" required />
+              </div>
+
+              <section class="completion-password-card" id="completion-password-card" hidden>
+                <div>
+                  <h2 class="portal-section-title">Задайте пароль</h2>
+                  <p class="portal-helper">
+                    Этот шаг обязателен для OAuth-пользователя: после него можно будет входить и по
+                    `email/password`, не только через Google.
+                  </p>
+                </div>
+
+                <div class="portal-field">
+                  <label for="complete-profile-password">Пароль</label>
+                  <input class="portal-input" id="complete-profile-password" name="password" type="password" />
+                  <p class="portal-field-note" data-password-policy-hint></p>
+                </div>
+
+                <div class="portal-field">
+                  <label for="complete-profile-password-repeat">Повторите пароль</label>
+                  <input class="portal-input" id="complete-profile-password-repeat" name="passwordRepeat" type="password" />
+                </div>
+              </section>
+
+              <div class="portal-inline-actions">
+                <button class="portal-button portal-button--primary" id="complete-profile-submit" type="submit">
+                  Сохранить и продолжить
+                </button>
+                <a class="portal-link" id="complete-profile-back-link" href="./cabinet.html">Вернуться позже</a>
+              </div>
+            </form>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>

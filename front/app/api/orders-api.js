@@ -1,4 +1,4 @@
-import { ENDPOINTS } from "./endpoints.js?v=20260512b";
+import { ENDPOINTS, LOCAL_AUTH_ONLY_MODE, ORDERS_API_ENABLED } from "./endpoints.js?v=20260512b";
 import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512b";
 import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
 
@@ -55,7 +55,27 @@ function normalizeOrderDetails(order = {}) {
   };
 }
 
+function createOrdersApiDisabledError() {
+  const error = new Error(
+    LOCAL_AUTH_ONLY_MODE
+      ? "Локально сейчас подключён только сервис авторизации. API заявок будет добавлен позже."
+      : "API заявок временно отключён."
+  );
+  error.code = "ORDERS_API_DISABLED";
+  return error;
+}
+
+function ensureOrdersApiEnabled() {
+  if (!ORDERS_API_ENABLED) {
+    throw createOrdersApiDisabledError();
+  }
+}
+
 export function fetchServices() {
+  if (!ORDERS_API_ENABLED) {
+    return Promise.resolve([]);
+  }
+
   return request(ENDPOINTS.services.list);
 }
 
@@ -64,6 +84,8 @@ export function fetchServices() {
  * Backend contract can be implemented as multipart/form-data.
  */
 export function createClientApplication(payload) {
+  ensureOrdersApiEnabled();
+
   const formData = new FormData();
   formData.set("serviceCode", payload.serviceCode);
   formData.set("clientName", payload.clientName);
@@ -82,16 +104,19 @@ export function createClientApplication(payload) {
 }
 
 export function fetchClientOrders() {
+  ensureOrdersApiEnabled();
   return request(ENDPOINTS.client.orders).then((payload) =>
     Array.isArray(payload) ? payload.map(normalizeOrderSummary) : []
   );
 }
 
 export function fetchClientOrderDetails(orderId) {
+  ensureOrdersApiEnabled();
   return request(ENDPOINTS.client.orderDetails(orderId)).then(normalizeOrderDetails);
 }
 
 export function updateClientOrder(orderId, payload) {
+  ensureOrdersApiEnabled();
   return jsonRequest(ENDPOINTS.client.orderUpdate(orderId), {
     method: "PATCH",
     body: payload,
@@ -103,12 +128,14 @@ export function updateClientOrder(orderId, payload) {
 }
 
 export function deleteClientOrder(orderId) {
+  ensureOrdersApiEnabled();
   return request(ENDPOINTS.client.orderDelete(orderId), {
     method: "DELETE",
   });
 }
 
 export function submitClientOrderRework(orderId, comment) {
+  ensureOrdersApiEnabled();
   return jsonRequest(ENDPOINTS.client.orderRework(orderId), {
     method: "POST",
     body: { comment },

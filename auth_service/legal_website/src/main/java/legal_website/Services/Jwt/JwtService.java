@@ -12,26 +12,28 @@ import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import legal_website.Dto.google.GoogleFlowDto;
+import legal_website.Dto.verityEmail.VerityEmailPayload;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
 import legal_website.EntityAndRepo.Jwt.JwtEntity;
 import legal_website.EntityAndRepo.Jwt.JwtRepo;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.RefreshTokenNotFoundException;
-import legal_website.common.errors.RefreshTokenRevokedException;
-import legal_website.common.errors.TokenValidationException;
-import legal_website.common.errors.UserNotFoundException;
+import legal_website.EntityAndRepo.verification_codes.VerificationCodeEntity;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserNotFoundException;
+import legal_website.common.errors.token.RefreshTokenNotFoundException;
+import legal_website.common.errors.token.RefreshTokenRevokedException;
+import legal_website.common.errors.token.TokenValidationException;
 import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class JwtService {
-
     private final JwtRepo jwtRepo;
     private final UserRepo userRepo;
     @Value("${jwt.secret}")
@@ -39,6 +41,9 @@ public class JwtService {
 
     @Value("${jwt.access-minutes}")
     private long accessMinutes;
+
+    @Value("${app.frontend-base-url}")
+    private String frontendBaseUrl;
 
     public Date getRefreshTokenExpirationDate() {
         return new Date(System.currentTimeMillis() + accessMinutes * 60_000);
@@ -83,6 +88,29 @@ public class JwtService {
         .signWith(getSigningKey())
         .compact();
 
+    }
+    public String generateLinkForVerifyEmail(VerityEmailPayload payload,VerificationCodeEntity codeEntity){
+        Date issuedAt = new Date();
+        Date expiresAt = new Date(System.currentTimeMillis() + accessMinutes * 60_000);
+        
+        
+        String token = Jwts.builder()
+        .subject(payload.getUserId().toString())
+        .claim("purpose",payload.getPurpose())
+        .claim("email", payload.getEmail())
+        .claim("verificationCodeId",payload.getVerificationCodeId())
+        .claim("codeHash", codeEntity.getCodeHash())
+        .issuedAt(issuedAt)
+        .expiration(expiresAt)
+        .signWith(getSigningKey())
+        .compact();
+        String verificationLink = UriComponentsBuilder
+            .fromUriString(frontendBaseUrl)
+            .path("/verify-email")
+            .queryParam("token", token)
+            .build()
+            .toUriString();
+        return verificationLink;
     }
 
     public long getAccessTokenExpiresInSeconds() {

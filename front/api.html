@@ -6,12 +6,14 @@
     <title>Философия Бизнеса | API карта проекта</title>
     <meta
       name="description"
-      content="Текущая карта API проекта: реализованные backend endpoint'ы и planned-контракты, которые уже использует frontend."
+      content="Текущая карта API проекта: локальный auth-only контракт фронтенда, реализованные endpoint'ы и planned API для заказов."
     />
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./fa.css?v=20260512a" />
-    <script defer src="./app/api/api-catalog.js?v=20260512a"></script>
-    <script defer src="./app/pages/api-page.js?v=20260512a"></script>
+    <link rel="stylesheet" href="./fa.css?v=20260524a" />
+    <script src="./runtime-config.js?v=20260601a"></script>
+    <script src="./local-dev-config.js"></script>
+    <script defer src="./app/api/api-catalog.js?v=20260524a"></script>
+    <script defer src="./app/pages/api-page.js?v=20260524a"></script>
   </head>
   <body>
     <div class="page-shell">
@@ -42,8 +44,9 @@
             <p class="eyebrow">API map</p>
             <h1>Текущее API проекта в одном месте.</h1>
             <p class="lead">
-              Эта страница показывает два слоя сразу: что уже реально объявлено в Spring backend
-              и какие endpoint'ы уже ожидает frontend для клиентского кабинета и доски юриста.
+              Эта страница показывает два слоя сразу: что уже реально работает в локальном
+              auth-service и какие endpoint'ы frontend будет ждать позже, когда ты подключишь
+              отдельный backend заявок.
             </p>
 
             <div class="api-summary-grid">
@@ -63,7 +66,7 @@
 
           <aside class="api-hero-panel">
             <p class="panel-label">Архитектурная заметка</p>
-            <h2>Фронт и backend пока живут в двух моделях авторизации.</h2>
+            <h2>Локальный фронт работает в auth-only режиме.</h2>
             <div class="panel-stack">
               <div class="panel-item">
                 <strong>Backend</strong>
@@ -75,11 +78,19 @@
               </div>
             </div>
             <div class="panel-metric">
-              <span>Базовый URL</span>
-              <strong><code>http://localhost:8080/api</code></strong>
-              <small>
-                Удобно использовать как живую карту проекта, когда проектируешь новые controller,
-                service и DTO слои.
+              <span>Auth API</span>
+              <strong><code id="api-auth-base-url">http://127.0.0.1:8081/api</code></strong>
+              <small id="api-runtime-mode">
+                Runtime-флаги подставят актуальный локальный контракт прямо из
+                <code>local-dev-config.js</code>.
+              </small>
+            </div>
+            <div class="panel-metric">
+              <span>Orders API</span>
+              <strong><code id="api-orders-base-url">disabled</code></strong>
+              <small id="api-orders-mode-note">
+                В auth-only режиме client orders flow должен деградировать аккуратно, а не
+                маскироваться под рабочий backend.
               </small>
             </div>
           </aside>
@@ -93,7 +104,8 @@
             </div>
             <p>
               Для junior backend это полезно как мини-спецификация: видно HTTP метод, путь,
-              ожидаемую авторизацию, форму запроса и где уже есть расхождения между слоями.
+              ожидаемую авторизацию, форму запроса и какие сценарии реально включены локальными
+              runtime-флагами прямо сейчас.
             </p>
           </div>
         </section>
@@ -105,7 +117,8 @@
               <h2>Реально реализованные endpoint'ы</h2>
             </div>
             <p>
-              Это маршруты, которые уже объявлены в Spring-контроллерах на текущий момент.
+              Это маршруты, которые уже реально объявлены в кодовой базе. Для локального прогона
+              клиента сейчас обязателен только auth-service на <code>8081</code>.
             </p>
           </div>
 
@@ -136,7 +149,8 @@
             </div>
             <p>
               Это хорошая дорожная карта для следующих backend задач: кабинет клиента, заказы,
-              комментарии, статусы и канбан-доска юриста.
+              комментарии, статусы и канбан-доска юриста. Пока orders backend локально отключён
+              флагом, а не скрытым fallback'ом.
             </p>
           </div>
 
@@ -172,26 +186,26 @@
 
           <div class="benefits-grid">
             <article class="benefit-card">
-              <strong>1. Контракт авторизации пока расходится</strong>
+              <strong>1. Локально auth уже отделён от backend заявок</strong>
               <p>
-                Backend использует `HttpSession`, поэтому frontend тоже должен жить в модели
-                `cookie + CSRF`, а не в модели `Bearer token в localStorage`.
+                Это важный архитектурный шаг: фронт уже умеет жить с отдельным auth-service,
+                а orders backend можно подключить позже, не ломая login/reload/logout сценарии.
               </p>
             </article>
 
             <article class="benefit-card">
-              <strong>2. У клиента уже просматривается application/order слой</strong>
+              <strong>2. Orders API должен включаться только явно</strong>
               <p>
-                Для проекта это хороший enterprise-подход: отделять регистрацию пользователя от
-                бизнес-сущности заказа и его жизненного цикла.
+                Сейчас это контролируется runtime-флагами. Такой подход лучше, чем молча падать
+                на `401/404` и выглядеть так, будто пользователь внезапно разлогинился.
               </p>
             </article>
 
             <article class="benefit-card">
-              <strong>3. Статусы и комментарии лучше сразу проектировать отдельно</strong>
+              <strong>3. Feature flag'и уже часть пользовательского контракта</strong>
               <p>
-                Это похоже на Spring-подход с отдельными entity, service и history таблицами, а
-                не с одним большим orders controller.
+                Google login, удаление аккаунта и реальные операции с заказами не должны
+                отображаться как рабочие, если backend их пока не реализует.
               </p>
             </article>
 

@@ -16,8 +16,8 @@ import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import legal_website.Services.auth.RefreshService;
 import legal_website.common.GlobalExceptionHandler;
-import legal_website.common.errors.RefreshTokenNotFoundException;
-import legal_website.common.errors.TokenValidationException;
+import legal_website.common.errors.token.RefreshTokenNotFoundException;
+import legal_website.common.errors.token.TokenValidationException;
 
 @ExtendWith(MockitoExtension.class)
 class RefreshControllerTest {

@@ -13,6 +13,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init/01-create-local-databases.sql:/docker-entrypoint-initdb.d/01-create-local-databases.sql:ro
 
 volumes:
   postgres_data:

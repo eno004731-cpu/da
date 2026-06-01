@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.springframework.security.core.Authentication;
 
 import legal_website.Dto.MeResponse;
+import legal_website.Services.auth.ChangeNamesService;
 import legal_website.Services.auth.MeService;
 
 class MeControllerTest {
@@ -16,6 +17,7 @@ class MeControllerTest {
     @Test
     void getMeShouldReturnCurrentUserFromAuthenticationName() {
         MeService meService = Mockito.mock(MeService.class);
+        ChangeNamesService changeNamesService = Mockito.mock(ChangeNamesService.class);
         Authentication authentication = Mockito.mock(Authentication.class);
 
         MeResponse response = new MeResponse();
@@ -25,7 +27,7 @@ class MeControllerTest {
         when(authentication.getName()).thenReturn("7");
         when(meService.getMe(7L)).thenReturn(response);
 
-        MeController controller = new MeController(meService);
+        MeController controller = new MeController(meService, changeNamesService);
         MeResponse result = controller.getMe(authentication);
 
         assertEquals(7L, result.getId());

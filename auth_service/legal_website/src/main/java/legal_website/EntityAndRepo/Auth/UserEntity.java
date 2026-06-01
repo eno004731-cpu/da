@@ -31,6 +31,8 @@ public class UserEntity {
     private String companyName;
     @Column(name = "password_hash",length = 255,nullable = false)
     private String passwordHash;
+    @Column(name = "email_verified",nullable = false)
+    private boolean emailVerified;
     @Column(name = "is_active",nullable = false)
     private boolean isActive;
     @Column(name = "created_at")

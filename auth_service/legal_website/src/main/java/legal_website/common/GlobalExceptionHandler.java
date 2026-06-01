@@ -10,19 +10,20 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import jakarta.servlet.http.HttpServletRequest;
 import legal_website.common.errors.AccessDeniedException;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.InvalidCredentialsException;
-import legal_website.common.errors.InvalidFlowTokenException;
-import legal_website.common.errors.RefreshTokenNotFoundException;
-import legal_website.common.errors.RefreshTokenRevokedException;
-import legal_website.common.errors.TokenValidationException;
-import legal_website.common.errors.UserAlreadyExistsException;
-import legal_website.common.errors.UserNotFoundException;
 import legal_website.common.errors.OAuht.InvalidGoogleId;
 import legal_website.common.errors.OAuht.OAuthConfigurationException;
 import legal_website.common.errors.OAuht.OAuthAccountAlreadyLinkedException;
 import legal_website.common.errors.OAuht.OAuthAccountNotFoundException;
 import legal_website.common.errors.OAuht.OAuthProviderUnavailableException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserAlreadyExistsException;
+import legal_website.common.errors.User.UserNotFoundException;
+import legal_website.common.errors.email.EmailAlreadyVerified;
+import legal_website.common.errors.token.InvalidCredentialsException;
+import legal_website.common.errors.token.InvalidFlowTokenException;
+import legal_website.common.errors.token.RefreshTokenNotFoundException;
+import legal_website.common.errors.token.RefreshTokenRevokedException;
+import legal_website.common.errors.token.TokenValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -182,4 +183,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(buildErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage(), request));
     }
+    @ExceptionHandler(EmailAlreadyVerified.class)
+    public ResponseEntity<ApiErrorResponse> emailAlreadyVerifiedHandler(
+            EmailAlreadyVerified ex,
+            HttpServletRequest request
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(buildErrorResponse(HttpStatus.CONFLICT, ex.getMessage(), request));
+    }
+   
 }

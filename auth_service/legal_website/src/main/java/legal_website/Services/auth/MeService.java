@@ -4,14 +4,15 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import legal_website.Dto.MeResponse;
 import legal_website.EntityAndRepo.Auth.OAuthAccountEntity;
 import legal_website.EntityAndRepo.Auth.OAuthAccountRepo;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.UserNotFoundException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 public class MeService {
     private final UserRepo userRepo;
     private final OAuthAccountRepo oAuthAccountRepo;
+    @Transactional(readOnly = true)
     public MeResponse getMe(Long userId){
         UserEntity user = userRepo.findById(userId)
             .orElseThrow(() -> new UserNotFoundException("нет пользователя"));

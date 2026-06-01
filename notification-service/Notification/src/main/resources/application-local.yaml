@@ -1,0 +1,21 @@
+spring:
+  kafka:
+    bootstrap-servers: 127.0.0.1:9092
+  datasource:
+    url: jdbc:postgresql://127.0.0.1:5432/legal_notification
+    username: legal_user
+    password: legal_pass
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+  mail:
+    host: 127.0.0.1
+    port: 1025
+    username:
+    password:
+
+app:
+  mail:
+    from: no-reply@localhost

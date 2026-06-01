@@ -23,11 +23,21 @@
  * @property {string | null} phone
  * @property {string | null} companyName
  * @property {UserRole} role
+ * @property {string | null} [authProvider]
+ * @property {string[] | null} [authProviders]
+ * @property {boolean | null} [isOAuthUser]
+ * @property {boolean | null} [hasPassword]
+ * @property {boolean | null} [needsPasswordSetup]
+ * @property {boolean | null} [requiresProfileCompletion]
  */
 
 /**
  * @typedef {Object} AuthSession
  * @property {AuthUser} user
+ * @property {string | null} accessToken
+ * @property {string | null} refreshToken
+ * @property {string | null} tokenType
+ * @property {number | null} expiresIn
  */
 
 /**

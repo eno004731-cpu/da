@@ -16,8 +16,8 @@ import legal_website.Dto.MeResponse;
 import legal_website.EntityAndRepo.Auth.OAuthAccountRepo;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.UserNotFoundException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class MeServiceTest {

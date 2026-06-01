@@ -28,17 +28,17 @@ import org.springframework.web.multipart.MultipartFile;
 import my_jira.common.exception.FileValidationException;
 import my_jira.common.exception.ServiceNotFoundException;
 import my_jira.common.exception.UserNotFoundException;
-import my_jira.orders.documentss.DocumentsRepo;
-import my_jira.orders.documentss.OrdersDocuments;
-import my_jira.orders.order.OrdersEntity;
-import my_jira.orders.order.OrdersRepo;
-import my_jira.orders.order.postEnpoint.AnswerDto;
-import my_jira.orders.order.postEnpoint.OrdersDTO;
-import my_jira.orders.order.postEnpoint.OrdersService;
-import my_jira.services.ServiceEntity;
-import my_jira.services.ServiceRepository;
-import my_jira.users.UsersEntity;
-import my_jira.users.UsersRepo;
+import my_jira.documents.DocumentsRepo;
+import my_jira.documents.OrdersDocuments;
+import my_jira.orders.OrdersEntity;
+import my_jira.orders.OrdersRepo;
+import my_jira.orders.create.AnswerDto;
+import my_jira.orders.create.OrdersDTO;
+import my_jira.orders.create.OrdersService;
+import my_jira.catalog.ServiceEntity;
+import my_jira.catalog.ServiceRepository;
+import my_jira.auth.UsersEntity;
+import my_jira.auth.UsersRepo;
 
 @ExtendWith(MockitoExtension.class)
 public class TestOrderPostService {
@@ -80,6 +80,22 @@ public class TestOrderPostService {
         "image/webp",            // contentType
         "test content".getBytes());     // содержимое файла
         return document2;
+    }
+
+    private MockMultipartFile createVideoDocument() {
+        return new MockMultipartFile(
+        "documents",
+        "0.mp4",
+        "video/mp4",
+        "video content".getBytes());
+    }
+
+    private MockMultipartFile createMobileVideoDocumentWithFallbackExtension() {
+        return new MockMultipartFile(
+        "documents",
+        "iphone-video.mp4",
+        "application/octet-stream",
+        "video content".getBytes());
     }
     
 
@@ -219,6 +235,44 @@ List<MultipartFile> documentsBroken = List.of(createBrokenDocument());
 
         }
     }  
+
+    @Test
+    public void testCreateOrderWithMp4Document() {
+        String email = "test@mail.com";
+        OrdersDTO request = getRequest();
+        UsersEntity user = new UsersEntity();
+        ServiceEntity service = new ServiceEntity();
+        service.setCode("REGISTRATION");
+        service.setName("Регистрация ООО");
+
+        when(usersRepo.findByEmail(email)).thenReturn(Optional.of(user));
+        when(serviceRepository.findByCode("REGISTRATION")).thenReturn(service);
+        when(ordersRepo.save(any(OrdersEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ordersService.postOrder(request, email, List.of(createVideoDocument()));
+
+        verify(documentsRepo, times(1)).saveAll(any());
+    }
+
+    @Test
+    public void testCreateOrderWithExtensionFallback() {
+        String email = "test@mail.com";
+        OrdersDTO request = getRequest();
+        UsersEntity user = new UsersEntity();
+        ServiceEntity service = new ServiceEntity();
+        service.setCode("REGISTRATION");
+        service.setName("Регистрация ООО");
+
+        when(usersRepo.findByEmail(email)).thenReturn(Optional.of(user));
+        when(serviceRepository.findByCode("REGISTRATION")).thenReturn(service);
+        when(ordersRepo.save(any(OrdersEntity.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
+
+        ordersService.postOrder(request, email, List.of(createMobileVideoDocumentWithFallbackExtension()));
+
+        verify(documentsRepo, times(1)).saveAll(any());
+    }
 
 
 }

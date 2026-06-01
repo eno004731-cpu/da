@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import legal_website.Dto.MeRequest;
 import legal_website.Dto.MeResponse;
@@ -11,9 +12,9 @@ import legal_website.EntityAndRepo.Auth.OAuthAccountEntity;
 import legal_website.EntityAndRepo.Auth.OAuthAccountRepo;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.InvalidCredentialsException;
-import legal_website.common.errors.UserNotFoundException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserNotFoundException;
+import legal_website.common.errors.token.InvalidCredentialsException;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -22,6 +23,7 @@ public class ChangeNamesService {
     private final UserRepo userRepo;
     private final PasswordEncoder passwordEncoder;
     private final MeService meService;
+    @Transactional
     public MeResponse changeNames(MeRequest request, Long userId){
         UserEntity user = userRepo.findById(userId).orElseThrow(() -> new UserNotFoundException("Пользователь не найден"));
             if (!user.isActive()) {

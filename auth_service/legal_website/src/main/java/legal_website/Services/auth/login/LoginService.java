@@ -8,9 +8,9 @@ import legal_website.Dto.register.AuthUserResponse;
 import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
 import legal_website.Services.auth.AuthSessionService;
-import legal_website.common.errors.InactiveUserException;
-import legal_website.common.errors.InvalidCredentialsException;
-import legal_website.common.errors.UserNotFoundException;
+import legal_website.common.errors.User.InactiveUserException;
+import legal_website.common.errors.User.UserNotFoundException;
+import legal_website.common.errors.token.InvalidCredentialsException;
 import lombok.RequiredArgsConstructor;
 
 @Service

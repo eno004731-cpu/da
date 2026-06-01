@@ -27,7 +27,7 @@ import legal_website.EntityAndRepo.Auth.UserRepo;
 import legal_website.EntityAndRepo.Jwt.JwtRepo;
 import legal_website.Services.Jwt.JwtService;
 import legal_website.Services.auth.AuthSessionService;
-import legal_website.common.errors.InvalidFlowTokenException;
+import legal_website.common.errors.token.InvalidFlowTokenException;
 
 @ExtendWith(MockitoExtension.class)
 class GoogleFillServiceTest {

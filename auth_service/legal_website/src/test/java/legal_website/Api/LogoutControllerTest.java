@@ -17,9 +17,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import legal_website.common.GlobalExceptionHandler;
-import legal_website.common.errors.RefreshTokenNotFoundException;
-import legal_website.common.errors.RefreshTokenRevokedException;
-import legal_website.common.errors.TokenValidationException;
+import legal_website.common.errors.token.RefreshTokenNotFoundException;
+import legal_website.common.errors.token.RefreshTokenRevokedException;
+import legal_website.common.errors.token.TokenValidationException;
 import legal_website.Dto.logout.LogoutRequest;
 import legal_website.Services.auth.login.LogoutService;
 

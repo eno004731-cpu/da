@@ -1,6 +1,15 @@
-import { ENDPOINTS } from "./endpoints.js?v=20260510b";
-import { jsonRequest } from "./http-client.js?v=20260510b";
-import { getSession } from "../state/auth-store.js?v=20260510b";
+import {
+  ACCOUNT_DELETE_ENABLED,
+  API_BASE_URL,
+  AUTH_API_BASE_URL,
+  AUTH_USES_DEDICATED_SERVICE,
+  AUTH_USES_SAME_BACKEND,
+  ENDPOINTS,
+  GOOGLE_AUTH_ENABLED,
+  LOCAL_AUTH_ONLY_MODE,
+} from "./endpoints.js?v=20260528a";
+import { request } from "./http-client.js?v=20260525a";
+import { getPendingGoogleCompletion, getSession } from "../state/auth-store.js?v=20260525a";
 
 const MOCK_USERS_STORAGE_KEY = "philosophy-business-mock-users";
 
@@ -21,7 +30,191 @@ function createMockSession(user) {
 }
 
 function createSessionFromUser(user) {
-  return { user };
+  return {
+    user,
+    accessToken: null,
+    refreshToken: null,
+    tokenType: "Bearer",
+    expiresIn: null,
+  };
+}
+
+function readOptionalBoolean(...candidates) {
+  for (const candidate of candidates) {
+    if (typeof candidate === "boolean") {
+      return candidate;
+    }
+
+    if (typeof candidate === "string") {
+      const normalized = candidate.trim().toLowerCase();
+      if (["true", "1", "yes", "on"].includes(normalized)) {
+        return true;
+      }
+
+      if (["false", "0", "no", "off"].includes(normalized)) {
+        return false;
+      }
+    }
+  }
+
+  return null;
+}
+
+function normalizeStringArray(value) {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const items = value
+    .map((item) => String(item || "").trim())
+    .filter(Boolean);
+
+  return items.length ? items : null;
+}
+
+function normalizeUser(user = {}) {
+  const authProviders = normalizeStringArray(
+    user.authProviders ?? user.providers ?? user.linkedAuthProviders
+  );
+  const authProvider = String(
+    user.authProvider ?? user.oauthProvider ?? authProviders?.[0] ?? ""
+  ).trim();
+
+  return {
+    id: String(user.id ?? ""),
+    fullName: user.fullName || user.name || "",
+    email: user.email || "",
+    phone: user.phone || null,
+    companyName: user.companyName || null,
+    role: user.role || "CLIENT",
+    authProvider: authProvider || null,
+    authProviders,
+    isOAuthUser: readOptionalBoolean(
+      user.isOAuthUser,
+      user.oauthUser,
+      authProvider ? true : null
+    ),
+    hasPassword: readOptionalBoolean(
+      user.hasPassword,
+      user.passwordConfigured,
+      user.localPasswordConfigured
+    ),
+    needsPasswordSetup: readOptionalBoolean(
+      user.needsPasswordSetup,
+      user.requiresPasswordSetup,
+      user.passwordSetupRequired
+    ),
+    requiresProfileCompletion: readOptionalBoolean(
+      user.requiresProfileCompletion,
+      user.profileCompletionRequired
+    ),
+  };
+}
+
+function createSessionFromAuthResponse(payload = {}) {
+  const user = normalizeUser(payload.user || {});
+  return {
+    user,
+    accessToken: payload.accessToken || null,
+    refreshToken: payload.refreshToken || null,
+    tokenType: payload.tokenType || "Bearer",
+    expiresIn: Number(payload.expiresIn ?? 0) || null,
+  };
+}
+
+function createGoogleCompletionResult(payload = {}) {
+  return {
+    type: "google_completion_required",
+    flowToken: payload.flowToken || "",
+    profile: normalizeUser({
+      ...(payload.profile || {}),
+      isOAuthUser: true,
+      authProvider: "google",
+      authProviders: ["google"],
+      hasPassword: false,
+      needsPasswordSetup: true,
+      requiresProfileCompletion: true,
+    }),
+  };
+}
+
+function isAuthResponsePayload(payload = {}) {
+  return Boolean(payload?.accessToken && payload?.user);
+}
+
+function isGoogleCompletionPayload(payload = {}) {
+  return typeof payload?.flowToken === "string" && payload.flowToken.trim().length > 0;
+}
+
+function getNestedAuthResponsePayload(payload = {}) {
+  const candidates = [payload?.auth, payload?.authResponse, payload?.authResponce];
+
+  for (const candidate of candidates) {
+    if (isAuthResponsePayload(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function getNestedGoogleCompletionPayload(payload = {}) {
+  const candidates = [payload?.googleResponse, payload?.googleResponce];
+
+  for (const candidate of candidates) {
+    if (isGoogleCompletionPayload(candidate)) {
+      return candidate;
+    }
+  }
+
+  return null;
+}
+
+function parseGoogleLoginResponse(payload = {}) {
+  // Вариант 1: backend сразу вернул обычный AuthResponce в корне JSON.
+  if (isAuthResponsePayload(payload)) {
+    return {
+      type: "authenticated",
+      session: createSessionFromAuthResponse(payload),
+    };
+  }
+
+  // Вариант 2: backend вернул обёртку с nested auth/authResponce.
+  const nestedAuthPayload = getNestedAuthResponsePayload(payload);
+  if (nestedAuthPayload) {
+    return {
+      type: "authenticated",
+      session: createSessionFromAuthResponse(nestedAuthPayload),
+    };
+  }
+
+  // Вариант 3: backend вернул только completion DTO в корне JSON.
+  if (isGoogleCompletionPayload(payload)) {
+    return createGoogleCompletionResult(payload);
+  }
+
+  // Вариант 4: backend завернул completion DTO в googleResponse/googleResponce.
+  const nestedGooglePayload = getNestedGoogleCompletionPayload(payload);
+  if (nestedGooglePayload) {
+    return createGoogleCompletionResult(nestedGooglePayload);
+  }
+
+  return null;
+}
+
+function parseGoogleCompletionResponse(payload = {}) {
+  // После completion backend может вернуть либо обычный AuthResponce,
+  // либо обёртку со status/auth.
+  if (isAuthResponsePayload(payload)) {
+    return createSessionFromAuthResponse(payload);
+  }
+
+  const nestedAuthPayload = getNestedAuthResponsePayload(payload);
+  if (nestedAuthPayload) {
+    return createSessionFromAuthResponse(nestedAuthPayload);
+  }
+
+  return null;
 }
 
 function shouldUseDevFallback(error) {
@@ -32,6 +225,40 @@ function shouldUseDevFallback(error) {
   return typeof status === "undefined" || [404, 405].includes(status);
 }
 
+function usesSessionAuthBackend() {
+  return AUTH_USES_SAME_BACKEND;
+}
+
+function usesDedicatedAuthService() {
+  return AUTH_USES_DEDICATED_SERVICE;
+}
+
+function allowsLocalMockAuthFallback() {
+  return !LOCAL_AUTH_ONLY_MODE;
+}
+
+function buildAuthReadOptions() {
+  return {
+    baseUrl: AUTH_API_BASE_URL,
+    includeCredentials: usesSessionAuthBackend(),
+    disableCsrf: true,
+    // Для session-auth backend не нужен Bearer header из localStorage.
+    // Для JWT auth-service он как раз нужен, чтобы /auth/me работал после reload.
+    useAuth: usesDedicatedAuthService(),
+  };
+}
+
+function buildAuthWriteOptions() {
+  return {
+    baseUrl: AUTH_API_BASE_URL,
+    includeCredentials: usesSessionAuthBackend(),
+    // Старый monolith на Spring Session требует CSRF header.
+    // Отдельный JWT auth-service работает stateless и без CSRF.
+    disableCsrf: usesDedicatedAuthService(),
+    useAuth: usesDedicatedAuthService(),
+  };
+}
+
 export function isUnauthorizedError(error) {
   const status = typeof error === "object" && error !== null ? error.status : undefined;
   return status === 401 || status === 403;
@@ -40,6 +267,12 @@ export function isUnauthorizedError(error) {
 export function isBackendUnavailableError(error) {
   const status = typeof error === "object" && error !== null ? error.status : undefined;
   return typeof status === "undefined" || [502, 503, 504].includes(status);
+}
+
+function createFeatureDisabledError(message, code = "AUTH_FEATURE_DISABLED") {
+  const error = new Error(message);
+  error.code = code;
+  return error;
 }
 
 function registerClientLocally(payload) {
@@ -58,6 +291,10 @@ function registerClientLocally(payload) {
     phone: payload.phone || "",
     companyName: payload.companyName || "",
     role: "CLIENT",
+    isOAuthUser: false,
+    hasPassword: true,
+    needsPasswordSetup: false,
+    requiresProfileCompletion: false,
   };
 
   users.push({
@@ -86,6 +323,10 @@ function loginClientLocally(payload) {
     phone: user.phone,
     companyName: user.companyName,
     role: user.role,
+    isOAuthUser: Boolean(user.isOAuthUser),
+    hasPassword: user.hasPassword ?? true,
+    needsPasswordSetup: user.needsPasswordSetup ?? false,
+    requiresProfileCompletion: user.requiresProfileCompletion ?? false,
   });
 }
 
@@ -104,10 +345,66 @@ function deleteClientLocally() {
   return { success: true };
 }
 
-async function withDevFallback(requestFn, fallbackFn) {
+function updateCurrentUserProfileLocally(payload) {
+  const session = getSession();
+  const currentUser = session?.user;
+
+  if (!currentUser) {
+    throw new Error("Нельзя обновить профиль без активной локальной сессии.");
+  }
+
+  const fullName = String(payload.fullName || "").trim();
+  const email = String(payload.email || "").trim().toLowerCase();
+  const password = String(payload.password || "");
+
+  if (!fullName || !email) {
+    throw new Error("Для завершения регистрации нужны имя и email.");
+  }
+
+  const users = readMockUsers();
+  const emailTakenByAnotherUser = users.some(
+    (user) => user.id !== currentUser.id && user.email.toLowerCase() === email
+  );
+
+  if (emailTakenByAnotherUser) {
+    throw new Error("Пользователь с таким email уже существует в локальной dev-заглушке.");
+  }
+
+  const nextUsers = users.map((user) => {
+    if (user.id !== currentUser.id) {
+      return user;
+    }
+
+    return {
+      ...user,
+      fullName,
+      email,
+      password: password || user.password,
+      hasPassword: password ? true : user.hasPassword ?? true,
+      needsPasswordSetup: false,
+      requiresProfileCompletion: false,
+    };
+  });
+  writeMockUsers(nextUsers);
+
+  return normalizeUser({
+    ...currentUser,
+    fullName,
+    email,
+    hasPassword: password ? true : currentUser.hasPassword ?? true,
+    needsPasswordSetup: false,
+    requiresProfileCompletion: false,
+  });
+}
+
+async function withDevFallback(requestFn, fallbackFn, { enabled = true } = {}) {
   try {
     return await requestFn();
   } catch (error) {
+    if (!enabled) {
+      throw error;
+    }
+
     if (!shouldUseDevFallback(error)) {
       throw error;
     }
@@ -117,63 +414,154 @@ async function withDevFallback(requestFn, fallbackFn) {
 }
 
 async function fetchCurrentUserFromBackend() {
-  return jsonRequest(ENDPOINTS.auth.me, {
+  const user = await request(ENDPOINTS.auth.me, {
     method: "GET",
+    ...buildAuthReadOptions(),
   });
+
+  return user ? normalizeUser(user) : null;
 }
 
 export function checkBackendAvailability() {
-  return jsonRequest(ENDPOINTS.auth.csrf, {
+  if (usesSessionAuthBackend()) {
+    return request(ENDPOINTS.auth.csrf, {
+      method: "GET",
+      ...buildAuthReadOptions(),
+      useAuth: false,
+    });
+  }
+
+  return request(ENDPOINTS.auth.me, {
     method: "GET",
+    ...buildAuthReadOptions(),
   });
 }
 
-/**
- * Session-based login contract:
- * backend returns boolean success, then frontend loads current user via GET /auth/me.
- */
 export function loginClient(payload) {
   return withDevFallback(
     async () => {
-      const success = await jsonRequest(ENDPOINTS.auth.login, {
+      const response = await request(ENDPOINTS.auth.login, {
         method: "POST",
-        body: payload,
+        json: true,
+        body: JSON.stringify(payload),
+        ...buildAuthWriteOptions(),
+        useAuth: false,
       });
 
-      if (success !== true) {
-        throw new Error("Backend не подтвердил вход.");
+      if (response === true) {
+        const user = await fetchCurrentUserFromBackend();
+        return createSessionFromUser(normalizeUser(user));
       }
 
-      const user = await fetchCurrentUserFromBackend();
-      return createSessionFromUser(user);
+      if (response?.accessToken && response?.user) {
+        return createSessionFromAuthResponse(response);
+      }
+
+      throw new Error("Backend вернул неподдерживаемый ответ логина.");
     },
-    () => loginClientLocally(payload)
+    () => loginClientLocally(payload),
+    { enabled: allowsLocalMockAuthFallback() }
   );
 }
 
 export function registerClient(payload) {
   return withDevFallback(
     async () => {
-      const success = await jsonRequest(ENDPOINTS.auth.register, {
+      const response = await request(ENDPOINTS.auth.register, {
         method: "POST",
-        body: payload,
+        json: true,
+        body: JSON.stringify(payload),
+        ...buildAuthWriteOptions(),
+        useAuth: false,
       });
 
-      if (success !== true) {
-        throw new Error("Backend не подтвердил регистрацию.");
+      if (response === true) {
+        const user = await fetchCurrentUserFromBackend();
+        return createSessionFromUser(normalizeUser(user));
       }
 
-      const user = await fetchCurrentUserFromBackend();
-      return createSessionFromUser(user);
+      if (response?.accessToken && response?.user) {
+        return createSessionFromAuthResponse(response);
+      }
+
+      throw new Error("Backend вернул неподдерживаемый ответ регистрации.");
     },
-    () => registerClientLocally(payload)
+    () => registerClientLocally(payload),
+    { enabled: allowsLocalMockAuthFallback() }
   );
 }
 
-export function logoutClient() {
-  return withDevFallback(
-    () => jsonRequest(ENDPOINTS.auth.logout, {
+export async function loginWithGoogle(credential) {
+  if (!GOOGLE_AUTH_ENABLED) {
+    throw createFeatureDisabledError(
+      "Вход через Google отключён текущими runtime-флагами фронтенда.",
+      "AUTH_GOOGLE_DISABLED"
+    );
+  }
+
+  try {
+    const response = await request(ENDPOINTS.auth.googleLogin, {
       method: "POST",
+      json: true,
+      body: JSON.stringify({ credential }),
+      ...buildAuthWriteOptions(),
+      useAuth: false,
+    });
+
+    const parsedResponse = parseGoogleLoginResponse(response);
+    if (parsedResponse) {
+      return parsedResponse;
+    }
+
+    throw new Error("Backend вернул неподдерживаемый ответ Google auth.");
+  } catch (error) {
+    const status = typeof error === "object" && error !== null ? error.status : undefined;
+    if ([404, 405].includes(status)) {
+      const endpointError = new Error("Backend ещё не реализовал Google auth flow.");
+      endpointError.status = status;
+      throw endpointError;
+    }
+
+    throw error;
+  }
+}
+
+export function completeGoogleRegistration(payload) {
+  return request(ENDPOINTS.auth.googleComplete, {
+    method: "POST",
+    json: true,
+    body: JSON.stringify(payload),
+    ...buildAuthWriteOptions(),
+    useAuth: false,
+  }).then((response) => {
+    const session = parseGoogleCompletionResponse(response);
+    if (session) {
+      return session;
+    }
+
+    throw new Error("Backend вернул неподдерживаемый ответ завершения Google регистрации.");
+  });
+}
+
+export function requestEmailVerification() {
+  return request(ENDPOINTS.auth.emailVerificationRequest, {
+    method: "POST",
+    json: true,
+    body: JSON.stringify({}),
+    ...buildAuthWriteOptions(),
+  });
+}
+
+export function logoutClient() {
+  const session = getSession();
+  const body = session?.refreshToken ? { refreshToken: session.refreshToken } : undefined;
+
+  return withDevFallback(
+    () => request(ENDPOINTS.auth.logout, {
+      method: "POST",
+      json: true,
+      body: body ? JSON.stringify(body) : undefined,
+      ...buildAuthWriteOptions(),
     }),
     () => ({ success: true })
   );
@@ -182,20 +570,57 @@ export function logoutClient() {
 export function fetchCurrentUser() {
   return withDevFallback(
     () => fetchCurrentUserFromBackend(),
-    () => getSession()?.user || null
+    () => normalizeUser(getSession()?.user || {}),
+    { enabled: allowsLocalMockAuthFallback() }
   );
 }
 
-/**
- * Account deletion is session-based:
- * backend resolves the current user from the active server session.
- * Current Spring controller accepts POST /api/auth/account.
- */
-export function deleteClientAccount() {
+export function updateCurrentUserProfile(payload) {
   return withDevFallback(
-    () => jsonRequest(ENDPOINTS.auth.deleteAccount, {
-      method: "POST",
-    }),
-    () => deleteClientLocally()
+    async () => {
+      const response = await request(ENDPOINTS.auth.updateMe, {
+        method: "PATCH",
+        json: true,
+        body: JSON.stringify(payload),
+        ...buildAuthWriteOptions(),
+      });
+
+      if (!response) {
+        throw new Error("Backend вернул пустой ответ на обновление профиля.");
+      }
+
+      return normalizeUser(response);
+    },
+    () => updateCurrentUserProfileLocally(payload),
+    { enabled: allowsLocalMockAuthFallback() }
   );
+}
+
+export function getPendingGoogleProfileDraft() {
+  const pendingCompletion = getPendingGoogleCompletion();
+  return pendingCompletion?.profile ? normalizeUser(pendingCompletion.profile) : null;
+}
+
+export function deleteClientAccount() {
+  if (!ACCOUNT_DELETE_ENABLED) {
+    throw createFeatureDisabledError(
+      "Удаление аккаунта пока не реализовано в локальном auth-service.",
+      "AUTH_DELETE_ACCOUNT_DISABLED"
+    );
+  }
+
+  return withDevFallback(
+    () => request(ENDPOINTS.auth.deleteAccount, {
+      method: "DELETE",
+      ...buildAuthWriteOptions(),
+    }),
+    () => deleteClientLocally(),
+    { enabled: allowsLocalMockAuthFallback() }
+  );
+}
+
+export function shouldPreserveClientSessionOnOrdersUnauthorized() {
+  // Когда auth живёт отдельно от backend заявок, 401 на /client/orders
+  // ещё не означает, что пользователь разлогинен в auth-service.
+  return usesDedicatedAuthService();
 }

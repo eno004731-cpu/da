@@ -15,8 +15,8 @@ import legal_website.EntityAndRepo.Auth.UserEntity;
 import legal_website.EntityAndRepo.Auth.UserRepo;
 import legal_website.Services.Jwt.JwtService;
 import legal_website.Services.auth.AuthSessionService;
-import legal_website.common.errors.InvalidFlowTokenException;
 import legal_website.common.errors.OAuht.OAuthAccountAlreadyLinkedException;
+import legal_website.common.errors.token.InvalidFlowTokenException;
 import lombok.RequiredArgsConstructor;
 
 @Service

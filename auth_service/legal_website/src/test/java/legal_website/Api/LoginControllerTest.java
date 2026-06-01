@@ -15,11 +15,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.validation.beanvalidation.LocalValidatorFactoryBean;
 
 import legal_website.common.GlobalExceptionHandler;
-import legal_website.common.errors.InvalidCredentialsException;
-import legal_website.common.errors.InvalidFlowTokenException;
 import legal_website.common.errors.OAuht.InvalidGoogleId;
 import legal_website.common.errors.OAuht.OAuthConfigurationException;
 import legal_website.common.errors.OAuht.OAuthProviderUnavailableException;
+import legal_website.common.errors.token.InvalidCredentialsException;
+import legal_website.common.errors.token.InvalidFlowTokenException;
 import legal_website.Services.auth.login.GoogleFillService;
 import legal_website.Services.auth.login.GoogleLoginService;
 import legal_website.Services.auth.login.LoginService;

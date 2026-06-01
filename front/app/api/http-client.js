@@ -1,10 +1,11 @@
-import { API_BASE_URL } from "./endpoints.js?v=20260510b";
+import { getSession } from "../state/auth-store.js?v=20260525a";
+import { API_BASE_URL } from "./endpoints.js?v=20260525a";
 
 let csrfTokenFromBackend = null;
 const CSRF_ENDPOINT_PATH = "/auth/csrf";
 
-function buildUrl(path) {
-  return `${API_BASE_URL}${path}`;
+function buildUrl(path, baseUrl = API_BASE_URL) {
+  return `${baseUrl}${path}`;
 }
 
 function readCookie(name) {
@@ -24,8 +25,8 @@ export function setCsrfToken(token) {
   csrfTokenFromBackend = token || null;
 }
 
-async function refreshCsrfToken() {
-  const response = await fetch(buildUrl(CSRF_ENDPOINT_PATH), {
+async function refreshCsrfToken(baseUrl = API_BASE_URL) {
+  const response = await fetch(buildUrl(CSRF_ENDPOINT_PATH, baseUrl), {
     method: "GET",
     credentials: "include",
   });
@@ -43,7 +44,11 @@ async function refreshCsrfToken() {
 async function parseResponse(response) {
   const contentType = response.headers.get("content-type") || "";
   const isJson = contentType.includes("application/json");
-  const payload = isJson ? await response.json().catch(() => null) : await response.text();
+  const payload = response.status === 204
+    ? null
+    : isJson
+      ? await response.json().catch(() => null)
+      : await response.text();
 
   if (!response.ok) {
     const details =
@@ -93,16 +98,27 @@ export async function request(path, options = {}) {
     json = false,
     body,
     headers,
+    baseUrl = API_BASE_URL,
+    includeCredentials = true,
+    disableCsrf = false,
+    useAuth = true,
   } = options;
 
   const finalHeaders = new Headers(headers || createHeaders({ json }));
+  const session = useAuth ? getSession() : null;
+  const accessToken = session?.accessToken || null;
+
+  // JWT-based requests use Authorization header instead of JSESSIONID.
+  if (accessToken && !finalHeaders.has("Authorization")) {
+    finalHeaders.set("Authorization", `Bearer ${accessToken}`);
+  }
 
   // For session-based auth + CSRF protection, browser cookies must be sent
   // and the CSRF token must be echoed back in the request header.
   // Перед mutating-запросами заново забираем актуальный token,
   // потому что после login/register Spring может выдать новый CSRF token.
-  if (needsCsrf(method)) {
-    await refreshCsrfToken();
+  if (needsCsrf(method) && !disableCsrf) {
+    await refreshCsrfToken(baseUrl);
 
     const csrfToken =
       csrfTokenFromBackend ||
@@ -113,11 +129,11 @@ export async function request(path, options = {}) {
     }
   }
 
-  const response = await fetch(buildUrl(path), {
+  const response = await fetch(buildUrl(path, baseUrl), {
     method,
     headers: finalHeaders,
     body,
-    credentials: "include",
+    credentials: includeCredentials ? "include" : "omit",
   });
 
   return parseResponse(response);

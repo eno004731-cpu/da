@@ -6,11 +6,16 @@ import {
   updateClientOrder,
 } from "../api/orders-api.js?v=20260512a";
 import {
+  LOCAL_AUTH_ONLY_MODE,
+  ORDERS_API_ENABLED,
+} from "../api/endpoints.js?v=20260525a";
+import {
   fetchCurrentUser,
   isBackendUnavailableError,
   isUnauthorizedError,
   logoutClient,
-} from "../api/auth-api.js?v=20260510b";
+  shouldPreserveClientSessionOnOrdersUnauthorized,
+} from "../api/auth-api.js?v=20260525c";
 import { formatDate, formatDateTime } from "../lib/date.js";
 import { formatFileSize } from "../lib/files.js";
 import {
@@ -22,7 +27,14 @@ import {
   normalizeOrderStatus,
   ORDER_STATUS_TIMELINE,
 } from "../lib/status.js";
-import { buildAuthUrl, clearSession, getCurrentUser, setSession } from "../state/auth-store.js?v=20260510b";
+import {
+  buildAuthUrl,
+  buildCompleteProfileUrl,
+  clearSession,
+  getCurrentUser,
+  requiresProfileCompletion,
+  updateSessionUser,
+} from "../state/auth-store.js?v=20260525a";
 
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId");
@@ -84,8 +96,10 @@ function renderUser() {
     return;
   }
 
-  userName.textContent = user.fullName;
-  userMeta.textContent = [user.email, user.companyName].filter(Boolean).join(" • ");
+  userName.textContent = user.fullName || "Завершите регистрацию";
+  userMeta.textContent =
+    [user.email, user.companyName].filter(Boolean).join(" • ") ||
+    "Профиль ещё не завершён.";
 }
 
 function renderTimeline(status) {
@@ -186,6 +200,58 @@ function renderOrder(order) {
   reworkSection.hidden = isRejectedStatus(order.status) || isCompletedStatus(order.status);
 }
 
+function showOrdersAuthBridgeMessage(message = "") {
+  setFeedback(
+    message ||
+      "Вы остались авторизованы, но backend заказов пока не принимает сессию из auth-service. Поэтому операции в кабинете сейчас недоступны.",
+    true
+  );
+}
+
+function handleOrdersUnauthorized(redirectUrl) {
+  if (shouldPreserveClientSessionOnOrdersUnauthorized()) {
+    showOrdersAuthBridgeMessage(
+      "Вы вошли в отдельный auth-service, но backend заказов пока не принимает эту сессию."
+    );
+    return;
+  }
+
+  clearSession();
+  window.location.href = buildAuthUrl("login", redirectUrl);
+}
+
+function renderOrdersUnavailableState() {
+  orderTitle.textContent = "Карточка заказа пока недоступна";
+  orderStatus.textContent = "API заявок не подключён";
+  orderStatus.removeAttribute("data-status");
+  orderService.textContent = "Сейчас локально работает только auth-service";
+  orderCreated.textContent = "Локальная разработка";
+  orderUpdated.textContent = "Раздел заказов появится позже";
+  orderRevisionCount.textContent = "0";
+  orderDescription.textContent = LOCAL_AUTH_ONLY_MODE
+    ? "Авторизация и профиль клиента уже можно проверять локально. Карточки заявок появятся после подключения отдельного backend API заказов."
+    : "Раздел заказов временно отключён.";
+  orderDocuments.innerHTML = `
+    <div class="empty-inline-state">
+      Документы заказа станут доступны после подключения backend API заявок.
+    </div>
+  `;
+  timelineNode.innerHTML = `
+    <div class="timeline-pill" data-state="inactive">API заявок пока не подключён</div>
+  `;
+  deletedNotice.hidden = true;
+  lastReworkCard.hidden = true;
+  rejectedCard.hidden = true;
+  reworkSection.hidden = true;
+  editButton.hidden = true;
+  deleteButton.hidden = true;
+  setFeedback(
+    LOCAL_AUTH_ONLY_MODE
+      ? "Локально сейчас поднят только auth-service. Открыть реальную карточку заказа пока нельзя."
+      : "Карточка заказа временно недоступна."
+  );
+}
+
 function setModalState(isOpen) {
   editModal.hidden = !isOpen;
   document.body.classList.toggle("portal-modal-open", isOpen);
@@ -272,8 +338,7 @@ async function loadOrder() {
     setFeedback("");
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      clearSession();
-      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
       return;
     }
 
@@ -325,8 +390,7 @@ async function handleEditSubmit(event) {
     setFeedback("Изменения по заявке сохранены.");
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      clearSession();
-      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
       return;
     }
 
@@ -354,8 +418,7 @@ async function handleReworkSubmit(event) {
     setFeedback("Замечание отправлено. Заказ переведён в статус «На доработке».");
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      clearSession();
-      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
       return;
     }
 
@@ -392,8 +455,7 @@ async function handleDeleteOrder() {
     window.location.href = "./cabinet.html?orderDeleted=1";
   } catch (error) {
     if (isUnauthorizedError(error)) {
-      clearSession();
-      window.location.href = buildAuthUrl("login", "./cabinet.html");
+      handleOrdersUnauthorized("./cabinet.html");
       return;
     }
 
@@ -425,25 +487,45 @@ function attachEvents() {
 }
 
 async function ensureActiveSession() {
+  const nextUrl = window.location.pathname + window.location.search;
+  const cachedUser = getCurrentUser();
+
+  if (!cachedUser) {
+    clearSession();
+    window.location.href = buildAuthUrl("login", nextUrl);
+    return false;
+  }
+
   try {
     const user = await fetchCurrentUser();
 
     if (!user) {
       clearSession();
-      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      window.location.href = buildAuthUrl("login", nextUrl);
       return false;
     }
 
-    setSession({ user });
+    updateSessionUser(user);
+
+    if (requiresProfileCompletion(user)) {
+      window.location.href = buildCompleteProfileUrl(nextUrl);
+      return false;
+    }
+
     return true;
   } catch (error) {
     if (isUnauthorizedError(error)) {
       clearSession();
-      window.location.href = buildAuthUrl("login", window.location.pathname + window.location.search);
+      window.location.href = buildAuthUrl("login", nextUrl);
       return false;
     }
 
     if (isBackendUnavailableError(error)) {
+      if (cachedUser && requiresProfileCompletion(cachedUser)) {
+        window.location.href = buildCompleteProfileUrl(nextUrl);
+        return false;
+      }
+
       setFeedback("Backend временно недоступен. Не удалось проверить активную сессию.", true);
       return false;
     }
@@ -461,6 +543,12 @@ async function init() {
 
   renderUser();
   attachEvents();
+
+  if (!ORDERS_API_ENABLED) {
+    renderOrdersUnavailableState();
+    return;
+  }
+
   loadOrder();
 }
 
