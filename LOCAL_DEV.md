@@ -1,44 +1,60 @@
 # Локальный запуск
 
-## Что поднимаем
-- `auth_service/legal_website` на `http://127.0.0.1:8081`
-- frontend на `http://127.0.0.1:8000`
-- Postgres на `localhost:5432`
+## Что есть сейчас
+В проекте два режима локальной работы:
 
-Сейчас локальный сценарий специально упрощён:
-- авторизация и профиль клиента работают через отдельный auth-service;
-- API заявок локально пока не поднимается;
-- UI фронта показывает это явно и не пытается притворяться, что заказы уже доступны.
+1. Быстрый локальный сценарий:
+- auth-service
+- frontend
+- локальная Postgres
 
-## 1. Поднять Postgres
+2. Более полный infrastructure-сценарий:
+- `docker compose`
+- Postgres
+- Kafka
+- auth-service
+- notification-service
+
+## Быстрый локальный сценарий
+
+### 1. Поднять Postgres
 ```bash
 docker compose -f bd_SQL/compose.yml up -d
 ```
 
-Скрипт инициализации создаёт две БД:
+Скрипт инициализации создаёт БД:
 - `legal_crm`
 - `legal_auth`
 
-Если контейнер и volume уже были созданы раньше и `legal_auth` не появилась, можно один раз создать БД вручную:
+Если контейнер и volume уже были созданы раньше и `legal_auth` не появилась:
 ```bash
 docker exec -it postgres psql -U legal_user -d postgres -c "CREATE DATABASE legal_auth;"
 ```
 
-## 2. Запустить auth service локально
-Это основной локальный backend на текущем этапе:
+### 2. Запустить auth-service
 ```bash
 cd /Users/nikitatukan/Documents/Playground/auth_service/legal_website
 ./mvnw spring-boot:run -Dspring-boot.run.profiles=local
 ```
 
-`application-local.yaml` уже содержит локальные настройки:
+Локальный профиль уже содержит:
 - БД `legal_auth`
 - порт `8081`
-- dev JWT secret
+- локальный JWT secret
 
-Если хочешь запускать без профиля, можно создать `.env` на основе `.env.example`.
+### 3. Настроить frontend env
+Создай `front/.env` на основе `front/.env.example`.
 
-## 3. Запустить frontend
+Минимальный локальный вариант:
+```env
+API_BASE_URL=
+AUTH_API_BASE_URL=http://127.0.0.1:8081/api
+GOOGLE_CLIENT_ID=
+```
+
+Если локально тестируешь auth-service через домен или reverse proxy, указывай не `127.0.0.1`, а нужный публичный URL API.
+
+### 4. Запустить frontend
 ```bash
 cd /Users/nikitatukan/Documents/Playground/front
 python3 server.py
@@ -49,23 +65,72 @@ python3 server.py
 http://127.0.0.1:8000/da.html
 ```
 
-## Как теперь маршрутизируются запросы локально
-Файл `front/local-dev-config.js` автоматически подставляет локальные URL:
-- auth API -> `http://127.0.0.1:8081/api`
-- основной API заявок помечен как отключённый до следующего этапа разработки
+## Как фронт получает backend URL
+`front/server.py`:
+- читает `front/.env`
+- генерирует `runtime-config.js`
+- подставляет:
+  - `API_BASE_URL`
+  - `AUTH_API_BASE_URL`
+  - `GOOGLE_CLIENT_ID`
 
-Дополнительно включаются локальные флаги:
-- `window.__LEGAL_LOCAL_AUTH_ONLY__ = true`
-- `window.__LEGAL_DISABLE_ORDERS_API__ = true`
-- Google login скрыт, пока в auth-service нет `POST /api/auth/google`
-- удаление аккаунта скрыто, пока в auth-service нет endpoint для этого
+На `localhost` дополнительно работает `front/local-dev-config.js`, который:
+- включает auth-only fallback
+- не даёт фронту случайно ходить в пользовательский `localhost`
 
-Если позже захочешь снова включить локальную разработку API заявок, можно заранее переопределить флаги и URL до загрузки frontend-кода:
-```js
-window.__LEGAL_LOCAL_AUTH_ONLY__ = false;
-window.__LEGAL_DISABLE_ORDERS_API__ = false;
-window.__LEGAL_API_BASE_URL__ = "http://127.0.0.1:8080/api";
-window.__LEGAL_AUTH_API_BASE_URL__ = "http://127.0.0.1:8081/api";
+## Полный локальный/серверный compose-сценарий
+
+### 1. Подготовить env
+Скопируй `prod.env.example` в локальный `.env` вне репозитория или рядом с compose.
+
+Минимально важные переменные:
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `JWT_SECRET`
+- `APP_FRONTEND_BASE_URL`
+- `APP_CORS_ALLOWED_ORIGIN_PATTERNS`
+- `SPRING_MAIL_HOST`
+- `SPRING_MAIL_PORT`
+- `SPRING_MAIL_USERNAME`
+- `SPRING_MAIL_PASSWORD`
+- `APP_MAIL_FROM`
+
+### 2. Запустить compose
+```bash
+cd /Users/nikitatukan/Documents/Playground
+docker compose --env-file /Users/nikitatukan/Documents/.env up -d --build
 ```
 
-Это работает только на `localhost` / `127.0.0.1` и не влияет на прод.
+### 3. Проверить контейнеры
+```bash
+docker compose --env-file /Users/nikitatukan/Documents/.env ps
+```
+
+### 4. Посмотреть логи
+```bash
+docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 auth-service
+docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 notification-service
+```
+
+## Что поднимается через compose
+- `postgres`
+- `kafka`
+- `auth-service`
+- `notification-service`
+
+Внутренние URL внутри compose:
+- auth DB: `jdbc:postgresql://postgres:5432/legal_auth`
+- notification DB: `jdbc:postgresql://postgres:5432/legal_notification`
+- Kafka: `kafka:9092`
+
+## Важные замечания
+- `front/.env` и server `.env` - это разные файлы
+- `front/.env` нужен только фронту
+- server `.env` нужен только для `docker compose`
+- notification-service не должен публиковаться наружу как отдельный публичный API
+
+## Быстрый smoke test
+1. Открыть frontend
+2. Проверить login/register
+3. Проверить `GET /api/auth/me`
+4. Проверить, что фронт действительно ходит в тот `AUTH_API_BASE_URL`, который задан в `front/.env`

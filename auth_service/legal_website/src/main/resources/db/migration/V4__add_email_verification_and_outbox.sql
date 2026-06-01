@@ -1,6 +1,8 @@
 ALTER TABLE users
-    ADD COLUMN email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    ADD COLUMN email_verified_at TIMESTAMP NULL;
+    ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT FALSE;
+
+ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS email_verified_at TIMESTAMP NULL;
 
 -- verification_codes:
 -- хранит коды подтверждения для email verification и других чувствительных сценариев.
