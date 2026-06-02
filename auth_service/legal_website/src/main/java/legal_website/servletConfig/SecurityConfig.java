@@ -60,6 +60,7 @@ public class SecurityConfig {
             .requestMatchers("/api/auth/logout").permitAll()
             .requestMatchers("/api/auth/google/login").permitAll()
             .requestMatchers("/api/auth/google/complete").permitAll()
+            .requestMatchers("/api/auth/email-verification/confirm").permitAll()
             .anyRequest().authenticated())
             .exceptionHandling((exception) -> exception
                 .authenticationEntryPoint(authenticationEntryPoint)
