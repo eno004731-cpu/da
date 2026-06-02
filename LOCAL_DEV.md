@@ -12,6 +12,7 @@
 - `docker compose`
 - Postgres
 - Kafka
+- frontend
 - auth-service
 - notification-service
 
@@ -101,6 +102,10 @@ cd /Users/nikitatukan/Documents/Playground
 docker compose --env-file /Users/nikitatukan/Documents/.env up -d --build
 ```
 
+Frontend в этом режиме поднимается автоматически как отдельный container service
+и больше не требует `python3 server.py` на сервере вручную.
+Для frontend runtime config compose использует `front/.env`.
+
 ### 3. Проверить контейнеры
 ```bash
 docker compose --env-file /Users/nikitatukan/Documents/.env ps
@@ -108,6 +113,7 @@ docker compose --env-file /Users/nikitatukan/Documents/.env ps
 
 ### 4. Посмотреть логи
 ```bash
+docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 frontend
 docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 auth-service
 docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 notification-service
 ```
@@ -115,6 +121,7 @@ docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 noti
 ## Что поднимается через compose
 - `postgres`
 - `kafka`
+- `frontend`
 - `auth-service`
 - `notification-service`
 
@@ -123,14 +130,20 @@ docker compose --env-file /Users/nikitatukan/Documents/.env logs --tail=100 noti
 - notification DB: `jdbc:postgresql://postgres:5432/legal_notification`
 - Kafka: `kafka:9092`
 
+Host-level reverse proxy URLs:
+- frontend upstream: `127.0.0.1:8000`
+- auth API upstream: `127.0.0.1:8081`
+
 ## Важные замечания
 - `front/.env` и server `.env` - это разные файлы
-- `front/.env` нужен только фронту
-- server `.env` нужен только для `docker compose`
+- `front/.env` нужен фронту и в standalone, и в compose-контуре
+- server `.env` нужен для backend/infrastructure переменных `docker compose`
 - notification-service не должен публиковаться наружу как отдельный публичный API
+- `Caddy` не поднимает frontend сам, он только проксирует живой upstream на `127.0.0.1:8000`
 
 ## Быстрый smoke test
 1. Открыть frontend
 2. Проверить login/register
 3. Проверить `GET /api/auth/me`
 4. Проверить, что фронт действительно ходит в тот `AUTH_API_BASE_URL`, который задан в `front/.env`
+5. В compose-режиме проверить `curl -I http://127.0.0.1:8000`

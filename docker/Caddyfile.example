@@ -1,0 +1,17 @@
+# Test contour
+test.philosophyabiz.ru {
+    reverse_proxy 127.0.0.1:8000
+}
+
+testapi.philosophyabiz.ru {
+    reverse_proxy 127.0.0.1:8081
+}
+
+# Production contour example
+# philosophyabiz.ru {
+#     reverse_proxy 127.0.0.1:8000
+# }
+#
+# api.philosophyabiz.ru {
+#     reverse_proxy 127.0.0.1:8081
+# }

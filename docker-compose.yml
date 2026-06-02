@@ -35,6 +35,19 @@ services:
     volumes:
       - kafka_data:/bitnami/kafka
 
+  frontend:
+    build:
+      context: ./front
+    restart: unless-stopped
+    environment:
+      LEGAL_FRONTEND_PORT: 8000
+    volumes:
+      # Frontend контейнер читает актуальный front/.env и статику
+      # прямо из checkout, чтобы test/prod runtime config не запекался в image.
+      - ./front:/app:ro
+    ports:
+      - "127.0.0.1:8000:8000"
+
   auth-service:
     build:
       context: ./auth_service/legal_website

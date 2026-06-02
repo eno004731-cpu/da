@@ -96,6 +96,7 @@
 - runtime config через `front/runtime-config.js`
 - локальный сервер `front/server.py`
 - frontend env через `front/.env`
+- Dockerfile для frontend container deploy
 
 Как фронт получает backend URL:
 - `API_BASE_URL` из `front/.env`
@@ -110,6 +111,7 @@
 В корне есть `docker-compose.yml` для первого server deploy:
 - `postgres`
 - `kafka`
+- `frontend`
 - `auth-service`
 - `notification-service`
 
@@ -158,6 +160,7 @@ Notification делается не как узкий verification mail sender, �
 
 ### Server deploy
 Для первого deploy уже подготовлены:
+- Dockerfile для frontend
 - Dockerfile для auth-service
 - Dockerfile для notification-service
 - `docker-compose.yml`
@@ -166,6 +169,7 @@ Notification делается не как узкий verification mail sender, �
 
 ### Что ещё может требовать внимания на сервере
 - корректные `APP_FRONTEND_BASE_URL` и `APP_CORS_ALLOWED_ORIGIN_PATTERNS`
+- корректный `front/.env` с runtime config для frontend
 - рабочий SMTP provider
 - reverse proxy (`Caddy` / `Nginx`) для frontend и auth API
 - публичные DNS-записи и TLS
@@ -190,3 +194,4 @@ Notification делается не как узкий verification mail sender, �
 - frontend-контракты уже частично описывают будущие backend API
 - notification-service - transport layer, не auth state
 - `front/.env` и server `.env` - разные файлы и разные зоны ответственности
+- `Caddy` только reverse proxy; автоподъём frontend должен обеспечивать Docker restart policy

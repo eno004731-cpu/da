@@ -59,6 +59,7 @@ Production-like pet-project для сайта юридических услуг.
 - читает runtime config через `front/.env`
 - умеет работать с отдельным auth API
 - уже содержит контракты для будущих `client`, `staff`, `admin` endpoint-ов
+- на сервере поднимается отдельным container service через `docker-compose`
 
 ## Структура репозитория
 
@@ -83,9 +84,9 @@ bd/demo                           # legacy/experimental контур
 - notification foundation:
   - `notification_deliveries`
   - `processed_events`
-  - SMTP integration
-  - scheduler-based delivery
-- `docker-compose` для `postgres + kafka + auth-service + notification-service`
+- SMTP integration
+- scheduler-based delivery
+- `docker-compose` для `postgres + kafka + frontend + auth-service + notification-service`
 - frontend runtime config через `front/.env`
 
 ## Что в процессе
@@ -120,14 +121,19 @@ python3 server.py
 
 ### Compose-сценарий
 1. Подготовить env вне git
-2. Запустить:
+2. Создать `front/.env` на основе `front/.env.example` для ручного запуска frontend, если нужен standalone режим
+3. Запустить:
 ```bash
 docker compose --env-file /path/to/.env up -d --build
 ```
 
+В compose-режиме frontend поднимается отдельным сервисом и получает runtime config
+из `front/.env`, который читает `front/server.py` внутри container.
+
 См. подробнее:
 - [LOCAL_DEV.md](./LOCAL_DEV.md)
 - [prod.env.example](./prod.env.example)
+- [docker/Caddyfile.example](./docker/Caddyfile.example)
 
 ## Deploy idea
 Первый deploy рассчитан на:
@@ -135,11 +141,23 @@ docker compose --env-file /path/to/.env up -d --build
 - внешний SMTP provider
 - reverse proxy (`Caddy` или `Nginx`)
 - публичный frontend домен и отдельный API домен
+- frontend как отдельный docker service с `restart: unless-stopped`
 
 Типичная схема:
 - `https://philosophyabiz.ru` -> frontend
 - `https://api.philosophyabiz.ru` -> auth API
 - `notification-service` наружу не публикуется
+
+Для test-контура:
+- `https://test.philosophyabiz.ru` -> `127.0.0.1:8000` через `Caddy`
+- `https://testapi.philosophyabiz.ru` -> `127.0.0.1:8081` через `Caddy`
+
+Минимальный `front/.env` для test-контура:
+```env
+API_BASE_URL=https://testapi.philosophyabiz.ru
+AUTH_API_BASE_URL=https://testapi.philosophyabiz.ru/api
+GOOGLE_CLIENT_ID=...
+```
 
 ## Документация в репозитории
 - [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) - краткий source of truth
