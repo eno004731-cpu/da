@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Философия Бизнеса — Личный кабинет</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./app/styles/portal.css?v=20260525a" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260602a" />
     <script src="./runtime-config.js?v=20260601a"></script>
     <script src="./local-dev-config.js?v=20260525a"></script>
-    <script type="module" src="./app/pages/cabinet-page.js?v=20260525a"></script>
+    <script type="module" src="./app/pages/cabinet-page.js?v=20260602a"></script>
   </head>
   <body class="portal-body">
     <div class="portal-page">
@@ -17,66 +17,119 @@
           <span class="portal-brand-mark">ЮК</span>
           <span class="portal-brand-copy">
             <strong>Философия Бизнеса</strong>
-            <span>Личный кабинет клиента</span>
+            <span id="cabinet-brand-company">Личный кабинет клиента</span>
           </span>
         </a>
 
         <div class="portal-header-actions">
-          <a class="portal-link" href="./da.html">На сайт</a>
+          <a class="portal-link" href="./da.html">Главная</a>
+          <a class="portal-icon-button" href="./settings.html" aria-label="Открыть настройки">
+            <span class="portal-icon-button-glyph" aria-hidden="true">⚙</span>
+          </a>
           <button class="portal-button" id="cabinet-logout" type="button">Выйти</button>
         </div>
       </header>
 
-      <main class="portal-grid">
+      <main class="portal-stack portal-stack--page">
         <section class="portal-card">
-          <div class="portal-card-inner">
-            <p class="portal-eyebrow">Профиль клиента</p>
-            <h1 class="portal-title" id="cabinet-user-name">Клиент</h1>
-            <p class="portal-copy" id="cabinet-user-meta"></p>
+          <div class="portal-card-inner portal-stack">
+            <div class="dashboard-head">
+              <div>
+                <p class="portal-eyebrow">Профиль клиента</p>
+                <h1 class="portal-title" id="cabinet-user-name">Клиент</h1>
+                <p class="portal-copy" id="cabinet-user-meta"></p>
+              </div>
+              <div class="dashboard-head-actions">
+                <a class="portal-link" href="./settings.html">Настройки</a>
+                <button class="portal-button portal-button--danger" id="cabinet-delete-account" type="button">
+                  Удалить аккаунт
+                </button>
+              </div>
+            </div>
 
-            <div class="summary-grid">
-              <article class="summary-card">
-                <span class="portal-eyebrow">Заказы</span>
-                <strong id="cabinet-total-orders">0 заказов</strong>
+            <p class="portal-helper" id="cabinet-delete-account-note">
+              Действие необратимо. Кнопка активна только когда backend действительно реализовал
+              удаление аккаунта.
+            </p>
+
+            <div class="dashboard-metrics">
+              <article class="dashboard-metric-card">
+                <span class="portal-eyebrow">Всего заказов</span>
+                <strong id="cabinet-total-orders">0</strong>
+                <p class="portal-helper">Все заявки клиента в текущем кабинете.</p>
               </article>
-              <article class="summary-card">
-                <span class="portal-eyebrow">Документы</span>
-                <strong>Через заказ</strong>
-              </article>
-              <article class="summary-card">
-                <span class="portal-eyebrow">Доработка</span>
-                <strong>Через детали заказа</strong>
+              <article class="dashboard-metric-card">
+                <span class="portal-eyebrow">На доработке</span>
+                <strong id="cabinet-rework-orders">0</strong>
+                <p class="portal-helper">Заказы со статусом «На доработке».</p>
               </article>
             </div>
 
-            <div class="profile-actions">
-              <button class="portal-button portal-button--danger" id="cabinet-delete-account" type="button">
-                Удалить аккаунт
-              </button>
-              <p class="portal-helper" id="cabinet-delete-account-note">
-                Действие необратимо. Кнопка активна только когда backend действительно реализовал
-                удаление аккаунта.
-              </p>
-            </div>
+            <section class="status-overview">
+              <div>
+                <p class="portal-eyebrow">Статусы</p>
+                <h2 class="portal-section-title">Разбивка по текущим этапам</h2>
+              </div>
+              <div class="status-overview-grid" id="cabinet-status-grid">
+                <article class="status-overview-card">
+                  <span>Новые</span>
+                  <strong id="cabinet-status-todo">0</strong>
+                </article>
+                <article class="status-overview-card">
+                  <span>В работе</span>
+                  <strong id="cabinet-status-in-progress">0</strong>
+                </article>
+                <article class="status-overview-card">
+                  <span>На проверке</span>
+                  <strong id="cabinet-status-on-review">0</strong>
+                </article>
+                <article class="status-overview-card">
+                  <span>На доработке</span>
+                  <strong id="cabinet-status-rework">0</strong>
+                </article>
+                <article class="status-overview-card">
+                  <span>Завершены</span>
+                  <strong id="cabinet-status-done">0</strong>
+                </article>
+                <article class="status-overview-card">
+                  <span>Отклонены</span>
+                  <strong id="cabinet-status-rejected">0</strong>
+                </article>
+              </div>
+            </section>
           </div>
         </section>
 
         <section class="portal-card">
-          <div class="portal-card-inner">
-            <p class="portal-eyebrow">Ваши заказы</p>
-            <h2 class="portal-section-title">Список заявок и текущих работ</h2>
-            <p class="portal-copy">
-              Локально сейчас поднят только auth-service. Профиль клиента уже работает, а список
-              заявок и действия по заказам появятся после подключения отдельного backend API.
-            </p>
+          <div class="portal-card-inner portal-stack">
+            <div>
+              <p class="portal-eyebrow">Ваши заказы</p>
+              <h2 class="portal-section-title">Список заявок и текущих работ</h2>
+              <p class="portal-copy">
+                Таблица показывает только реально доступные данные из backend. Если API заявок не
+                отвечает или ещё не реализовано, кабинет честно покажет это состояние.
+              </p>
+            </div>
 
             <div class="portal-feedback" id="cabinet-feedback" hidden></div>
 
-            <div class="orders-list" id="cabinet-orders-list"></div>
+            <div class="orders-table-shell">
+              <table class="orders-table" id="cabinet-orders-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Услуга</th>
+                    <th scope="col">Кратко вопрос</th>
+                    <th scope="col">Документы</th>
+                    <th scope="col">Статус</th>
+                    <th scope="col" class="orders-table-actions">Действия</th>
+                  </tr>
+                </thead>
+                <tbody id="cabinet-orders-body"></tbody>
+              </table>
+            </div>
 
             <div class="empty-inline-state" id="cabinet-empty-state">
-              Локально сейчас подключён только auth-service. Список заявок появится после
-              подключения отдельного API заказов.
+              Список заявок пока недоступен.
             </div>
           </div>
         </section>

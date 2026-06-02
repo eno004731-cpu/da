@@ -38,8 +38,10 @@ import {
 
 const params = new URLSearchParams(window.location.search);
 const orderId = params.get("orderId");
+const shouldOpenEditOnLoad = params.get("edit") === "1";
 let currentOrder = null;
 let servicesCatalog = null;
+let editModalAutoOpened = false;
 
 const userName = document.querySelector("#order-user-name");
 const userMeta = document.querySelector("#order-user-meta");
@@ -198,6 +200,15 @@ function renderOrder(order) {
   }
 
   reworkSection.hidden = isRejectedStatus(order.status) || isCompletedStatus(order.status);
+
+  if (shouldOpenEditOnLoad && !editModalAutoOpened) {
+    editModalAutoOpened = true;
+    window.requestAnimationFrame(() => {
+      openEditModal().catch(() => {
+        setFeedback("Не удалось открыть форму редактирования автоматически.", true);
+      });
+    });
+  }
 }
 
 function showOrdersAuthBridgeMessage(message = "") {

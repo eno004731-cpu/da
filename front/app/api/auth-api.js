@@ -87,6 +87,11 @@ function normalizeUser(user = {}) {
     phone: user.phone || null,
     companyName: user.companyName || null,
     role: user.role || "CLIENT",
+    emailVerified: readOptionalBoolean(
+      user.emailVerified,
+      user.verifiedEmail,
+      user.isEmailVerified
+    ),
     authProvider: authProvider || null,
     authProviders,
     isOAuthUser: readOptionalBoolean(

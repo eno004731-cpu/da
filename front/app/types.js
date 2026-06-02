@@ -23,6 +23,7 @@
  * @property {string | null} phone
  * @property {string | null} companyName
  * @property {UserRole} role
+ * @property {boolean | null} [emailVerified]
  * @property {string | null} [authProvider]
  * @property {string[] | null} [authProviders]
  * @property {boolean | null} [isOAuthUser]

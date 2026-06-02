@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Философия Бизнеса — Настройки</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260602a" />
+    <script src="./runtime-config.js?v=20260601a"></script>
+    <script src="./local-dev-config.js?v=20260525a"></script>
+    <script type="module" src="./app/pages/settings-page.js?v=20260602a"></script>
+  </head>
+  <body class="portal-body">
+    <div class="portal-page">
+      <header class="portal-header">
+        <a class="portal-brand" href="./cabinet.html">
+          <span class="portal-brand-mark">ЮК</span>
+          <span class="portal-brand-copy">
+            <strong>Философия Бизнеса</strong>
+            <span>Настройки клиента</span>
+          </span>
+        </a>
+
+        <div class="portal-header-actions">
+          <a class="portal-link" id="settings-back-link" href="./cabinet.html">Назад</a>
+          <a class="portal-link" href="./da.html">Главная</a>
+          <button class="portal-button" id="settings-logout" type="button">Выйти</button>
+        </div>
+      </header>
+
+      <main class="portal-stack portal-stack--page">
+        <section class="portal-card">
+          <div class="portal-card-inner portal-stack">
+            <div>
+              <p class="portal-eyebrow">Настройки аккаунта</p>
+              <h1 class="portal-title">Управление профилем и безопасностью</h1>
+              <p class="portal-copy">
+                На этой странице показываются только реальные доступные действия. Если backend пока
+                не поддерживает сценарий, интерфейс честно сообщает об этом.
+              </p>
+            </div>
+
+            <div class="portal-feedback" id="settings-feedback" hidden></div>
+          </div>
+        </section>
+
+        <section class="settings-layout">
+          <article class="portal-card settings-card">
+            <div class="portal-card-inner portal-stack">
+              <div>
+                <p class="portal-eyebrow">Профиль</p>
+                <h2 class="portal-section-title">Основные данные клиента</h2>
+              </div>
+
+              <form class="portal-form" id="settings-profile-form">
+                <div class="portal-field">
+                  <label for="settings-full-name">Имя и фамилия</label>
+                  <input class="portal-input" id="settings-full-name" name="fullName" type="text" required />
+                </div>
+
+                <div class="portal-field">
+                  <label for="settings-email">Email</label>
+                  <input class="portal-input" id="settings-email" name="email" type="email" readonly />
+                  <p class="portal-field-note">Email сейчас считается основным идентификатором аккаунта.</p>
+                </div>
+
+                <div class="settings-two-columns">
+                  <div class="portal-field">
+                    <label for="settings-phone">Телефон</label>
+                    <input class="portal-input" id="settings-phone" name="phone" type="text" />
+                  </div>
+
+                  <div class="portal-field">
+                    <label for="settings-company-name">Компания</label>
+                    <input class="portal-input" id="settings-company-name" name="companyName" type="text" />
+                  </div>
+                </div>
+
+                <div class="portal-inline-actions">
+                  <button class="portal-button portal-button--primary" id="settings-profile-submit" type="submit">
+                    Сохранить профиль
+                  </button>
+                </div>
+              </form>
+            </div>
+          </article>
+
+          <article class="portal-card settings-card">
+            <div class="portal-card-inner portal-stack">
+              <div>
+                <p class="portal-eyebrow">Резервные контакты</p>
+                <h2 class="portal-section-title">Телефон и email для восстановления</h2>
+              </div>
+
+              <section class="settings-placeholder-block">
+                <div class="settings-placeholder-head">
+                  <strong>Резервный номер телефона</strong>
+                  <span class="settings-placeholder-state">Пока не реализовано</span>
+                </div>
+                <input class="portal-input" type="text" placeholder="Добавление резервного номера появится позже" disabled />
+              </section>
+
+              <section class="settings-placeholder-block">
+                <div class="settings-placeholder-head">
+                  <strong>Резервный адрес электронной почты</strong>
+                  <span class="settings-placeholder-state">Пока не реализовано</span>
+                </div>
+                <input class="portal-input" type="email" placeholder="Добавление резервного email появится позже" disabled />
+              </section>
+            </div>
+          </article>
+        </section>
+
+        <section class="settings-layout">
+          <article class="portal-card settings-card">
+            <div class="portal-card-inner portal-stack">
+              <div>
+                <p class="portal-eyebrow">Безопасность</p>
+                <h2 class="portal-section-title">Смена пароля</h2>
+                <p class="portal-helper">
+                  Форма доступна визуально, но без backend-поддержки не будет имитировать успешную смену пароля.
+                </p>
+              </div>
+
+              <form class="portal-form" id="settings-password-form">
+                <div class="portal-field">
+                  <label for="settings-current-password">Текущий пароль</label>
+                  <input class="portal-input" id="settings-current-password" name="currentPassword" type="password" />
+                </div>
+                <div class="portal-field">
+                  <label for="settings-new-password">Новый пароль</label>
+                  <input class="portal-input" id="settings-new-password" name="newPassword" type="password" />
+                </div>
+                <div class="portal-field">
+                  <label for="settings-repeat-password">Новый пароль ещё раз</label>
+                  <input class="portal-input" id="settings-repeat-password" name="repeatPassword" type="password" />
+                </div>
+
+                <div class="portal-inline-actions">
+                  <button class="portal-button" id="settings-password-submit" type="submit">Сменить пароль</button>
+                </div>
+              </form>
+            </div>
+          </article>
+
+          <article class="portal-card settings-card">
+            <div class="portal-card-inner portal-stack">
+              <div>
+                <p class="portal-eyebrow">Подтверждение почты</p>
+                <h2 class="portal-section-title">Статус email и повторная отправка письма</h2>
+              </div>
+
+              <div class="settings-inline-panel">
+                <div>
+                  <strong>Email</strong>
+                  <p class="portal-helper" id="settings-verification-email">—</p>
+                </div>
+                <div>
+                  <strong>Статус</strong>
+                  <p class="portal-helper" id="settings-verification-status">
+                    Статус подтверждения пока не передаётся backend.
+                  </p>
+                </div>
+              </div>
+
+              <div class="portal-inline-actions">
+                <button class="portal-button portal-button--primary" id="settings-resend-verification" type="button">
+                  Отправить письмо повторно
+                </button>
+              </div>
+            </div>
+          </article>
+        </section>
+
+        <section class="portal-card">
+          <div class="portal-card-inner portal-stack">
+            <div>
+              <p class="portal-eyebrow">2FA</p>
+              <h2 class="portal-section-title">Дополнительные способы подтверждения</h2>
+              <p class="portal-copy">
+                Этот раздел подготовлен по макету, но пока работает только как честное описание будущих точек интеграции.
+              </p>
+            </div>
+
+            <div class="security-methods">
+              <article class="security-method-card">
+                <div>
+                  <strong>SMS</strong>
+                  <p class="portal-helper">Подтверждение кодом на телефон.</p>
+                </div>
+                <span class="settings-placeholder-state">Пока не реализовано</span>
+              </article>
+
+              <article class="security-method-card">
+                <div>
+                  <strong>Email 2FA</strong>
+                  <p class="portal-helper">Отдельный второй шаг подтверждения по email.</p>
+                </div>
+                <span class="settings-placeholder-state">Пока не реализовано</span>
+              </article>
+
+              <article class="security-method-card">
+                <div>
+                  <strong>TOTP / authenticator</strong>
+                  <p class="portal-helper">Подключение приложения-аутентификатора.</p>
+                </div>
+                <span class="settings-placeholder-state">Пока не реализовано</span>
+              </article>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </body>
+</html>
