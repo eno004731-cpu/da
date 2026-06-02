@@ -43,8 +43,8 @@ public class SendEmail {
         if (eventRepo.existsByEventId(payload.getEventId())) {
             return;
         }
-        saveNewEvent(record);
         saveNewNofilication(payload);
+        saveNewEvent(record);
     }
 
     private void sendEmail(VerityEmailPayload payload, NofilicationEntity nofilication){
@@ -103,7 +103,7 @@ public class SendEmail {
         NofilicationEntity nofilication = new NofilicationEntity();
         nofilication.setRetryCount(0);
         try {
-            nofilication.setPayload(objectMapper.writeValueAsString(payload));
+            nofilication.setPayload(objectMapper.valueToTree(payload));
         } catch (Exception e) {
             throw new IllegalStateException("Не удалось сериализовать payload уведомления", e);
         }
@@ -154,7 +154,7 @@ public class SendEmail {
 
     private VerityEmailPayload getPayload(NofilicationEntity nofilication){
         try {
-            return objectMapper.readValue(nofilication.getPayload(), VerityEmailPayload.class);
+            return objectMapper.treeToValue(nofilication.getPayload(), VerityEmailPayload.class);
         } catch (Exception e) {
             saveFailedNofilication(nofilication, e.toString());
             return null;

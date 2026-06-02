@@ -3,6 +3,11 @@ package Notification.EntityAndRepo.Nofilication;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -33,9 +38,9 @@ public class NofilicationEntity {
 
     @Column(name = "subject", length = 255)
     private String subject;
-
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", nullable = false, columnDefinition = "JSONB")
-    private String payload;
+    private JsonNode payload;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;

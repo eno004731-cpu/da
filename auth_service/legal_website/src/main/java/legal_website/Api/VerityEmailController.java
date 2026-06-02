@@ -11,7 +11,7 @@ import jakarta.validation.Valid;
 import legal_website.Dto.verityEmail.ConfirmEmailRequest;
 import legal_website.Dto.verityEmail.VerityEmailResponse;
 import legal_website.Services.verityEmail.ComfirmEmail;
-import legal_website.Services.verityEmail.VerityEmailService;
+import legal_website.Services.verityEmail.VerifyEmailService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -19,7 +19,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RequestMapping("/api/auth/email-verification")
 public class VerityEmailController {
-    private final VerityEmailService verityEmailService;
+    private final VerifyEmailService verityEmailService;
     private final ComfirmEmail comfirmEmail;
 
     @PostMapping("/request")

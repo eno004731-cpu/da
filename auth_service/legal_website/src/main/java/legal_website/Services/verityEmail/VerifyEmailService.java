@@ -25,7 +25,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 @Service
 @RequiredArgsConstructor
-public class VerityEmailService {
+public class VerifyEmailService {
     private final UserRepo userRepo;
     private final VerificationCodesRepo verificationCodesRepo;
     private final PasswordEncoder encoder;
@@ -55,7 +55,7 @@ public class VerityEmailService {
         outboxEvent.setCreatedAt(LocalDateTime.now());
         VerityEmailPayload kafkaPayload = createVerityEmailPayload(user, codeEntity);
         try {
-            outboxEvent.setPayload(objectMapper.writeValueAsString(kafkaPayload));
+            outboxEvent.setPayload(objectMapper.valueToTree(kafkaPayload));
         } catch (Exception e) {
             throw new IllegalStateException("Ошибка при сериализации данных для Kafka", e);
         }

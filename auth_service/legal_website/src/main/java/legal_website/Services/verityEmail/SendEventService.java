@@ -41,7 +41,7 @@ public class SendEventService {
         VerityEmailPayload payload;
 
         try {
-            payload = objectMapper.readValue(event.getPayload(), VerityEmailPayload.class);
+            payload = objectMapper.treeToValue(event.getPayload(), VerityEmailPayload.class);
         } catch (Exception e) {
             markCurrentEventFailed(event, e.toString());
             return;

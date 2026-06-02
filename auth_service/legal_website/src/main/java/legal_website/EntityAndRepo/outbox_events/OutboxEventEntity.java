@@ -3,6 +3,7 @@ package legal_website.EntityAndRepo.outbox_events;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,7 +27,7 @@ public class OutboxEventEntity {
     @Column(name = "event_type", nullable = false, length = 100)
     private String eventType;
     @Column(name = "payload", nullable = false, columnDefinition = "JSONB")
-    private String payload;
+    private JsonNode payload;
     @Column(name = "status", nullable = false, length = 20)
     private String status;
     @Column(name = "retry_count", nullable = false, precision = 10, scale = 0)
