@@ -3,6 +3,9 @@ package legal_website.EntityAndRepo.outbox_events;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.persistence.Column;
@@ -26,6 +29,7 @@ public class OutboxEventEntity {
     private String aggregateId;
     @Column(name = "event_type", nullable = false, length = 100)
     private String eventType;
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", nullable = false, columnDefinition = "JSONB")
     private JsonNode payload;
     @Column(name = "status", nullable = false, length = 20)
