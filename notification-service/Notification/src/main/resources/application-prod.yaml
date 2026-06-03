@@ -6,9 +6,19 @@ spring:
     driver-class-name: org.postgresql.Driver
   kafka:
     bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: Notification.Dto
+        spring.json.value.default.type: Notification.Dto.VerityEmailPayload
+        spring.json.use.type.headers: false
   jpa:
     hibernate:
       ddl-auto: validate
+    open-in-view: false
   flyway:
     enabled: true
   mail:
