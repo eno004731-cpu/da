@@ -24,10 +24,10 @@ public class SendEventService {
     private final OutboxEventsRepo outboxEventsRepo;
     private final ObjectMapper objectMapper;
     private final UserRepo userRepo;
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${app.outbox-relay.fixed-delay-ms:15000}")
     public void sendAllEvents(){
-        processEvents(outboxEventsRepo.findByStatus("NEW"));
-        processEvents(outboxEventsRepo.findByStatusAndNextRetryAtBefore("FAILED", LocalDateTime.now()));
+        processEvents(outboxEventsRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW"));
+        processEvents(outboxEventsRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc("FAILED", LocalDateTime.now()));
     }
 
     private void processEvents(List<OutboxEventEntity> events) {

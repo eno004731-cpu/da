@@ -2,7 +2,6 @@ package legal_website.servletConfig;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 
@@ -14,13 +13,10 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 public class JacksonConfig {
 
     @Bean
-    public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
-        // Собираем mapper через Spring builder, чтобы не потерять
-        // boot-автоконфигурацию и явно подключить java.time модуль.
-        return builder
-                .modules(new JavaTimeModule())
-                .featuresToDisable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-                .build();
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .registerModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
     
     @Configuration
@@ -30,8 +26,9 @@ public class JacksonConfig {
         @Bean
         public ThreadPoolTaskScheduler taskScheduler() {
             ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-            // Небольшой пул вместо single-thread scheduler по умолчанию.
-            scheduler.setPoolSize(Math.max(2, Runtime.getRuntime().availableProcessors()));
+            // Одного потока достаточно для текущего polling-relay и он не
+            // создаёт лишнюю конкуренцию за CPU на маленьком VPS.
+            scheduler.setPoolSize(1);
             scheduler.setThreadNamePrefix("scheduled-task-");
             scheduler.setWaitForTasksToCompleteOnShutdown(true);
             scheduler.setAwaitTerminationSeconds(30);

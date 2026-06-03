@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -35,6 +36,7 @@ public class SendEmail {
         topics = "auth.email-verification.requested",
         groupId = "notification-service"
     )
+    @Transactional
     public void saveMesssage(ConsumerRecord<String, VerityEmailPayload> record){
         VerityEmailPayload payload = record.value();
         if (payload == null) {
@@ -43,7 +45,10 @@ public class SendEmail {
         if (eventRepo.existsByEventId(payload.getEventId())) {
             return;
         }
-        saveNewNofilication(payload);
+        // Если прошлый retry упал после создания delivery, повтор Kafka
+        // должен досоздать processed_events, а не падать на unique event_id.
+        nofilicationRepo.findByEventId(payload.getEventId())
+                .orElseGet(() -> saveNewNofilication(payload));
         saveNewEvent(record);
     }
 
@@ -88,13 +93,14 @@ public class SendEmail {
 
     private void saveFailedNofilication(NofilicationEntity nofilication, String e){
         nofilication.setLastError(e);
-        nofilication.setNextRetryAt(LocalDateTime.now().plusSeconds(5));
         nofilication.setRetryCount(nofilication.getRetryCount() + 1);
         nofilication.setUpdatedAt(LocalDateTime.now());
         if (nofilication.getRetryCount() >= 5) {
             nofilication.setStatus("DEAD");
+            nofilication.setNextRetryAt(null);
         } else {
             nofilication.setStatus("FAILED");
+            nofilication.setNextRetryAt(LocalDateTime.now().plusSeconds(15));
         }
         nofilicationRepo.save(nofilication);
     }
@@ -133,10 +139,10 @@ public class SendEmail {
         return event;
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelayString = "${app.notification-worker.fixed-delay-ms:15000}")
     public void sendMessage(){
-        List<NofilicationEntity> failedNofilications = nofilicationRepo.findByStatusAndNextRetryAtBefore("FAILED", LocalDateTime.now());
-        List<NofilicationEntity> newNofilications = nofilicationRepo.findByStatus("NEW");
+        List<NofilicationEntity> failedNofilications = nofilicationRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc("FAILED", LocalDateTime.now());
+        List<NofilicationEntity> newNofilications = nofilicationRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW");
         sendAllMessage(failedNofilications);
         sendAllMessage(newNofilications);
     }

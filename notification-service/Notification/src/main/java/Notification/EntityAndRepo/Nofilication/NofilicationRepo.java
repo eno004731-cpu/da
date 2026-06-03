@@ -9,6 +9,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface NofilicationRepo extends JpaRepository<NofilicationEntity, UUID>{
     Optional<NofilicationEntity> findByEventId(UUID eventId);
-    List<NofilicationEntity> findByStatusAndNextRetryAtBefore(String status, LocalDateTime time);
-    List<NofilicationEntity> findByStatus(String status);
+    List<NofilicationEntity> findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(String status, LocalDateTime time);
+    List<NofilicationEntity> findTop100ByStatusOrderByCreatedAtAsc(String status);
 }

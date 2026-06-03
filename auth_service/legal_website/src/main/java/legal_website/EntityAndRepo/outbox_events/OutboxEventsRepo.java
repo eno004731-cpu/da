@@ -7,6 +7,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OutboxEventsRepo extends JpaRepository<OutboxEventEntity, UUID> {
     Optional<OutboxEventEntity> findByIdAndStatus(UUID id, String status);
-    List<OutboxEventEntity> findByStatus(String status);
-    List<OutboxEventEntity> findByStatusAndNextRetryAtBefore(String status, LocalDateTime time);
+    List<OutboxEventEntity> findTop100ByStatusOrderByCreatedAtAsc(String status);
+    List<OutboxEventEntity> findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(String status, LocalDateTime time);
 }

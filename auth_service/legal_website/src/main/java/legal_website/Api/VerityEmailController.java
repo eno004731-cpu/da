@@ -1,7 +1,7 @@
 package legal_website.Api;
 
 import org.springframework.validation.annotation.Validated;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,8 +23,7 @@ public class VerityEmailController {
     private final ComfirmEmail comfirmEmail;
 
     @PostMapping("/request")
-    public VerityEmailResponse verityEmail(Authentication authentication){
-        Long userId =Long.parseLong(authentication.getName());
+    public VerityEmailResponse verityEmail(@AuthenticationPrincipal Long userId){
         return verityEmailService.sendCode(userId);
     }
 

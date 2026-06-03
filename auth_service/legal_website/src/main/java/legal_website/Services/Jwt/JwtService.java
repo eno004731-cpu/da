@@ -45,13 +45,13 @@ public class JwtService {
     @Value("${app.frontend-base-url}")
     private String frontendBaseUrl;
 
-    public Date getRefreshTokenExpirationDate() {
+    private Date getAccessTokenExpirationDate() {
         return new Date(System.currentTimeMillis() + accessMinutes * 60_000);
     }
 
     public String generateAccessToken(UserEntity user) {
         Date issuedAt = new Date();
-        Date expiresAt = new Date(System.currentTimeMillis() + accessMinutes * 60_000);
+        Date expiresAt = getAccessTokenExpirationDate();
         
         return Jwts.builder()
                 // Кого токен представляет
@@ -75,7 +75,7 @@ public class JwtService {
     }
     public String generateFlowToken(GoogleFlowDto dto){
         Date issuedAt = new Date();
-        Date expiresAt = new Date(System.currentTimeMillis() + accessMinutes * 60_000);
+        Date expiresAt = getAccessTokenExpirationDate();
         return Jwts.builder()
         .subject(dto.getSub())
         .claim("type", dto.getType())
@@ -91,7 +91,7 @@ public class JwtService {
     }
     public String generateLinkForVerifyEmail(VerityEmailPayload payload,VerificationCodeEntity codeEntity){
         Date issuedAt = new Date();
-        Date expiresAt = new Date(System.currentTimeMillis() + accessMinutes * 60_000);
+        Date expiresAt = getAccessTokenExpirationDate();
         
         
         String token = Jwts.builder()
@@ -99,7 +99,6 @@ public class JwtService {
         .claim("purpose",payload.getPurpose())
         .claim("email", payload.getEmail())
         .claim("verificationCodeId",payload.getVerificationCodeId())
-        .claim("codeHash", codeEntity.getCodeHash())
         .issuedAt(issuedAt)
         .expiration(expiresAt)
         .signWith(getSigningKey())

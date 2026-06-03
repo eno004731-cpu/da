@@ -1,7 +1,7 @@
 package legal_website.Api;
 
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -18,8 +18,7 @@ public class DelController {
 
     @DeleteMapping("/account")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delUser(Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+    public void delUser(@AuthenticationPrincipal Long userId) {
         delService.delUser(userId);
     }
 }

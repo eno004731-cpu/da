@@ -32,9 +32,6 @@ public class ComfirmEmail {
         if (!"VERIFY_EMAIL".equals(payload.get("purpose", String.class))) {
             throw new RuntimeException("неверный purpose у verification token");
         }
-        if (!codeEntity.getCodeHash().equals(payload.get("codeHash", String.class))) {
-            throw new RuntimeException("неверный verification token");
-        }
         if (!codeEntity.getRecipient().equals(payload.get("email", String.class))) {
             throw new RuntimeException("email в verification token не совпадает");
         }
