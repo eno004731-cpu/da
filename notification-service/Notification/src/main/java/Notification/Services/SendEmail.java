@@ -21,9 +21,11 @@ import Notification.EntityAndRepo.Nofilication.NofilicationEntity;
 import Notification.EntityAndRepo.Nofilication.NofilicationRepo;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SendEmail {
     private final EventRepo eventRepo;
     private final NofilicationRepo nofilicationRepo;
@@ -32,6 +34,10 @@ public class SendEmail {
 
     @Value("${app.mail.from}")
     private String from;
+
+    @Value("${app.notification-worker.processing-timeout-seconds:120}")
+    private long processingTimeoutSeconds;
+
     @KafkaListener(
         topics = "auth.email-verification.requested",
         groupId = "notification-service"
@@ -54,6 +60,7 @@ public class SendEmail {
 
     private void sendEmail(VerityEmailPayload payload, NofilicationEntity nofilication){
         try {
+            log.info("Sending email notification eventId={} recipient={}", nofilication.getEventId(), payload.getEmail());
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
@@ -77,7 +84,9 @@ public class SendEmail {
             // Реальная отправка письма через SMTP.
             mailSender.send(message);
             saveSentEvent(nofilication);
+            log.info("Email notification sent eventId={} recipient={}", nofilication.getEventId(), payload.getEmail());
         } catch (Exception e) {
+            log.warn("Email notification failed eventId={} recipient={} error={}", nofilication.getEventId(), payload.getEmail(), e.toString());
             saveFailedNofilication(nofilication, e.toString());
         }
     }
@@ -141,10 +150,26 @@ public class SendEmail {
 
     @Scheduled(fixedDelayString = "${app.notification-worker.fixed-delay-ms:15000}")
     public void sendMessage(){
+        recoverStaleProcessing();
         List<NofilicationEntity> failedNofilications = nofilicationRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc("FAILED", LocalDateTime.now());
         List<NofilicationEntity> newNofilications = nofilicationRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW");
         sendAllMessage(failedNofilications);
         sendAllMessage(newNofilications);
+    }
+
+    private void recoverStaleProcessing() {
+        LocalDateTime staleBefore = LocalDateTime.now().minusSeconds(processingTimeoutSeconds);
+        List<NofilicationEntity> staleNofilications = nofilicationRepo.findTop100ByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc("PROCESSING", staleBefore);
+        for (NofilicationEntity nofilication : staleNofilications) {
+            // PROCESSING - промежуточный статус. Если сервис упал или SMTP завис,
+            // возвращаем письмо в retry, чтобы оно не потерялось навсегда.
+            nofilication.setStatus("FAILED");
+            nofilication.setNextRetryAt(LocalDateTime.now());
+            nofilication.setLastError("Recovered stale PROCESSING notification");
+            nofilication.setUpdatedAt(LocalDateTime.now());
+            nofilicationRepo.save(nofilication);
+            log.warn("Recovered stale PROCESSING notification eventId={}", nofilication.getEventId());
+        }
     }
 
     private void sendAllMessage(List<NofilicationEntity> nofilications){

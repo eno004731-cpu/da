@@ -11,4 +11,5 @@ public interface NofilicationRepo extends JpaRepository<NofilicationEntity, UUID
     Optional<NofilicationEntity> findByEventId(UUID eventId);
     List<NofilicationEntity> findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(String status, LocalDateTime time);
     List<NofilicationEntity> findTop100ByStatusOrderByCreatedAtAsc(String status);
+    List<NofilicationEntity> findTop100ByStatusAndUpdatedAtBeforeOrderByUpdatedAtAsc(String status, LocalDateTime time);
 }

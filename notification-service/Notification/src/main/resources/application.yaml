@@ -23,6 +23,9 @@ spring:
       mail:
         smtp:
           auth: true
+          connectiontimeout: ${SPRING_MAIL_SMTP_CONNECTION_TIMEOUT_MS:10000}
+          timeout: ${SPRING_MAIL_SMTP_READ_TIMEOUT_MS:10000}
+          writetimeout: ${SPRING_MAIL_SMTP_WRITE_TIMEOUT_MS:10000}
           starttls:
             enable: true
   datasource:
@@ -39,3 +42,6 @@ spring:
 app:
   mail:
     from: ${APP_MAIL_FROM:no-reply@localhost}
+  notification-worker:
+    fixed-delay-ms: ${APP_NOTIFICATION_WORKER_FIXED_DELAY_MS:15000}
+    processing-timeout-seconds: ${APP_NOTIFICATION_WORKER_PROCESSING_TIMEOUT_SECONDS:120}
