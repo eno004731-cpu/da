@@ -10,6 +10,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.method.annotation.AuthenticationPrincipalArgumentResolver;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
@@ -28,15 +30,23 @@ class DelControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new DelController(delService))
+                .setCustomArgumentResolvers(new AuthenticationPrincipalArgumentResolver())
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
 
     @Test
     void shouldReturnNoContentWhenDeleteAccountSucceeds() throws Exception {
-        mockMvc.perform(delete("/api/auth/account")
-                        .principal(new UsernamePasswordAuthenticationToken("7", null)))
-                .andExpect(status().isNoContent());
+        try {
+            // @AuthenticationPrincipal читает principal из SecurityContext, как после JwtAuthenticationFilter.
+            SecurityContextHolder.getContext()
+                    .setAuthentication(new UsernamePasswordAuthenticationToken(7L, null));
+
+            mockMvc.perform(delete("/api/auth/account"))
+                    .andExpect(status().isNoContent());
+        } finally {
+            SecurityContextHolder.clearContext();
+        }
 
         verify(delService).delUser(7L);
     }
