@@ -55,6 +55,25 @@ function normalizeOrderDetails(order = {}) {
   };
 }
 
+function normalizeCreatedApplicationResponse(payload) {
+  if (!payload || typeof payload !== "object") {
+    return payload;
+  }
+
+  const orderId = String(payload.orderId ?? payload.id ?? "").trim();
+  const normalizedOrder = normalizeOrderDetails({
+    ...payload,
+    id: payload.id ?? orderId,
+  });
+
+  return {
+    ...normalizedOrder,
+    orderId: orderId || normalizedOrder.id,
+    taskId: payload.taskId ? String(payload.taskId) : null,
+    trackingCode: payload.trackingCode || null,
+  };
+}
+
 function createOrdersApiDisabledError() {
   const error = new Error(
     LOCAL_AUTH_ONLY_MODE
@@ -85,22 +104,34 @@ export function fetchServices() {
  */
 export function createClientApplication(payload) {
   ensureOrdersApiEnabled();
+  return jsonRequest(ENDPOINTS.client.applications, {
+    method: "POST",
+    body: {
+      serviceCode: payload.serviceCode,
+      clientName: payload.clientName,
+      contact: payload.contact,
+      companyName: payload.companyName || "",
+      description: payload.description,
+    },
+    disableCsrf: true,
+  }).then(normalizeCreatedApplicationResponse);
+}
+
+export function uploadClientOrderDocuments(orderId, documents = []) {
+  ensureOrdersApiEnabled();
 
   const formData = new FormData();
-  formData.set("serviceCode", payload.serviceCode);
-  formData.set("clientName", payload.clientName);
-  formData.set("contact", payload.contact);
-  formData.set("companyName", payload.companyName || "");
-  formData.set("description", payload.description);
-
-  payload.documents.forEach((file) => {
+  documents.forEach((file) => {
     formData.append("documents", file);
   });
 
-  return formDataRequest(ENDPOINTS.client.applications, {
+  return formDataRequest(ENDPOINTS.client.orderDocuments(orderId), {
     method: "POST",
     body: formData,
-  });
+    disableCsrf: true,
+  }).then((payload) =>
+    Array.isArray(payload) ? payload.map(normalizeDocument) : []
+  );
 }
 
 export function fetchClientOrders() {
@@ -120,6 +151,7 @@ export function updateClientOrder(orderId, payload) {
   return jsonRequest(ENDPOINTS.client.orderUpdate(orderId), {
     method: "PATCH",
     body: payload,
+    disableCsrf: true,
   }).then((response) =>
     response && typeof response === "object"
       ? normalizeOrderDetails(response)
@@ -131,6 +163,7 @@ export function deleteClientOrder(orderId) {
   ensureOrdersApiEnabled();
   return request(ENDPOINTS.client.orderDelete(orderId), {
     method: "DELETE",
+    disableCsrf: true,
   });
 }
 
@@ -139,6 +172,7 @@ export function submitClientOrderRework(orderId, comment) {
   return jsonRequest(ENDPOINTS.client.orderRework(orderId), {
     method: "POST",
     body: { comment },
+    disableCsrf: true,
   }).then((response) =>
     response && typeof response === "object"
       ? normalizeOrderDetails(response)

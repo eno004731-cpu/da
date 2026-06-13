@@ -193,14 +193,14 @@ function renderOrders(orders) {
     const actionsNode = row.querySelector(".orders-table-actions-row");
     const openLink = document.createElement("a");
     openLink.className = "orders-table-action orders-table-action--link";
-    openLink.href = `./order.html?orderId=${encodeURIComponent(order.id)}`;
+    openLink.href = `./order.html?id=${encodeURIComponent(order.id)}`;
     openLink.textContent = "↗";
     openLink.setAttribute("aria-label", "Открыть заявку");
     openLink.setAttribute("title", "Открыть заявку");
 
     const editLink = document.createElement("a");
     editLink.className = "orders-table-action orders-table-action--link";
-    editLink.href = `./order.html?orderId=${encodeURIComponent(order.id)}&edit=1`;
+    editLink.href = `./order.html?id=${encodeURIComponent(order.id)}&edit=1`;
     editLink.textContent = "✎";
     editLink.setAttribute("aria-label", "Редактировать заявку");
     editLink.setAttribute("title", "Редактировать заявку");

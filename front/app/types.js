@@ -106,11 +106,22 @@
 
 /**
  * @typedef {Object} CreateApplicationResponse
- * @property {string} orderId
- * @property {string} taskId
- * @property {string | null} trackingCode
+ * @property {string} id
+ * @property {string} [orderId]
+ * @property {string} title
+ * @property {string} serviceCode
+ * @property {string} serviceName
+ * @property {string | null} clientName
+ * @property {string | null} contact
+ * @property {string | null} companyName
+ * @property {string} problemDescription
  * @property {OrderStatusCode} status
  * @property {string} createdAt
+ * @property {string} updatedAt
+ * @property {number} revisionCount
+ * @property {UploadedDocument[]} documents
+ * @property {string | null} taskId
+ * @property {string | null} trackingCode
  */
 
 /**

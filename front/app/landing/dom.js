@@ -1,0 +1,53 @@
+export function getLandingDom() {
+  return {
+    serviceCards: Array.from(document.querySelectorAll(".service-card")),
+    serviceSelect: document.querySelector("#service-select"),
+    selectedService: document.querySelector("#selected-service"),
+    statusPrefix: document.querySelector("#status-prefix"),
+    contactForm: document.querySelector("#contact-form"),
+    formStatus: document.querySelector("#form-status"),
+    yearNode: document.querySelector("#year"),
+    faqItems: Array.from(document.querySelectorAll(".faq-item")),
+    serviceSearch: document.querySelector("#service-search"),
+    serviceSearchNote: document.querySelector("#service-search-note"),
+    servicesEmpty: document.querySelector("#services-empty"),
+    servicesSection: document.querySelector("#services"),
+    serviceIntroTargets: Array.from(
+      document.querySelectorAll("#services .section-head, #services .service-search-block")
+    ),
+    contactSection: document.querySelector("#contact"),
+    contactTitle: document.querySelector("#contact-title"),
+    contactDescription: document.querySelector("#contact-description"),
+    contactNameInput: document.querySelector('input[name="name"]'),
+    companyNameInput: document.querySelector('input[name="companyName"]'),
+    siteHeader: document.querySelector(".site-header"),
+    contactLinks: Array.from(document.querySelectorAll('a[href="#contact"]')),
+    headerLoginLink: document.querySelector("#header-login-link"),
+    headerRegisterLink: document.querySelector("#header-register-link"),
+    headerCabinetLink: document.querySelector("#header-cabinet-link"),
+    headerLogoutButton: document.querySelector("#header-logout-button"),
+    serviceModal: document.querySelector("#service-modal"),
+    serviceModalTitle: document.querySelector("#service-modal-title"),
+    serviceModalBody: document.querySelector("#service-modal-body"),
+    serviceModalClose: document.querySelector("#service-modal-close"),
+    applicationAuthGate: document.querySelector("#application-auth-gate"),
+    applicationAuthGateTitle: document.querySelector("#application-auth-gate-title"),
+    applicationAuthGateCopy: document.querySelector("#application-auth-gate-copy"),
+    applicationAuthSession: document.querySelector("#application-auth-session"),
+    applicationUserName: document.querySelector("#application-user-name"),
+    applicationUserEmail: document.querySelector("#application-user-email"),
+    applicationAuthSessionCopy: document.querySelector("#application-auth-session-copy"),
+    applicationLoginLink: document.querySelector("#application-login-link"),
+    applicationRegisterLink: document.querySelector("#application-register-link"),
+    applicationCabinetLink: document.querySelector("#application-cabinet-link"),
+    applicationLogoutButton: document.querySelector("#application-logout-button"),
+    documentsInput: document.querySelector("#application-documents"),
+    documentsSummary: document.querySelector("#documents-summary"),
+    backendStatus: document.querySelector("#backend-status"),
+    revealTargets: Array.from(
+      document.querySelectorAll(
+        ".section:not(#services), .trust-card, .benefit-card, .timeline-step, .faq-item"
+      )
+    ),
+  };
+}

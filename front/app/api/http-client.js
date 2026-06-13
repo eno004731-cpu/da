@@ -139,17 +139,19 @@ export async function request(path, options = {}) {
   return parseResponse(response);
 }
 
-export function jsonRequest(path, { method = "GET", body } = {}) {
+export function jsonRequest(path, { method = "GET", body, ...options } = {}) {
   return request(path, {
     method,
     json: true,
     body: body ? JSON.stringify(body) : undefined,
+    ...options,
   });
 }
 
-export function formDataRequest(path, { method = "POST", body } = {}) {
+export function formDataRequest(path, { method = "POST", body, ...options } = {}) {
   return request(path, {
     method,
     body,
+    ...options,
   });
 }

@@ -19,6 +19,11 @@ import {
 import { formatDate, formatDateTime } from "../lib/date.js";
 import { formatFileSize } from "../lib/files.js";
 import {
+  cacheOrderSnapshot,
+  clearOrderSnapshot,
+  readOrderSnapshot,
+} from "../lib/order-snapshot.js";
+import {
   getOrderStatusLabel,
   isCompletedStatus,
   isRejectedStatus,
@@ -37,7 +42,7 @@ import {
 } from "../state/auth-store.js?v=20260525a";
 
 const params = new URLSearchParams(window.location.search);
-const orderId = params.get("orderId");
+const orderId = params.get("id") || params.get("orderId");
 const shouldOpenEditOnLoad = params.get("edit") === "1";
 let currentOrder = null;
 let servicesCatalog = null;
@@ -80,6 +85,14 @@ const editClientNameField = document.querySelector("#order-edit-client-name");
 const editContactField = document.querySelector("#order-edit-contact");
 const editCompanyNameField = document.querySelector("#order-edit-company-name");
 const editDescriptionField = document.querySelector("#order-edit-description");
+
+function hasRenderableOrderSnapshot(order) {
+  return Boolean(
+    order &&
+    typeof order === "object" &&
+    (order.title || order.serviceName || order.status || order.problemDescription || order.createdAt)
+  );
+}
 
 function setFeedback(message = "", isError = false) {
   if (!feedbackNode) {
@@ -169,6 +182,10 @@ function renderDocuments(documents, status) {
 
 function renderOrder(order) {
   currentOrder = order;
+  cacheOrderSnapshot({
+    ...order,
+    orderId: order.orderId || order.id,
+  });
   orderTitle.textContent = order.title;
   orderStatus.textContent = getOrderStatusLabel(order.status);
   orderStatus.dataset.status = order.status;
@@ -341,11 +358,20 @@ async function loadOrder() {
     return;
   }
 
-  setFeedback("Загружаем детали заказа…");
+  const cachedOrder = readOrderSnapshot(orderId);
+  const hasCachedOrder = hasRenderableOrderSnapshot(cachedOrder);
+
+  if (hasCachedOrder) {
+    renderOrder(cachedOrder);
+    setFeedback("Показываем только что созданный заказ. Обновляем детали…");
+  } else {
+    setFeedback("Загружаем детали заказа…");
+  }
 
   try {
     const order = await fetchClientOrderDetails(orderId);
     renderOrder(order);
+    clearOrderSnapshot(orderId);
     setFeedback("");
   } catch (error) {
     if (isUnauthorizedError(error)) {
@@ -354,14 +380,24 @@ async function loadOrder() {
     }
 
     if (isBackendUnavailableError(error)) {
-      setFeedback("Backend временно недоступен. Не удалось загрузить заказ.", true);
+      setFeedback(
+        hasCachedOrder
+          ? "Backend временно недоступен. Показаны недавно сохранённые данные заказа."
+          : "Backend временно недоступен. Не удалось загрузить заказ.",
+        true
+      );
       return;
     }
 
-    setFeedback(
-      error.message || "Не удалось загрузить заказ. Проверь backend endpoint /client/orders/:id.",
-      true
-    );
+    if (hasCachedOrder) {
+      setFeedback(
+        error.message || "Не удалось обновить детали заказа. Показаны недавно сохранённые данные.",
+        true
+      );
+      return;
+    }
+
+    setFeedback(error.message || "Не удалось загрузить заказ. Проверь backend endpoint /client/orders/:id.", true);
   }
 }
 
@@ -463,6 +499,7 @@ async function handleDeleteOrder() {
 
   try {
     await deleteClientOrder(orderId);
+    clearOrderSnapshot(orderId);
     window.location.href = "./cabinet.html?orderDeleted=1";
   } catch (error) {
     if (isUnauthorizedError(error)) {
