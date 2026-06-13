@@ -25,7 +25,7 @@ public class KafkaApplication {
                 .replicas(1)
                 .build();
     }
-
+    
     @Bean
     public ProducerFactory<String, VerityEmailPayload> verificationEmailProducerFactory(
             @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
@@ -42,9 +42,7 @@ public class KafkaApplication {
         return new DefaultKafkaProducerFactory<>(properties);
     }
 
-    @Bean
-    public KafkaTemplate<String, VerityEmailPayload> verificationEmailKafkaTemplate(
-            ProducerFactory<String, VerityEmailPayload> verificationEmailProducerFactory) {
-        return new KafkaTemplate<>(verificationEmailProducerFactory);
-    }
+    
+    
+    
 }

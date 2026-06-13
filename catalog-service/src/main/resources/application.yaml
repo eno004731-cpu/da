@@ -1,0 +1,39 @@
+spring:
+  application:
+    name: catalog-service
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/legal_catalog}
+    username: ${SPRING_DATASOURCE_USERNAME:legal_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:legal_pass}
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
+    consumer:
+      group-id: catalog-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "catalog_service.dto.payload"
+        spring.json.use.type.headers: false
+      max-poll-records: 100
+    listener:
+      ack-mode: record
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+server:
+  port: ${SERVER_PORT:8084}
+
+app:
+  kafka:
+    topics:
+      catalog-get-service-name-request: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_REQUEST:order.getServiceName.request}
+      catalog-get-service-name-response: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_RESPONSE:order.getServiceName.response}

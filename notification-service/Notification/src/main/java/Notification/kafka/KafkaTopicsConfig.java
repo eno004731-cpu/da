@@ -13,18 +13,40 @@ import org.springframework.kafka.config.ConcurrentKafkaListenerContainerFactory;
 import org.springframework.kafka.config.TopicBuilder;
 import org.springframework.kafka.core.ConsumerFactory;
 import org.springframework.kafka.core.DefaultKafkaConsumerFactory;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.springframework.util.backoff.FixedBackOff;
 
 import Notification.Dto.VerityEmailPayload;
 
 @Configuration
 public class KafkaTopicsConfig {
+
     @Bean
-    NewTopic newTopic(){
+    NewTopic verificationEmailRequestedTopic() {
         return TopicBuilder.name("auth.email-verification.requested")
-        .partitions(5)
-        .replicas(1)
-        .build();
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    NewTopic verificationEmailRequestedDltTopic() {
+        return TopicBuilder.name("auth.email-verification.requested.DLT")
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public DefaultErrorHandler errorHandler(KafkaTemplate<?, ?> kafkaTemplate) {
+        DeadLetterPublishingRecoverer recoverer =
+                new DeadLetterPublishingRecoverer(kafkaTemplate);
+
+        return new DefaultErrorHandler(recoverer, new FixedBackOff(2000L, 5));
     }
 
     @Bean
@@ -39,16 +61,20 @@ public class KafkaTopicsConfig {
         properties.put(JsonDeserializer.TRUSTED_PACKAGES, "Notification.Dto");
         properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, VerityEmailPayload.class.getName());
         properties.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
+        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
 
         return new DefaultKafkaConsumerFactory<>(properties);
     }
 
     @Bean(name = "kafkaListenerContainerFactory")
     public ConcurrentKafkaListenerContainerFactory<String, VerityEmailPayload> kafkaListenerContainerFactory(
-            ConsumerFactory<String, VerityEmailPayload> verificationEmailConsumerFactory) {
+            ConsumerFactory<String, VerityEmailPayload> verificationEmailConsumerFactory,
+            DefaultErrorHandler errorHandler) {
         ConcurrentKafkaListenerContainerFactory<String, VerityEmailPayload> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(verificationEmailConsumerFactory);
+        factory.setCommonErrorHandler(errorHandler);
+        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
         return factory;
     }
 }
