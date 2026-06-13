@@ -1,0 +1,32 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+jwt:
+  secret: ${JWT_SECRET}
+
+server:
+  port: ${SERVER_PORT:8083}
+
+app:
+  internal:
+    service-token: ${APP_INTERNAL_SERVICE_TOKEN}
+  external:
+    catalog-service-base-url: ${APP_CATALOG_SERVICE_BASE_URL}
+    document-service-base-url: ${APP_DOCUMENT_SERVICE_BASE_URL}
+  kafka:
+    topics:
+      catalog-get-service-name-request: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_REQUEST:order.getServiceName.request}
+      catalog-get-service-name-response: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_RESPONSE:order.getServiceName.response}
+      document-stored: ${APP_KAFKA_TOPIC_DOCUMENT_STORED:document.stored}

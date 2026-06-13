@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: document-service
+  config:
+    import: optional:file:.env[.properties]
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/legal_documents}
+    username: ${SPRING_DATASOURCE_USERNAME:legal_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:legal_pass}
+    driver-class-name: org.postgresql.Driver
+  kafka:
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:127.0.0.1:9092}
+    consumer:
+      group-id: document-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+      max-poll-records: 100
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+  flyway:
+    enabled: true
+
+app:
+  internal:
+    service-token: ${APP_INTERNAL_SERVICE_TOKEN:local-dev-internal-token}
+  storage:
+    documents-dir: ${APP_STORAGE_DOCUMENTS_DIR:uploads/documents}
+  kafka:
+    topics:
+      document-stored: ${APP_KAFKA_TOPIC_DOCUMENT_STORED:document.stored}
+  outbox-relay:
+    fixed-delay-ms: ${APP_OUTBOX_RELAY_FIXED_DELAY_MS:5000}
+
+server:
+  port: ${SERVER_PORT:8085}
