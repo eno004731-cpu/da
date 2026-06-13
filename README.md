@@ -1,172 +1,99 @@
 # Philosophy Business Legal Platform
 
-Production-like pet-project для сайта юридических услуг.
+Учебно-практический production-like проект для сайта юридических услуг.
 
-Проект собирается как учебная, но серьёзная система, в которой отдельно развиваются:
-- auth-service
-- notification-service
-- статический frontend
-- будущие client/staff/admin API
+Цель проекта - не просто собрать сайт, а потренировать backend-архитектуру:
+микросервисы, PostgreSQL, Kafka, outbox/inbox-подход, REST-контракты,
+локальный compose-запуск и тесты с настоящей БД.
 
-Цель репозитория:
-- показать архитектурное мышление
-- собрать надёжный auth и verification flow
-- научиться проектировать backend-контракты, БД и event-driven интеграции
-- постепенно довести проект до публичного demo/deploy состояния
-
-## Архитектура
-
-### Auth service
-Путь: `auth_service/legal_website`
-
-Отвечает за:
-- регистрацию и логин
-- refresh/logout
-- Google login flow
-- профиль текущего пользователя
-- verification state пользователя
-- outbox events для интеграции с Kafka
-
-Текущие публичные/пользовательские endpoint-ы:
-- `POST /api/auth/register`
-- `POST /api/auth/login`
-- `POST /api/auth/google/login`
-- `POST /api/auth/google/complete`
-- `POST /api/auth/refresh`
-- `POST /api/auth/logout`
-- `GET /api/auth/me`
-- `PATCH /api/auth/me`
-- `DELETE /api/auth/account`
-
-### Notification service
-Путь: `notification-service/Notification`
-
-Отвечает за:
-- приём Kafka-событий
-- создание delivery records
-- email-отправку
-- retry и delivery state
-
-Текущая логика:
-- listener сохраняет `processed_events(ACCEPTED)` и `notification_deliveries(NEW)`
-- scheduler отправляет `NEW` и retryable `FAILED`
-
-### Frontend
-Путь: `front`
-
-Это статический frontend, который:
-- раздаётся обычным HTTP server-ом
-- читает runtime config через `front/.env`
-- умеет работать с отдельным auth API
-- уже содержит контракты для будущих `client`, `staff`, `admin` endpoint-ов
-- на сервере поднимается отдельным container service через `docker-compose`
-
-## Структура репозитория
+## Сервисы
 
 ```text
-auth_service/legal_website        # основной auth backend
-notification-service/Notification # notification microservice
+auth_service/legal_website        # регистрация, login, refresh/logout, профиль, auth events
+order-service/order-service       # заказы клиента, order details, read-model документов
+catalog-service                   # каталог юридических услуг
+document-service                  # загрузка файлов, хранение документов, document events
+notification-service/Notification # email delivery, inbox/outbox обработка notification events
 front                             # статический frontend
-docker-compose.yml                # первый server deploy
-docker/                           # infra helpers
-bd_SQL/                           # локальная Postgres-схема для dev
-bd/demo                           # legacy/experimental контур
+docker/postgres/init              # init-скрипты PostgreSQL для локального compose
 ```
 
-## Что уже сделано
-- JWT auth + refresh tokens
-- Google login flow
-- profile endpoint-ы
-- foundation под email verification:
-  - `users.email_verified`
-  - `verification_codes`
-  - `outbox_events`
-- notification foundation:
-  - `notification_deliveries`
-  - `processed_events`
-- SMTP integration
-- scheduler-based delivery
-- `docker-compose` для `postgres + kafka + frontend + auth-service + notification-service`
-- frontend runtime config через `front/.env`
+Порты при локальном compose-запуске:
 
-## Что в процессе
-- финальный HTTP-контракт для email verification request/confirm
-- end-to-end verify email flow через frontend страницу и backend confirm
-- стабилизация notification delivery на сервере
-- client orders API
-- staff board API
-- admin users API
+```text
+frontend         http://127.0.0.1:8000
+auth-service     http://127.0.0.1:8081
+order-service    http://127.0.0.1:8083
+catalog-service  http://127.0.0.1:8084
+document-service http://127.0.0.1:8085
+```
 
 ## Локальный запуск
 
-### Быстрый сценарий
-1. Поднять локальную Postgres:
+1. Создай локальный `.env` в корне проекта на основе `prod.env.example`.
+2. Заполни dev-значения, не production-секреты.
+3. Подними весь стек:
+
 ```bash
-docker compose -f bd_SQL/compose.yml up -d
+docker compose --env-file .env up --build
 ```
 
-2. Запустить auth-service:
+Фоновый режим:
+
 ```bash
-cd auth_service/legal_website
-./mvnw spring-boot:run -Dspring-boot.run.profiles=local
+docker compose --env-file .env up --build -d
 ```
 
-3. Создать `front/.env` на основе `front/.env.example`
+Проверка compose-конфига:
 
-4. Запустить frontend:
 ```bash
-cd front
-python3 server.py
+docker compose --env-file .env config --quiet
 ```
 
-### Compose-сценарий
-1. Подготовить env вне git
-2. Создать `front/.env` на основе `front/.env.example` для ручного запуска frontend, если нужен standalone режим
-3. Запустить:
+Подробная инструкция лежит в [md files/LOCAL_DEV.md](./md%20files/LOCAL_DEV.md).
+
+## Тесты
+
+Запускать из корня каждого Maven-сервиса:
+
 ```bash
-docker compose --env-file /path/to/.env up -d --build
+cd auth_service/legal_website && ./mvnw test
+cd order-service/order-service && ./mvnw test
+cd document-service && ./mvnw test
+cd catalog-service && ./mvnw test
+cd notification-service/Notification && ./mvnw test
 ```
 
-В compose-режиме frontend поднимается отдельным сервисом и получает runtime config
-из `front/.env`, который читает `front/server.py` внутри container.
+Часть тестов использует Testcontainers/PostgreSQL. Для них должен быть запущен Docker Desktop.
 
-См. подробнее:
-- [LOCAL_DEV.md](./LOCAL_DEV.md)
-- [prod.env.example](./prod.env.example)
-- [docker/Caddyfile.example](./docker/Caddyfile.example)
+## Document Metadata Flow
 
-## Deploy idea
-Первый deploy рассчитан на:
-- один инстанс notification-service
-- внешний SMTP provider
-- reverse proxy (`Caddy` или `Nginx`)
-- публичный frontend домен и отдельный API домен
-- frontend как отдельный docker service с `restart: unless-stopped`
+Пользовательский flow остаётся двухшаговым:
 
-Типичная схема:
-- `https://philosophyabiz.ru` -> frontend
-- `https://api.philosophyabiz.ru` -> auth API
-- `notification-service` наружу не публикуется
+1. Frontend создаёт заказ через order-service и получает `orderId`.
+2. Frontend отправляет файлы в `POST /api/client/orders/{orderId}/documents`.
+3. order-service проверяет, что заказ принадлежит текущему клиенту.
+4. order-service пересылает multipart-файлы во внутренний API document-service с `X-Internal-Service-Token`.
+5. document-service сохраняет файл, запись документа и outbox-событие в одной транзакции.
+6. outbox relay document-service публикует событие в Kafka topic `document.stored`.
+7. order-service слушает `document.stored` и сохраняет локальную read-model запись в `order_document_metadata`.
+8. `GET /api/client/orders/{orderId}` читает заказ и документы только из БД order-service.
 
-Для test-контура:
-- `https://test.philosophyabiz.ru` -> `127.0.0.1:8000` через `Caddy`
-- `https://testapi.philosophyabiz.ru` -> `127.0.0.1:8081` через `Caddy`
+Важный trade-off: после upload frontend сразу использует ответ upload endpoint, а read-model в
+order-service догоняется через Kafka. Поэтому короткое окно eventual consistency допустимо.
 
-Минимальный `front/.env` для test-контура:
-```env
-API_BASE_URL=https://testapi.philosophyabiz.ru
-AUTH_API_BASE_URL=https://testapi.philosophyabiz.ru/api
-GOOGLE_CLIENT_ID=...
-```
+## Документация
 
-## Документация в репозитории
-- [PROJECT_CONTEXT.md](./PROJECT_CONTEXT.md) - краткий source of truth
-- [LOCAL_DEV.md](./LOCAL_DEV.md) - локальный запуск
-- [API_ENDPOINT_ROADMAP.md](./API_ENDPOINT_ROADMAP.md) - карта текущих и planned API
-- [ADMIN_PANEL_USERS_V1_PLAN.md](./ADMIN_PANEL_USERS_V1_PLAN.md) - план admin users panel
+- [md files/LOCAL_DEV.md](./md%20files/LOCAL_DEV.md) - локальный запуск, env и тесты
+- [md files/PROJECT_CONTEXT.md](./md%20files/PROJECT_CONTEXT.md) - контекст проекта
+- [md files/API_ENDPOINT_ROADMAP.md](./md%20files/API_ENDPOINT_ROADMAP.md) - карта API
+- [md files/ADMIN_PANEL_USERS_V1_PLAN.md](./md%20files/ADMIN_PANEL_USERS_V1_PLAN.md) - план admin users panel
+- [md files/ARCHITECTURE_DEBT_AUDIT.md](./md%20files/ARCHITECTURE_DEBT_AUDIT.md) - текущий архитектурный долг
 
-## Важные замечания
-- реальные секреты не коммитятся
-- `.env`, `front/.env`, cookies и локальные кэши игнорируются git
-- `bd/demo` не является источником правды для текущей архитектуры
-- проект intentionally evolving: часть решений здесь учебные, но осознанно приближены к production
+## Важные правила
+
+- Реальные секреты не коммитятся.
+- `.env`, `front/.env`, cookies, target-директории и локальные кэши должны оставаться вне git.
+- document-service остаётся source of truth для файлов.
+- order-service хранит только read-model метаданных документов для быстрого `GET order details`.
+- Проект учебный, но решения оформляются так, чтобы было понятно, где production-like подход, а где осознанное упрощение.
