@@ -73,6 +73,70 @@ services:
     ports:
       - "${AUTH_PUBLIC_PORT:-8081}:8081"
 
+  order-service:
+    build:
+      context: ./order-service/order-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SERVER_PORT: 8083
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/legal_orders
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: ${JWT_SECRET}
+      APP_INTERNAL_SERVICE_TOKEN: ${APP_INTERNAL_SERVICE_TOKEN}
+      APP_CATALOG_SERVICE_BASE_URL: http://catalog-service:8084
+      APP_DOCUMENT_SERVICE_BASE_URL: http://document-service:8085
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:-http://127.0.0.1:*,http://localhost:*}
+    ports:
+      - "${ORDER_PUBLIC_PORT:-8083}:8083"
+
+  catalog-service:
+    build:
+      context: ./catalog-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8084
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/legal_catalog
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "${CATALOG_PUBLIC_PORT:-8084}:8084"
+
+  document-service:
+    build:
+      context: ./document-service
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    environment:
+      SERVER_PORT: 8085
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/legal_documents
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      APP_INTERNAL_SERVICE_TOKEN: ${APP_INTERNAL_SERVICE_TOKEN}
+      APP_STORAGE_DOCUMENTS_DIR: /data/documents
+    volumes:
+      - document_storage:/data/documents
+    ports:
+      - "${DOCUMENT_PUBLIC_PORT:-8085}:8085"
+
   notification-service:
     build:
       context: ./notification-service/Notification
@@ -97,3 +161,4 @@ services:
 volumes:
   postgres_data:
   kafka_data:
+  document_storage:
