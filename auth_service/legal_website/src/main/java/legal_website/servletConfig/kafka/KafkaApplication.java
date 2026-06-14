@@ -42,7 +42,11 @@ public class KafkaApplication {
         return new DefaultKafkaProducerFactory<>(properties);
     }
 
-    
-    
-    
+    @Bean
+    public KafkaTemplate<String, VerityEmailPayload> verificationEmailKafkaTemplate(
+            ProducerFactory<String, VerityEmailPayload> verificationEmailProducerFactory) {
+        // SendEventService зависит именно от KafkaTemplate<String, VerityEmailPayload>,
+        // поэтому создаём typed bean явно, а не полагаемся на общий auto-configured template.
+        return new KafkaTemplate<>(verificationEmailProducerFactory);
+    }
 }

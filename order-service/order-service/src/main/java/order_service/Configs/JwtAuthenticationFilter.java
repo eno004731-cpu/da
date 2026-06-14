@@ -5,12 +5,10 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -21,7 +19,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenService jwtTokenService;
-    private final AuthenticationEntryPoint authenticationEntryPoint;
 
     @Override
     protected void doFilterInternal(
@@ -48,11 +45,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (RuntimeException ex) {
             SecurityContextHolder.clearContext();
-            authenticationEntryPoint.commence(
-                    request,
-                    response,
-                    new BadCredentialsException("Невалидный access token", ex)
-            );
+            // Фильтр сам завершает запрос с 401, чтобы не зависеть от SecurityConfig.
+            // Так мы не создаём цикл bean-ов SecurityConfig -> filter -> AuthenticationEntryPoint.
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid access token");
             return;
         }
 
