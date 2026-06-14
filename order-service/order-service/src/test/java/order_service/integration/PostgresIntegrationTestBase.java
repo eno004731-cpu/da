@@ -1,14 +1,14 @@
 package order_service.integration;
 
-import order_service.EntityAndRepo.document.OrderDocumentMetadataRepo;
-import order_service.EntityAndRepo.events.incoming.IncomingEventRepo;
-import order_service.EntityAndRepo.events.outbox.OutboxEventRepo;
-import order_service.EntityAndRepo.order.OrderRepo;
-import order_service.Services.documents.DocumentMetadataMapper;
-import order_service.Services.events.DocumentStoredEventService;
-import order_service.Services.events.EventStatusService;
-import order_service.Services.orders.ClientOrderDetailsService;
-import order_service.Services.orders.CreateOrderService;
+import order_service.persistence.document.OrderDocumentMetadataRepo;
+import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.persistence.events.outbox.OutboxEventRepo;
+import order_service.persistence.order.OrderRepo;
+import order_service.services.documents.DocumentMetadataMapper;
+import order_service.services.events.DocumentStoredEventService;
+import order_service.services.events.EventStatusService;
+import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.CreateOrderService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

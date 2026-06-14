@@ -19,21 +19,24 @@
 
 ## Fix Later
 
-- Исправить опечатки в именах пакетов, классов и миграций:
-  `Nofilication`, `Comfirm`, `Verity`, `incomming`, `EventMetods`.
-  Это лучше делать отдельным коммитом, потому что переименования затрагивают imports, package names
-  и иногда уже существующие таблицы/миграции.
-- Нормализовать package naming.
-  Сейчас встречаются mixed-case пакеты вроде `EntityAndRepo`, `Services`, `Notification`.
-  Для Java/Spring привычнее lowercase-пакеты: `entity`, `repository`, `service`, `controller`,
-  `config`, `dto`.
 - Разнести entity и repository по разным пакетам.
-  `EntityAndRepo` удобен на раннем этапе, но при росте домена сложнее искать ownership и границы.
+  Сейчас бывший `EntityAndRepo` приведён к lowercase `persistence`, но entity/repository всё ещё
+  лежат рядом. Следующий шаг - разделить `entity` и `repository`, когда доменные границы будут
+  стабильнее.
 - Выделить общую библиотеку или хотя бы повторяемый шаблон для outbox/inbox.
   Сейчас логика relay, статусов, retry и idempotency повторяется между сервисами. Рано выносить
   это в shared library до стабилизации контрактов, но повтор уже виден.
 - Привести названия Kafka listener/service-классов к одному стилю.
   Лучше, чтобы из имени было понятно: это listener, publisher, relay или handler.
+
+## Fixed
+
+- Исправлены основные опечатки в Java-коде: `Nofilication` -> `Notification`,
+  `ComfirmEmail` -> `ConfirmEmail`, `VerityEmail*` -> `VerifyEmail*`, `EventMetods` -> `EventMethods`.
+- Нормализованы mixed-case Java package names в auth/order/notification сервисах:
+  `api`, `dto`, `configs`, `services`, `persistence`.
+- Исторический Flyway-файл `V3__create_incomming_events_table.sql` оставлен со старым именем
+  намеренно: переименование уже применённой миграции может сломать Flyway validation на существующих БД.
 
 ## Leave As Is For Learning
 

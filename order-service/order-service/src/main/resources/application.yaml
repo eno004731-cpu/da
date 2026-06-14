@@ -17,7 +17,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "order_service.Dto.payload"
+        spring.json.trusted.packages: "order_service.dto.payload"
         spring.json.use.type.headers: false
       max-poll-records: 100
     listener:

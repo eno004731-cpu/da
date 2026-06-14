@@ -13,8 +13,8 @@ spring:
       enable-auto-commit: false
 
       properties:
-        spring.json.trusted.packages: Notification.Dto
-        spring.json.value.default.type: Notification.Dto.VerityEmailPayload
+        spring.json.trusted.packages: notification.dto
+        spring.json.value.default.type: notification.dto.VerifyEmailPayload
         spring.json.use.type.headers: false
       
   mail:

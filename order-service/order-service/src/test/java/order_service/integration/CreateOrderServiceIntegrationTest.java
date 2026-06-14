@@ -1,12 +1,12 @@
 package order_service.integration;
 
-import order_service.Dto.request.CreateOrderRequest;
-import order_service.Dto.response.CreateOrderResponse;
-import order_service.EntityAndRepo.events.outbox.OutboxEventEntity;
-import order_service.EntityAndRepo.events.outbox.OutboxEventRepo;
-import order_service.EntityAndRepo.order.OrderEntity;
-import order_service.EntityAndRepo.order.OrderRepo;
-import order_service.Services.orders.CreateOrderService;
+import order_service.dto.request.CreateOrderRequest;
+import order_service.dto.response.CreateOrderResponse;
+import order_service.persistence.events.outbox.OutboxEventEntity;
+import order_service.persistence.events.outbox.OutboxEventRepo;
+import order_service.persistence.order.OrderEntity;
+import order_service.persistence.order.OrderRepo;
+import order_service.services.orders.CreateOrderService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

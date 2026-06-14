@@ -1,13 +1,13 @@
 package order_service.integration;
 
-import order_service.Dto.payload.DocumentStoredPayload;
-import order_service.EntityAndRepo.document.OrderDocumentMetadataEntity;
-import order_service.EntityAndRepo.document.OrderDocumentMetadataRepo;
-import order_service.EntityAndRepo.events.incoming.IncomingEventEntity;
-import order_service.EntityAndRepo.events.incoming.IncomingEventRepo;
-import order_service.EntityAndRepo.order.OrderEntity;
-import order_service.EntityAndRepo.order.OrderRepo;
-import order_service.Services.events.DocumentStoredEventService;
+import order_service.dto.payload.DocumentStoredPayload;
+import order_service.persistence.document.OrderDocumentMetadataEntity;
+import order_service.persistence.document.OrderDocumentMetadataRepo;
+import order_service.persistence.events.incoming.IncomingEventEntity;
+import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.persistence.order.OrderEntity;
+import order_service.persistence.order.OrderRepo;
+import order_service.services.events.DocumentStoredEventService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,13 +1,13 @@
 package legal_website.integration;
 
-import legal_website.EntityAndRepo.Auth.UserRepo;
-import legal_website.EntityAndRepo.Jwt.JwtRepo;
-import legal_website.EntityAndRepo.outbox_events.OutboxEventsRepo;
-import legal_website.EntityAndRepo.verification_codes.VerificationCodesRepo;
-import legal_website.Services.Jwt.JwtService;
-import legal_website.Services.auth.AuthSessionService;
-import legal_website.Services.auth.register.RegService;
-import legal_website.Services.verityEmail.VerifyEmailService;
+import legal_website.persistence.auth.UserRepo;
+import legal_website.persistence.jwt.JwtRepo;
+import legal_website.persistence.outbox_events.OutboxEventsRepo;
+import legal_website.persistence.verification_codes.VerificationCodesRepo;
+import legal_website.services.jwt.JwtService;
+import legal_website.services.auth.AuthSessionService;
+import legal_website.services.auth.register.RegService;
+import legal_website.services.verifyemail.VerifyEmailService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;

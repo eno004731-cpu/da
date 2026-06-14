@@ -1,12 +1,12 @@
 package order_service.integration;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import order_service.Dto.response.ClientOrderDetailsResponse;
-import order_service.EntityAndRepo.document.OrderDocumentMetadataEntity;
-import order_service.EntityAndRepo.document.OrderDocumentMetadataRepo;
-import order_service.EntityAndRepo.order.OrderEntity;
-import order_service.EntityAndRepo.order.OrderRepo;
-import order_service.Services.orders.ClientOrderDetailsService;
+import order_service.dto.response.ClientOrderDetailsResponse;
+import order_service.persistence.document.OrderDocumentMetadataEntity;
+import order_service.persistence.document.OrderDocumentMetadataRepo;
+import order_service.persistence.order.OrderEntity;
+import order_service.persistence.order.OrderRepo;
+import order_service.services.orders.ClientOrderDetailsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.server.ResponseStatusException;

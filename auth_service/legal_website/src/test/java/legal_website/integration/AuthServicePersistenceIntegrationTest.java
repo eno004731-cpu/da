@@ -1,15 +1,15 @@
 package legal_website.integration;
 
-import legal_website.Dto.register.AuthResponse;
-import legal_website.Dto.register.RegRequest;
-import legal_website.Dto.verityEmail.VerityEmailResponse;
-import legal_website.EntityAndRepo.Auth.UserEntity;
-import legal_website.EntityAndRepo.Jwt.JwtEntity;
-import legal_website.EntityAndRepo.outbox_events.OutboxEventEntity;
-import legal_website.EntityAndRepo.verification_codes.VerificationCodeEntity;
-import legal_website.Services.Jwt.JwtService;
-import legal_website.Services.auth.register.RegService;
-import legal_website.Services.verityEmail.VerifyEmailService;
+import legal_website.dto.register.AuthResponse;
+import legal_website.dto.register.RegRequest;
+import legal_website.dto.verifyemail.VerifyEmailResponse;
+import legal_website.persistence.auth.UserEntity;
+import legal_website.persistence.jwt.JwtEntity;
+import legal_website.persistence.outbox_events.OutboxEventEntity;
+import legal_website.persistence.verification_codes.VerificationCodeEntity;
+import legal_website.services.jwt.JwtService;
+import legal_website.services.auth.register.RegService;
+import legal_website.services.verifyemail.VerifyEmailService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -63,7 +63,7 @@ class AuthServicePersistenceIntegrationTest extends PostgresAuthIntegrationTestB
         regService.regUser(request);
         UserEntity user = userRepo.findByEmail(request.getEmail()).orElseThrow();
 
-        VerityEmailResponse response = verifyEmailService.sendCode(user.getId());
+        VerifyEmailResponse response = verifyEmailService.sendCode(user.getId());
 
         assertThat(response.getStatus()).isEqualTo("success");
         assertThat(response.getChannel()).isEqualTo("email");
