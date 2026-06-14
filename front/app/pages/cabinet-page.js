@@ -175,8 +175,8 @@ function renderOrders(orders) {
       </td>
       <td data-label="Документы">
         <div class="orders-table-primary">
-          <strong>н/д</strong>
-          <span>Summary API не отдаёт счётчик документов</span>
+          <strong>Не указано</strong>
+          <span>Откройте заявку, чтобы посмотреть файлы</span>
         </div>
       </td>
       <td data-label="Статус">

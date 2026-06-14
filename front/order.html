@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Философия Бизнеса — Заказ</title>
     <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
-    <link rel="stylesheet" href="./app/styles/portal.css?v=20260525a" />
+    <link rel="stylesheet" href="./app/styles/portal.css?v=20260614a" />
     <script src="./runtime-config.js?v=20260601a"></script>
     <script src="./local-dev-config.js?v=20260525a"></script>
-    <script type="module" src="./app/pages/order-page.js?v=20260605b"></script>
+    <script type="module" src="./app/pages/order-page.js?v=20260614a"></script>
   </head>
   <body class="portal-body">
     <div class="portal-page">
@@ -27,100 +27,102 @@
         </div>
       </header>
 
-      <main class="portal-detail-grid">
-        <section class="portal-card">
-          <div class="portal-card-inner">
-            <p class="portal-eyebrow">Клиент</p>
-            <h1 class="portal-title" id="order-user-name">Клиент</h1>
-            <p class="portal-copy" id="order-user-meta"></p>
+      <main class="portal-detail-grid portal-detail-grid--order">
+        <section class="portal-card order-detail-card">
+          <div class="portal-card-inner order-detail-main">
+            <div class="order-client-head">
+              <p class="portal-eyebrow">Клиент</p>
+              <h1 class="portal-title" id="order-user-name">Клиент</h1>
+              <p class="portal-copy" id="order-user-meta"></p>
+              <p class="order-id-meta" id="order-id-meta"></p>
+              <p class="order-date-meta" id="order-date-meta"></p>
+            </div>
 
             <div class="portal-feedback" id="order-feedback" hidden></div>
 
-            <div class="timeline" id="order-timeline"></div>
-
-            <div class="detail-meta-grid">
-              <article class="detail-meta">
-                <span>Заказ</span>
-                <strong id="order-title"></strong>
-                <small id="order-service"></small>
-              </article>
-
-              <article class="detail-meta">
-                <span>Статус</span>
+            <section class="order-status-section">
+              <div class="order-section-head">
+                <div>
+                  <p class="portal-eyebrow">Статус</p>
+                  <h2 class="portal-section-title">Статус заявки</h2>
+                </div>
                 <strong class="status-pill" id="order-status"></strong>
-                <small id="order-revision-count"></small>
-              </article>
+              </div>
+              <div class="timeline timeline--compact" id="order-timeline"></div>
+              <p class="portal-helper" id="order-revision-count"></p>
+            </section>
 
-              <article class="detail-meta">
-                <span>Даты</span>
-                <strong id="order-created-at"></strong>
-                <small id="order-updated-at"></small>
-              </article>
+            <div class="portal-action-row order-actions">
+              <button class="portal-button" id="order-edit-button" type="button">
+                Редактировать
+              </button>
+              <button class="portal-button portal-button--danger" id="order-delete-button" type="button">
+                Удалить
+              </button>
             </div>
 
-            <section class="portal-stack" style="margin-top: 24px;">
-              <div>
-                <h2 class="portal-section-title">Статус локального режима</h2>
-                <p class="portal-copy" id="order-description">
-                  Локально сейчас доступна только авторизация клиента. Карточка заявки появится
-                  после подключения отдельного backend API заказов.
-                </p>
-              </div>
+            <section class="order-content-section">
+              <p class="portal-eyebrow">Заказ</p>
+              <h2 class="order-title" id="order-title"></h2>
+              <p class="order-service-line" id="order-service"></p>
 
-              <div class="info-panel" id="order-rejected-card" hidden>
-                <div>
-                  <strong>Решение юриста</strong>
-                  <span id="order-rejected-reason"></span>
-                </div>
-                <span id="order-rejected-date"></span>
-              </div>
-
-              <div class="info-panel" id="last-rework-card" hidden>
-                <div>
-                  <strong>Последнее замечание клиента</strong>
-                  <span id="last-rework-comment"></span>
-                </div>
-                <span id="last-rework-date"></span>
-              </div>
-
-              <div class="portal-action-row">
-                <button class="portal-button portal-button--primary" id="order-edit-button" type="button">
-                  Редактирование недоступно
-                </button>
-                <button class="portal-button portal-button--danger" id="order-delete-button" type="button">
-                  Удаление недоступно
-                </button>
+              <div class="order-description-box">
+                <span>Комментарий клиента</span>
+                <p id="order-description"></p>
               </div>
             </section>
+
+            <div class="info-panel" id="order-rejected-card" hidden>
+              <div>
+                <strong>Решение юриста</strong>
+                <span id="order-rejected-reason"></span>
+              </div>
+              <span id="order-rejected-date"></span>
+            </div>
+
+            <div class="info-panel" id="last-rework-card" hidden>
+              <div>
+                <strong>Последнее замечание клиента</strong>
+                <span id="last-rework-comment"></span>
+              </div>
+              <span id="last-rework-date"></span>
+            </div>
           </div>
         </section>
 
-        <aside class="portal-stack">
-          <section class="portal-card">
+        <aside class="portal-stack order-side-column">
+          <section class="portal-card order-documents-card">
             <div class="portal-card-inner">
               <p class="portal-eyebrow">Документы</p>
               <h2 class="portal-section-title">Документы заказа</h2>
               <p class="portal-copy">
-                Документы заказа станут доступны после подключения backend API заявок. Сейчас этот
-                блок остаётся в режиме ожидания.
+                Прикреплённые файлы сохраняются в document-service, а карточка заказа показывает
+                метаданные из order-service.
               </p>
 
-              <div class="deleted-documents-notice" id="deleted-documents-notice" hidden>
-                Заказ завершён. Связанные документы должны считаться удаляемыми и могут быть уже
-                удалены backend.
+              <div class="deleted-documents-notice" id="deleted-documents-notice" hidden></div>
+
+              <div class="document-upload-zone" id="document-upload-zone">
+                <div>
+                  <strong>Загрузить документы</strong>
+                  <span>Перетащите файлы сюда или выберите на компьютере</span>
+                </div>
+                <label class="portal-button portal-button--primary document-upload-button" for="order-documents-input">
+                  Выбрать файлы
+                </label>
+                <input id="order-documents-input" class="document-upload-input" type="file" multiple />
               </div>
 
               <div class="documents-list" id="order-documents"></div>
             </div>
           </section>
 
-          <section class="portal-card" id="client-rework-section">
+          <section class="portal-card order-rework-card" id="client-rework-section">
             <div class="portal-card-inner">
               <p class="portal-eyebrow">Доработка</p>
-              <h2 class="portal-section-title">Доработка будет доступна позже</h2>
+              <h2 class="portal-section-title">Вернуть заявку на доработку</h2>
               <p class="portal-copy">
-                После подключения API заказов здесь появится форма, чтобы вернуть заявку юристу с
-                комментарием. В auth-only режиме раздел выключен намеренно.
+                Опишите, что нужно исправить или уточнить. Комментарий будет сохранён в заявке.
               </p>
 
               <form class="portal-form" id="client-rework-form">

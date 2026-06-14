@@ -4,10 +4,10 @@ import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
 
 function normalizeDocument(documentItem = {}) {
   return {
-    id: String(documentItem.id ?? ""),
+    id: String(documentItem.id ?? documentItem.documentId ?? ""),
     fileName: documentItem.fileName || documentItem.name || "Документ без названия",
     mimeType: documentItem.mimeType || "application/octet-stream",
-    size: Number(documentItem.size ?? 0),
+    size: Number(documentItem.size ?? documentItem.sizeBytes ?? 0),
     uploadedAt: documentItem.uploadedAt || documentItem.createdAt || "",
     downloadUrl: documentItem.downloadUrl || null,
     isDeleted: Boolean(documentItem.isDeleted ?? documentItem.deleted),

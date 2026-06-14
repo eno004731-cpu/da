@@ -4,6 +4,7 @@ import {
   fetchServices,
   submitClientOrderRework,
   updateClientOrder,
+  uploadClientOrderDocuments,
 } from "../api/orders-api.js?v=20260512a";
 import {
   LOCAL_AUTH_ONLY_MODE,
@@ -57,11 +58,13 @@ const feedbackNode = document.querySelector("#order-feedback");
 const orderTitle = document.querySelector("#order-title");
 const orderStatus = document.querySelector("#order-status");
 const orderService = document.querySelector("#order-service");
-const orderCreated = document.querySelector("#order-created-at");
-const orderUpdated = document.querySelector("#order-updated-at");
+const orderIdMeta = document.querySelector("#order-id-meta");
+const orderDateMeta = document.querySelector("#order-date-meta");
 const orderRevisionCount = document.querySelector("#order-revision-count");
 const orderDescription = document.querySelector("#order-description");
 const orderDocuments = document.querySelector("#order-documents");
+const documentUploadZone = document.querySelector("#document-upload-zone");
+const documentUploadInput = document.querySelector("#order-documents-input");
 const deletedNotice = document.querySelector("#deleted-documents-notice");
 const lastReworkCard = document.querySelector("#last-rework-card");
 const lastReworkComment = document.querySelector("#last-rework-comment");
@@ -105,6 +108,46 @@ function setFeedback(message = "", isError = false) {
   feedbackNode.classList.toggle("is-success", !isError && Boolean(message));
 }
 
+function isDocumentUploadAllowed(status) {
+  return !isUnavailableDocumentStatus(status);
+}
+
+function getDocumentId(documentItem = {}) {
+  return String(documentItem.id || documentItem.documentId || "").trim();
+}
+
+function getDocumentSize(documentItem = {}) {
+  return Number(documentItem.size ?? documentItem.sizeBytes ?? 0);
+}
+
+function mergeDocuments(existingDocuments = [], uploadedDocuments = []) {
+  const documentsByKey = new Map();
+
+  [...existingDocuments, ...uploadedDocuments].forEach((documentItem) => {
+    const documentId = getDocumentId(documentItem);
+    const fallbackKey = [
+      documentItem.fileName || documentItem.name || "document",
+      getDocumentSize(documentItem),
+      documentItem.uploadedAt || documentItem.createdAt || "",
+    ].join(":");
+
+    documentsByKey.set(documentId || fallbackKey, documentItem);
+  });
+
+  return Array.from(documentsByKey.values());
+}
+
+function setDocumentUploadState({ disabled = false, dragging = false } = {}) {
+  if (documentUploadInput) {
+    documentUploadInput.disabled = disabled;
+  }
+
+  if (documentUploadZone) {
+    documentUploadZone.classList.toggle("is-disabled", disabled);
+    documentUploadZone.classList.toggle("is-dragging", dragging);
+  }
+}
+
 function renderUser() {
   const user = getCurrentUser();
   if (!user) {
@@ -121,7 +164,7 @@ function renderTimeline(status) {
   timelineNode.innerHTML = "";
   const normalizedStatus = normalizeOrderStatus(status);
 
-  ORDER_STATUS_TIMELINE.forEach((step) => {
+  ORDER_STATUS_TIMELINE.filter((step) => step.code !== "TODO").forEach((step) => {
     const node = document.createElement("div");
     node.className = "timeline-pill";
     node.textContent = step.label;
@@ -144,17 +187,19 @@ function renderTimeline(status) {
 function renderDocuments(documents, status) {
   orderDocuments.innerHTML = "";
   const unavailableDocuments = isUnavailableDocumentStatus(status);
+  setDocumentUploadState({ disabled: unavailableDocuments });
   deletedNotice.hidden = !unavailableDocuments;
   deletedNotice.textContent = isRejectedStatus(status)
     ? "Заявка отклонена. Связанные документы считаются недоступными для дальнейшей работы."
     : "Заказ завершён. Связанные документы должны считаться удаляемыми и могут быть уже удалены backend.";
 
   if (!documents?.length) {
-    orderDocuments.innerHTML = `
-      <div class="empty-inline-state">
-        Документы пока не прикреплены.
-      </div>
-    `;
+    const emptyState = document.createElement("div");
+    emptyState.className = "empty-inline-state";
+    emptyState.textContent = unavailableDocuments
+      ? "Документы по этой заявке недоступны."
+      : "Документы пока не прикреплены.";
+    orderDocuments.append(emptyState);
     return;
   }
 
@@ -162,20 +207,45 @@ function renderDocuments(documents, status) {
     const row = document.createElement("article");
     row.className = "document-row";
     const availability = documentItem.isDeleted || unavailableDocuments;
-    const actionHtml =
-      documentItem.downloadUrl && !availability
-        ? `<a class="text-link" href="${documentItem.downloadUrl}" target="_blank" rel="noreferrer">Открыть</a>`
-        : `<span class="document-deleted-tag">${
-            isRejectedStatus(status) ? "Недоступно после отклонения" : "Удалено после завершения"
-          }</span>`;
 
-    row.innerHTML = `
-      <div>
-        <strong>${documentItem.fileName}</strong>
-        <span>${formatFileSize(documentItem.size)} • ${formatDate(documentItem.uploadedAt)}</span>
-      </div>
-      ${actionHtml}
-    `;
+    const icon = document.createElement("span");
+    icon.className = "document-file-icon";
+    icon.textContent = "DOC";
+
+    const body = document.createElement("div");
+    body.className = "document-row-body";
+
+    const name = document.createElement("strong");
+    name.textContent = documentItem.fileName || "Документ без названия";
+
+    const meta = document.createElement("span");
+    meta.textContent = [
+      documentItem.mimeType || "Файл",
+      formatFileSize(getDocumentSize(documentItem)),
+      formatDate(documentItem.uploadedAt),
+    ]
+      .filter(Boolean)
+      .join(" • ");
+
+    body.append(name, meta);
+
+    const action = document.createElement(documentItem.downloadUrl && !availability ? "a" : "span");
+    if (documentItem.downloadUrl && !availability) {
+      action.className = "text-link";
+      action.href = documentItem.downloadUrl;
+      action.target = "_blank";
+      action.rel = "noreferrer";
+      action.textContent = "Открыть";
+    } else {
+      action.className = availability ? "document-deleted-tag" : "document-status-tag";
+      action.textContent = availability
+        ? isRejectedStatus(status)
+          ? "Недоступно"
+          : "Удалено"
+        : "Загружен";
+    }
+
+    row.append(icon, body, action);
     orderDocuments.append(row);
   });
 }
@@ -186,14 +256,22 @@ function renderOrder(order) {
     ...order,
     orderId: order.orderId || order.id,
   });
-  orderTitle.textContent = order.title;
+  const normalizedStatus = normalizeOrderStatus(order.status);
+  const createdAt = formatDateTime(order.createdAt);
+  const updatedAt = formatDateTime(order.updatedAt);
+  const revisionCount = Number(order.revisionCount ?? 0);
+
+  orderTitle.textContent = order.title || "Заявка без названия";
   orderStatus.textContent = getOrderStatusLabel(order.status);
-  orderStatus.dataset.status = order.status;
-  orderService.textContent = order.serviceName;
-  orderCreated.textContent = formatDateTime(order.createdAt);
-  orderUpdated.textContent = formatDateTime(order.updatedAt);
-  orderRevisionCount.textContent = String(order.revisionCount ?? 0);
-  orderDescription.textContent = order.problemDescription;
+  orderStatus.dataset.status = normalizedStatus;
+  orderService.textContent = order.serviceName || "Услуга не указана";
+  orderIdMeta.textContent = `Order ID: ${order.orderId || order.id || orderId}`;
+  orderDateMeta.textContent = `Создано ${createdAt} · Обновлено ${updatedAt}`;
+  orderRevisionCount.textContent = revisionCount
+    ? `Доработок по заявке: ${revisionCount}`
+    : "Доработок по заявке пока нет.";
+  orderDescription.textContent =
+    order.problemDescription || "Клиент пока не добавил описание к заявке.";
 
   renderTimeline(order.status);
   renderDocuments(order.documents, order.status);
@@ -253,15 +331,15 @@ function renderOrdersUnavailableState() {
   orderStatus.textContent = "API заявок не подключён";
   orderStatus.removeAttribute("data-status");
   orderService.textContent = "Сейчас локально работает только auth-service";
-  orderCreated.textContent = "Локальная разработка";
-  orderUpdated.textContent = "Раздел заказов появится позже";
-  orderRevisionCount.textContent = "0";
+  orderIdMeta.textContent = orderId ? `Order ID: ${orderId}` : "";
+  orderDateMeta.textContent = "Даты появятся после загрузки карточки заказа.";
+  orderRevisionCount.textContent = "Доработок по заявке пока нет.";
   orderDescription.textContent = LOCAL_AUTH_ONLY_MODE
     ? "Авторизация и профиль клиента уже можно проверять локально. Карточки заявок появятся после подключения отдельного backend API заказов."
     : "Раздел заказов временно отключён.";
   orderDocuments.innerHTML = `
     <div class="empty-inline-state">
-      Документы заказа станут доступны после подключения backend API заявок.
+      Документы появятся здесь после загрузки карточки заказа.
     </div>
   `;
   timelineNode.innerHTML = `
@@ -273,6 +351,7 @@ function renderOrdersUnavailableState() {
   reworkSection.hidden = true;
   editButton.hidden = true;
   deleteButton.hidden = true;
+  setDocumentUploadState({ disabled: true });
   setFeedback(
     LOCAL_AUTH_ONLY_MODE
       ? "Локально сейчас поднят только auth-service. Открыть реальную карточку заказа пока нельзя."
@@ -512,6 +591,60 @@ async function handleDeleteOrder() {
   }
 }
 
+async function handleDocumentFiles(files) {
+  const selectedFiles = Array.from(files || []).filter(Boolean);
+  if (!selectedFiles.length) {
+    return;
+  }
+
+  if (!currentOrder) {
+    setFeedback("Сначала нужно загрузить карточку заказа.", true);
+    return;
+  }
+
+  if (!isDocumentUploadAllowed(currentOrder.status)) {
+    setFeedback("Для завершённой или отклонённой заявки загрузка документов недоступна.", true);
+    return;
+  }
+
+  setDocumentUploadState({ disabled: true });
+  setFeedback(
+    selectedFiles.length === 1
+      ? "Загружаем документ…"
+      : `Загружаем документы: ${selectedFiles.length} файла…`
+  );
+
+  try {
+    const uploadedDocuments = await uploadClientOrderDocuments(orderId, selectedFiles);
+    currentOrder = {
+      ...currentOrder,
+      documents: mergeDocuments(currentOrder.documents, uploadedDocuments),
+      updatedAt: new Date().toISOString(),
+    };
+    renderOrder(currentOrder);
+    setFeedback("Документы загружены и добавлены в карточку заказа.");
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
+      return;
+    }
+
+    if (isBackendUnavailableError(error)) {
+      setFeedback("Backend временно недоступен. Документы не удалось загрузить.", true);
+      return;
+    }
+
+    setFeedback(error.message || "Не удалось загрузить документы.", true);
+  } finally {
+    if (documentUploadInput) {
+      documentUploadInput.value = "";
+    }
+    setDocumentUploadState({
+      disabled: currentOrder ? !isDocumentUploadAllowed(currentOrder.status) : true,
+    });
+  }
+}
+
 function attachEvents() {
   logoutButton?.addEventListener("click", async () => {
     logoutButton.disabled = true;
@@ -529,6 +662,25 @@ function attachEvents() {
   editModal?.addEventListener("click", (event) => {
     if (event.target === editModal) {
       closeEditModal();
+    }
+  });
+  documentUploadInput?.addEventListener("change", (event) => {
+    handleDocumentFiles(event.target.files);
+  });
+  documentUploadZone?.addEventListener("dragover", (event) => {
+    event.preventDefault();
+    if (!documentUploadInput?.disabled) {
+      setDocumentUploadState({ dragging: true });
+    }
+  });
+  documentUploadZone?.addEventListener("dragleave", () => {
+    setDocumentUploadState({ dragging: false, disabled: Boolean(documentUploadInput?.disabled) });
+  });
+  documentUploadZone?.addEventListener("drop", (event) => {
+    event.preventDefault();
+    setDocumentUploadState({ dragging: false, disabled: Boolean(documentUploadInput?.disabled) });
+    if (!documentUploadInput?.disabled) {
+      handleDocumentFiles(event.dataTransfer?.files);
     }
   });
   backLink?.setAttribute("href", "./cabinet.html");
@@ -584,6 +736,8 @@ async function ensureActiveSession() {
 }
 
 async function init() {
+  setDocumentUploadState({ disabled: true });
+
   const sessionIsActive = await ensureActiveSession();
   if (!sessionIsActive) {
     return;
