@@ -4,18 +4,17 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 import order_service.dto.response.ClientOrderDetailsResponse;
 import order_service.persistence.document.OrderDocumentMetadataEntity;
 import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.order.OrderEntity;
-import order_service.persistence.order.OrderRepo;
 import order_service.services.documents.DocumentMetadataMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -26,13 +25,16 @@ import static org.mockito.Mockito.when;
 class ClientOrderDetailsServiceTest {
 
     @Mock
-    private OrderRepo orderRepo;
+    private ClientOrderAccessService clientOrderAccessService;
 
     @Mock
     private OrderDocumentMetadataRepo documentMetadataRepo;
 
     @Mock
     private DocumentMetadataMapper documentMetadataMapper;
+
+    @Spy
+    private OrderResponseMapper orderResponseMapper = new OrderResponseMapper();
 
     @InjectMocks
     private ClientOrderDetailsService service;
@@ -60,7 +62,7 @@ class ClientOrderDetailsServiceTest {
         document.setUploadedAt(LocalDateTime.now());
         document.setIsDeleted(false);
 
-        when(orderRepo.findByIdAndClientId(orderId, 7L)).thenReturn(Optional.of(order));
+        when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L)).thenReturn(order);
         when(documentMetadataRepo.findAllByOrderIdOrderByUploadedAtAsc(orderId)).thenReturn(List.of(document));
         when(documentMetadataMapper.toResponse(document)).thenCallRealMethod();
 
@@ -77,7 +79,8 @@ class ClientOrderDetailsServiceTest {
     @Test
     void getOrderDetails_throwsNotFoundWhenOrderBelongsToAnotherClient() {
         UUID orderId = UUID.randomUUID();
-        when(orderRepo.findByIdAndClientId(orderId, 7L)).thenReturn(Optional.empty());
+        when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L))
+                .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Заказ не найден"));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> service.getOrderDetails(orderId, 7L));
 
@@ -87,7 +90,8 @@ class ClientOrderDetailsServiceTest {
     @Test
     void getOrderDetails_throwsNotFoundWhenOrderMissing() {
         UUID orderId = UUID.randomUUID();
-        when(orderRepo.findByIdAndClientId(orderId, 7L)).thenReturn(Optional.empty());
+        when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L))
+                .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Заказ не найден"));
 
         ResponseStatusException exception = assertThrows(ResponseStatusException.class, () -> service.getOrderDetails(orderId, 7L));
 

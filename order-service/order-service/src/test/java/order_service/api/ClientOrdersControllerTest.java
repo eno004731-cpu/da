@@ -17,9 +17,11 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 import order_service.dto.request.CreateOrderRequest;
 import order_service.dto.response.ClientOrderDetailsResponse;
+import order_service.dto.response.ClientOrderSummaryResponse;
 import order_service.dto.response.CreateOrderResponse;
 import order_service.dto.response.UploadedDocumentResponse;
 import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.ClientOrdersQueryService;
 import order_service.services.orders.CreateOrderService;
 import order_service.services.documents.OrderDocumentsService;
 
@@ -44,6 +46,9 @@ class ClientOrdersControllerTest {
 
     @Mock
     private ClientOrderDetailsService clientOrderDetailsService;
+
+    @Mock
+    private ClientOrdersQueryService clientOrdersQueryService;
 
     @Mock
     private OrderDocumentsService orderDocumentsService;
@@ -109,6 +114,32 @@ class ClientOrdersControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(orderId.toString()))
                 .andExpect(jsonPath("$.title").value("Need legal advice"));
+    }
+
+    @Test
+    void getClientOrders_returnsCurrentClientOrders() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        ClientOrderSummaryResponse response = new ClientOrderSummaryResponse();
+        response.setId(orderId);
+        response.setTitle("Need legal advice");
+        response.setServiceCode("CONSULT");
+        response.setServiceName("Юридическая консультация");
+        response.setStatus("ON_REVIEW");
+        response.setCreatedAt(LocalDateTime.now());
+        response.setUpdatedAt(LocalDateTime.now());
+        response.setRevisionCount(0);
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(15L, null, List.of())
+        );
+        when(clientOrdersQueryService.getClientOrders(15L)).thenReturn(List.of(response));
+
+        mockMvc.perform(get("/api/client/orders"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].id").value(orderId.toString()))
+                .andExpect(jsonPath("$[0].title").value("Need legal advice"))
+                .andExpect(jsonPath("$[0].serviceCode").value("CONSULT"))
+                .andExpect(jsonPath("$[0].revisionCount").value(0));
     }
 
     @Test

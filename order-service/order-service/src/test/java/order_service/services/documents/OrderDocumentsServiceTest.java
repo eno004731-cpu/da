@@ -9,10 +9,9 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import order_service.dto.response.UploadedDocumentResponse;
 import order_service.persistence.order.OrderEntity;
-import order_service.persistence.order.OrderRepo;
+import order_service.services.orders.ClientOrderAccessService;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,7 +23,7 @@ import static org.mockito.Mockito.when;
 class OrderDocumentsServiceTest {
 
     @Mock
-    private OrderRepo orderRepo;
+    private ClientOrderAccessService clientOrderAccessService;
 
     @Mock
     private DocumentGateway documentGateway;
@@ -46,7 +45,8 @@ class OrderDocumentsServiceTest {
     void uploadDocuments_throwsNotFoundWhenOrderMissing() {
         UUID orderId = UUID.randomUUID();
         MockMultipartFile file = new MockMultipartFile("documents", "contract.pdf", "application/pdf", "data".getBytes());
-        when(orderRepo.findByIdAndClientId(orderId, 1L)).thenReturn(Optional.empty());
+        when(clientOrderAccessService.getClientOrderOrThrow(orderId, 1L))
+                .thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "Заказ не найден"));
 
         ResponseStatusException exception = assertThrows(
                 ResponseStatusException.class,
@@ -62,7 +62,7 @@ class OrderDocumentsServiceTest {
         MockMultipartFile file = new MockMultipartFile("documents", "contract.pdf", "application/pdf", "data".getBytes());
         UploadedDocumentResponse response = new UploadedDocumentResponse();
         response.setId("1");
-        when(orderRepo.findByIdAndClientId(orderId, 7L)).thenReturn(Optional.of(new OrderEntity()));
+        when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L)).thenReturn(new OrderEntity());
         when(documentGateway.uploadDocuments(orderId, 7L, List.of(file))).thenReturn(List.of(response));
 
         List<UploadedDocumentResponse> uploaded = service.uploadDocuments(orderId, 7L, List.of(file));

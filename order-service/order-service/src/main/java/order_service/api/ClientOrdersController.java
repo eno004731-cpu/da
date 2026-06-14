@@ -14,9 +14,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import order_service.dto.request.CreateOrderRequest;
 import order_service.dto.response.ClientOrderDetailsResponse;
+import order_service.dto.response.ClientOrderSummaryResponse;
 import order_service.dto.response.CreateOrderResponse;
 import order_service.dto.response.UploadedDocumentResponse;
 import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.ClientOrdersQueryService;
 import order_service.services.orders.CreateOrderService;
 import order_service.services.documents.OrderDocumentsService;
 
@@ -29,6 +31,7 @@ import java.util.UUID;
 public class ClientOrdersController {
     private final CreateOrderService createOrderService;
     private final ClientOrderDetailsService clientOrderDetailsService;
+    private final ClientOrdersQueryService clientOrdersQueryService;
     private final OrderDocumentsService orderDocumentsService;
 
     @PostMapping("/applications")
@@ -45,6 +48,13 @@ public class ClientOrdersController {
             @AuthenticationPrincipal Long clientId
     ) {
         return clientOrderDetailsService.getOrderDetails(orderId, clientId);
+    }
+
+    @GetMapping("/orders")
+    public List<ClientOrderSummaryResponse> getClientOrders(
+            @AuthenticationPrincipal Long clientId
+    ) {
+        return clientOrdersQueryService.getClientOrders(clientId);
     }
 
     @PostMapping("/orders/{orderId}/documents")

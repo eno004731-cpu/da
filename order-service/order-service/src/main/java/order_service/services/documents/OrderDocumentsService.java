@@ -1,7 +1,7 @@
 package order_service.services.documents;
 
 import order_service.dto.response.UploadedDocumentResponse;
-import order_service.persistence.order.OrderRepo;
+import order_service.services.orders.ClientOrderAccessService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -12,11 +12,11 @@ import java.util.UUID;
 
 @Service
 public class OrderDocumentsService {
-    private final OrderRepo orderRepo;
+    private final ClientOrderAccessService clientOrderAccessService;
     private final DocumentGateway documentGateway;
 
-    public OrderDocumentsService(OrderRepo orderRepo, DocumentGateway documentGateway) {
-        this.orderRepo = orderRepo;
+    public OrderDocumentsService(ClientOrderAccessService clientOrderAccessService, DocumentGateway documentGateway) {
+        this.clientOrderAccessService = clientOrderAccessService;
         this.documentGateway = documentGateway;
     }
 
@@ -27,9 +27,7 @@ public class OrderDocumentsService {
         if (documents.stream().anyMatch(MultipartFile::isEmpty)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пустые документы загружать нельзя");
         }
-        if (orderRepo.findByIdAndClientId(orderId, clientId).isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Заказ не найден");
-        }
+        clientOrderAccessService.getClientOrderOrThrow(orderId, clientId);
         return documentGateway.uploadDocuments(orderId, clientId, documents);
     }
 }

@@ -5,10 +5,14 @@ import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.documents.DocumentMetadataMapper;
+import order_service.services.catalog.ServiceNameOutboxService;
 import order_service.services.events.DocumentStoredEventService;
 import order_service.services.events.EventStatusService;
+import order_service.services.orders.ClientOrderAccessService;
 import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.ClientOrdersQueryService;
 import order_service.services.orders.CreateOrderService;
+import order_service.services.orders.OrderResponseMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -30,8 +34,12 @@ import org.testcontainers.containers.PostgreSQLContainer;
 @Import({
         IntegrationTestConfig.class,
         EventStatusService.class,
+        ServiceNameOutboxService.class,
+        ClientOrderAccessService.class,
         CreateOrderService.class,
         ClientOrderDetailsService.class,
+        ClientOrdersQueryService.class,
+        OrderResponseMapper.class,
         DocumentMetadataMapper.class,
         DocumentStoredEventService.class
 })

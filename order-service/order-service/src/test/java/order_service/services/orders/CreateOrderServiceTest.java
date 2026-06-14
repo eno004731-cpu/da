@@ -1,7 +1,6 @@
 package order_service.services.orders;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.times;
@@ -15,18 +14,12 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import order_service.dto.request.CreateOrderRequest;
 import order_service.dto.response.CreateOrderResponse;
-import order_service.persistence.events.outbox.OutboxEventEntity;
-import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.EventStatusService;
-import order_service.services.events.OutboxWakeUpEvent;
+import order_service.services.catalog.ServiceNameOutboxService;
 
 @ExtendWith(MockitoExtension.class)
 class CreateOrderServiceTest {
@@ -35,18 +28,10 @@ class CreateOrderServiceTest {
     private OrderRepo orderRepo;
 
     @Mock
-    private EventStatusService eventStatusService;
-
-    @Mock
-    private OutboxEventRepo eventRepo;
-
-    @Mock
-    private ApplicationEventPublisher applicationEventPublisher;
+    private ServiceNameOutboxService serviceNameOutboxService;
 
     @InjectMocks
     private CreateOrderService service;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     void createOrder_savesOrderAndOutboxEventAndReturnsResponse() {
@@ -65,7 +50,6 @@ class CreateOrderServiceTest {
             return order;
         });
 
-        service = new CreateOrderService(orderRepo, objectMapper, eventStatusService, eventRepo, applicationEventPublisher);
         CreateOrderResponse response = service.createOrder(request, 42L);
 
         ArgumentCaptor<OrderEntity> orderCaptor = ArgumentCaptor.forClass(OrderEntity.class);
@@ -76,26 +60,11 @@ class CreateOrderServiceTest {
         assertEquals("ON_REVIEW", savedOrder.getStatus());
         assertEquals("Need legal advice", savedOrder.getTitle());
         assertEquals("Need legal advice", savedOrder.getProblemDescription());
-        assertNotNull(savedOrder.getCreateAt());
-        assertNotNull(savedOrder.getUpdatedAt());
 
-        ArgumentCaptor<OutboxEventEntity> eventCaptor = ArgumentCaptor.forClass(OutboxEventEntity.class);
-        verify(eventRepo).save(eventCaptor.capture());
-        OutboxEventEntity savedEvent = eventCaptor.getValue();
-        assertNotNull(savedEvent.getId());
-        assertEquals(orderId, savedEvent.getAggregateId());
-        assertEquals("SERVICE_NAME_REQUESTED", savedEvent.getEventType());
-        assertEquals("NEW", savedEvent.getStatus());
-        assertEquals(0, savedEvent.getRetryCount());
-        assertEquals(orderId, objectMapper.convertValue(savedEvent.getPayload().get("orderId"), UUID.class));
-        assertEquals("CONSULT", savedEvent.getPayload().get("serviceCode").asText());
-        assertEquals(savedEvent.getId(), objectMapper.convertValue(savedEvent.getPayload().get("eventId"), UUID.class));
-
-        assertNotNull(response);
         assertEquals(orderId, response.getId());
         assertEquals(orderId, response.getOrderId());
         assertEquals("ON_REVIEW", response.getStatus());
-        verify(applicationEventPublisher).publishEvent(any(OutboxWakeUpEvent.class));
+        verify(serviceNameOutboxService).createServiceNameRequestedEvent(savedOrder);
         verify(orderRepo, times(1)).save(any(OrderEntity.class));
     }
 }

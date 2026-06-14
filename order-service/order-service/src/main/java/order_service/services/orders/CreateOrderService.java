@@ -1,60 +1,28 @@
 package order_service.services.orders;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import lombok.RequiredArgsConstructor;
-import order_service.dto.payload.GetServiceNamePayload;
 import order_service.dto.request.CreateOrderRequest;
 import order_service.dto.response.CreateOrderResponse;
-import order_service.persistence.events.outbox.OutboxEventEntity;
-import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.EventStatusService;
-import order_service.services.events.OutboxWakeUpEvent;
+import order_service.services.catalog.ServiceNameOutboxService;
 
 @Service
 @RequiredArgsConstructor
 public class CreateOrderService {
     private final OrderRepo orderRepo;
-    private final ObjectMapper objectMapper;
-    private final EventStatusService eventStatusService;
-    private final OutboxEventRepo eventRepo;
-    private final ApplicationEventPublisher applicationEventPublisher;
+    private final ServiceNameOutboxService serviceNameOutboxService;
 
     @Transactional
     public CreateOrderResponse createOrder(CreateOrderRequest request,Long id){
         OrderEntity order = createOrderEntity(request, id);
         orderRepo.save(order);
-
-        OutboxEventEntity event = new OutboxEventEntity();
-        // eventId нужен до сериализации payload, чтобы outbox и payload ссылались на одно событие.
-        event.setId(UUID.randomUUID());
-        GetServiceNamePayload payload = new GetServiceNamePayload();
-        payload.setServiceCode(order.getServiceCode());
-        payload.setOrderId(order.getId());
-        payload.setEventId(event.getId());
-        event.setAggregateId(order.getId());
-        event.setCreatedAt(LocalDateTime.now());
-        event.setRetryCount(0);
-        event.setEventType("SERVICE_NAME_REQUESTED");  
-        try {
-            event.setPayload(objectMapper.valueToTree(payload));
-        } catch (Exception e) {
-            eventStatusService.saveFailedEvent(event, e.toString());
-            throw new IllegalStateException("Не удалось подготовить outbox-событие для запроса названия услуги", e);
-        }
-        event.setStatus("NEW");
-        eventRepo.save(event);
-        // Будим publisher только после коммита транзакции, чтобы он видел уже сохранённую запись outbox.
-        applicationEventPublisher.publishEvent(new OutboxWakeUpEvent(event.getId()));
+        serviceNameOutboxService.createServiceNameRequestedEvent(order);
 
         CreateOrderResponse response = new CreateOrderResponse();
         response.setId(order.getId());
@@ -71,7 +39,7 @@ public class CreateOrderService {
         orderEntity.setCompanyName(request.getCompanyName());
         orderEntity.setContact(request.getContact());
         orderEntity.setServiceCode(request.getServiceCode());
-        // orderEntity.setServiceName(); нужно сделать микросервис и здесь тогда запрос или рядом бд
+
         // В title держим короткий человекочитаемый заголовок, а полное описание отдельно.
         orderEntity.setTitle(buildTitle(description));
         orderEntity.setProblemDescription(description);
