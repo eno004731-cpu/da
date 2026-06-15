@@ -167,6 +167,14 @@ export function deleteClientOrder(orderId) {
   });
 }
 
+export function deleteClientOrderDocument(orderId, documentId) {
+  ensureOrdersApiEnabled();
+  return request(ENDPOINTS.client.orderDocumentDelete(orderId, documentId), {
+    method: "DELETE",
+    disableCsrf: true,
+  });
+}
+
 export function submitClientOrderRework(orderId, comment) {
   ensureOrdersApiEnabled();
   return jsonRequest(ENDPOINTS.client.orderRework(orderId), {

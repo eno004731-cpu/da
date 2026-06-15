@@ -46,6 +46,8 @@ public class CreateOrderService {
         orderEntity.setStatus("ON_REVIEW");
         orderEntity.setCreateAt(LocalDateTime.now());
         orderEntity.setUpdatedAt(LocalDateTime.now());
+        orderEntity.setIsDeleted(false);
+        orderEntity.setDeletionInProgress(false);
         return orderEntity;
     }
 

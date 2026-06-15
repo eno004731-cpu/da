@@ -5,12 +5,16 @@ import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.documents.DocumentMetadataMapper;
+import order_service.services.documents.OrderDocumentDeleteService;
 import order_service.services.catalog.ServiceNameOutboxService;
+import order_service.services.events.DocumentDeletedEventService;
 import order_service.services.events.DocumentStoredEventService;
 import order_service.services.events.EventStatusService;
 import order_service.services.orders.ClientOrderAccessService;
 import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.ClientOrderDeleteService;
 import order_service.services.orders.ClientOrdersQueryService;
+import order_service.services.orders.ClientOrderUpdateService;
 import order_service.services.orders.CreateOrderService;
 import order_service.services.orders.OrderResponseMapper;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,9 +43,13 @@ import org.testcontainers.containers.PostgreSQLContainer;
         CreateOrderService.class,
         ClientOrderDetailsService.class,
         ClientOrdersQueryService.class,
+        ClientOrderUpdateService.class,
+        ClientOrderDeleteService.class,
+        OrderDocumentDeleteService.class,
         OrderResponseMapper.class,
         DocumentMetadataMapper.class,
-        DocumentStoredEventService.class
+        DocumentStoredEventService.class,
+        DocumentDeletedEventService.class
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 abstract class PostgresIntegrationTestBase {

@@ -24,7 +24,7 @@ class DocumentOutboxPublisherTest {
     void publishAvailableEvents_sendsDocumentStoredEventAndMarksPublished() {
         OutboxEventRepository outboxEventRepository = mock(OutboxEventRepository.class);
         DocumentOutboxStatusService statusService = mock(DocumentOutboxStatusService.class);
-        KafkaTemplate<String, DocumentStoredPayload> kafkaTemplate = mock(KafkaTemplate.class);
+        KafkaTemplate<String, Object> kafkaTemplate = mock(KafkaTemplate.class);
         ObjectMapper objectMapper = new ObjectMapper();
         DocumentOutboxPublisher publisher = new DocumentOutboxPublisher(
                 outboxEventRepository,
@@ -33,6 +33,7 @@ class DocumentOutboxPublisherTest {
                 objectMapper
         );
         ReflectionTestUtils.setField(publisher, "documentStoredTopic", "document.stored");
+        ReflectionTestUtils.setField(publisher, "documentDeletedTopic", "document.deleted");
 
         UUID eventId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();

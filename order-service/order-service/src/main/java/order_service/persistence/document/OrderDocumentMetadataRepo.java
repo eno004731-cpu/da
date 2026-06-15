@@ -11,5 +11,7 @@ public interface OrderDocumentMetadataRepo extends JpaRepository<OrderDocumentMe
 
     Optional<OrderDocumentMetadataEntity> findByDocumentId(String documentId);
 
+    Optional<OrderDocumentMetadataEntity> findByOrderIdAndDocumentId(UUID orderId, String documentId);
+
     boolean existsByDocumentId(String documentId);
 }

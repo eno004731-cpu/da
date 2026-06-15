@@ -8,6 +8,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import lombok.Data;
 @Entity
@@ -47,4 +48,22 @@ public class OrderEntity {
     private LocalDateTime completedAt;
     @Column(name = "rejected_at")
     private LocalDateTime rejectedAt;
+    @Column(name = "is_deleted", nullable = false)
+    private Boolean isDeleted;
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
+    @Column(name = "deletion_in_progress", nullable = false)
+    private Boolean deletionInProgress;
+    @Column(name = "deletion_error")
+    private String deletionError;
+
+    @PrePersist
+    void prePersist() {
+        if (isDeleted == null) {
+            isDeleted = false;
+        }
+        if (deletionInProgress == null) {
+            deletionInProgress = false;
+        }
+    }
 }

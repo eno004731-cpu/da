@@ -16,12 +16,16 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.server.ResponseStatusException;
 import order_service.dto.request.CreateOrderRequest;
+import order_service.dto.request.UpdateClientOrderRequest;
 import order_service.dto.response.ClientOrderDetailsResponse;
 import order_service.dto.response.ClientOrderSummaryResponse;
 import order_service.dto.response.CreateOrderResponse;
 import order_service.dto.response.UploadedDocumentResponse;
+import order_service.services.documents.OrderDocumentDeleteService;
 import order_service.services.orders.ClientOrderDetailsService;
+import order_service.services.orders.ClientOrderDeleteService;
 import order_service.services.orders.ClientOrdersQueryService;
+import order_service.services.orders.ClientOrderUpdateService;
 import order_service.services.orders.CreateOrderService;
 import order_service.services.documents.OrderDocumentsService;
 
@@ -32,8 +36,11 @@ import java.util.UUID;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -51,7 +58,16 @@ class ClientOrdersControllerTest {
     private ClientOrdersQueryService clientOrdersQueryService;
 
     @Mock
+    private ClientOrderUpdateService clientOrderUpdateService;
+
+    @Mock
+    private ClientOrderDeleteService clientOrderDeleteService;
+
+    @Mock
     private OrderDocumentsService orderDocumentsService;
+
+    @Mock
+    private OrderDocumentDeleteService orderDocumentDeleteService;
 
     @InjectMocks
     private ClientOrdersController controller;
@@ -176,5 +192,60 @@ class ClientOrdersControllerTest {
         mockMvc.perform(multipart("/api/client/orders/{orderId}/documents", orderId)
                         .file(file))
                 .andExpect(status().isNotFound());
+    }
+
+    @Test
+    void updateOrder_returnsUpdatedOrderDetails() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        UpdateClientOrderRequest request = new UpdateClientOrderRequest();
+        request.setServiceCode("CONTRACT");
+        request.setClientName("Client");
+        request.setContact("+79990000000");
+        request.setDescription("Update contract");
+
+        ClientOrderDetailsResponse response = new ClientOrderDetailsResponse();
+        response.setId(orderId);
+        response.setTitle("Update contract");
+        response.setStatus("ON_REVIEW");
+        response.setDocuments(List.of());
+
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(15L, null, List.of())
+        );
+        when(clientOrderUpdateService.updateOrder(eq(orderId), eq(15L), any(UpdateClientOrderRequest.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(patch("/api/client/orders/{orderId}", orderId)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsBytes(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(orderId.toString()))
+                .andExpect(jsonPath("$.title").value("Update contract"));
+    }
+
+    @Test
+    void deleteOrder_returnsNoContentAndUsesCurrentClientId() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(15L, null, List.of())
+        );
+
+        mockMvc.perform(delete("/api/client/orders/{orderId}", orderId))
+                .andExpect(status().isNoContent());
+
+        verify(clientOrderDeleteService).deleteOrder(orderId, 15L);
+    }
+
+    @Test
+    void deleteDocument_returnsNoContentAndUsesCurrentClientId() throws Exception {
+        UUID orderId = UUID.randomUUID();
+        SecurityContextHolder.getContext().setAuthentication(
+                UsernamePasswordAuthenticationToken.authenticated(15L, null, List.of())
+        );
+
+        mockMvc.perform(delete("/api/client/orders/{orderId}/documents/{documentId}", orderId, "doc-1"))
+                .andExpect(status().isNoContent());
+
+        verify(orderDocumentDeleteService).deleteDocument(orderId, 15L, "doc-1");
     }
 }

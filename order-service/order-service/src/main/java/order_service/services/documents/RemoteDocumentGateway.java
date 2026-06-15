@@ -55,6 +55,24 @@ public class RemoteDocumentGateway implements DocumentGateway {
         return response == null ? List.of() : response;
     }
 
+    @Override
+    public void deleteDocument(UUID orderId, String documentId) {
+        documentServiceRestClient.delete()
+                .uri("/internal/orders/{orderId}/documents/{documentId}", orderId, documentId)
+                .header("X-Internal-Service-Token", internalServiceToken)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
+    @Override
+    public void deleteOrderDocuments(UUID orderId) {
+        documentServiceRestClient.delete()
+                .uri("/internal/orders/{orderId}/documents", orderId)
+                .header("X-Internal-Service-Token", internalServiceToken)
+                .retrieve()
+                .toBodilessEntity();
+    }
+
     private ByteArrayResource asResource(MultipartFile document) {
         try {
             byte[] bytes = document.getBytes();

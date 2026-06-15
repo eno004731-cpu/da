@@ -55,6 +55,44 @@ public class OrderDocumentsService {
                 .toList();
     }
 
+    @Transactional
+    public void deleteDocument(UUID orderId, String documentId) {
+        DocumentEntity document = findDocument(orderId, documentId);
+        hardDeleteDocument(document);
+    }
+
+    @Transactional
+    public void deleteOrderDocuments(UUID orderId) {
+        documentRepository.findAllByOrderIdOrderByCreatedAtAsc(orderId)
+                .forEach(this::hardDeleteDocument);
+    }
+
+    private DocumentEntity findDocument(UUID orderId, String documentId) {
+        try {
+            Long id = Long.valueOf(documentId);
+            return documentRepository.findByIdAndOrderId(id, orderId)
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Документ не найден"));
+        } catch (NumberFormatException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный id документа", e);
+        }
+    }
+
+    private void hardDeleteDocument(DocumentEntity document) {
+        LocalDateTime deletedAt = LocalDateTime.now();
+        deleteFileIfExists(document);
+        outboxEventRepository.save(outboxEventFactory.documentDeleted(document, deletedAt));
+        documentRepository.delete(document);
+    }
+
+    private void deleteFileIfExists(DocumentEntity document) {
+        Path storagePath = documentsDir.resolve(document.getStorageKey()).normalize();
+        try {
+            Files.deleteIfExists(storagePath);
+        } catch (IOException e) {
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Не удалось удалить документ", e);
+        }
+    }
+
     private DocumentEntity storeDocument(UUID orderId, Long uploadedByUserId, MultipartFile document) {
         if (document.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Пустые документы загружать нельзя");

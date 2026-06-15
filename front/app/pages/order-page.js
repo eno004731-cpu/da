@@ -1,5 +1,6 @@
 import {
   deleteClientOrder,
+  deleteClientOrderDocument,
   fetchClientOrderDetails,
   fetchServices,
   submitClientOrderRework,
@@ -229,25 +230,77 @@ function renderDocuments(documents, status) {
 
     body.append(name, meta);
 
-    const action = document.createElement(documentItem.downloadUrl && !availability ? "a" : "span");
+    const action = document.createElement("div");
+    action.className = "document-row-actions";
     if (documentItem.downloadUrl && !availability) {
-      action.className = "text-link";
-      action.href = documentItem.downloadUrl;
-      action.target = "_blank";
-      action.rel = "noreferrer";
-      action.textContent = "Открыть";
+      const openLink = document.createElement("a");
+      openLink.className = "text-link";
+      openLink.href = documentItem.downloadUrl;
+      openLink.target = "_blank";
+      openLink.rel = "noreferrer";
+      openLink.textContent = "Открыть";
+      action.append(openLink);
     } else {
-      action.className = availability ? "document-deleted-tag" : "document-status-tag";
-      action.textContent = availability
+      const statusTag = document.createElement("span");
+      statusTag.className = availability ? "document-deleted-tag" : "document-status-tag";
+      statusTag.textContent = availability
         ? isRejectedStatus(status)
           ? "Недоступно"
           : "Удалено"
         : "Загружен";
+      action.append(statusTag);
+    }
+
+    if (!availability && documentItem.id) {
+      const deleteDocumentButton = document.createElement("button");
+      deleteDocumentButton.type = "button";
+      deleteDocumentButton.className = "document-delete-button";
+      deleteDocumentButton.textContent = "Удалить";
+      deleteDocumentButton.addEventListener("click", () => handleDeleteDocument(documentItem));
+      action.append(deleteDocumentButton);
     }
 
     row.append(icon, body, action);
     orderDocuments.append(row);
   });
+}
+
+async function handleDeleteDocument(documentItem) {
+  if (!currentOrder || !documentItem?.id) {
+    return;
+  }
+
+  const confirmed = window.confirm(`Удалить документ «${documentItem.fileName || "Документ"}»?`);
+  if (!confirmed) {
+    return;
+  }
+
+  setDocumentUploadState({ disabled: true });
+  setFeedback("Удаляем документ…");
+
+  try {
+    await deleteClientOrderDocument(orderId, documentItem.id);
+    const deletedAt = new Date().toISOString();
+    const nextOrder = {
+      ...currentOrder,
+      documents: currentOrder.documents.map((document) =>
+        document.id === documentItem.id
+          ? { ...document, isDeleted: true, deletedAt }
+          : document
+      ),
+    };
+    renderOrder(nextOrder);
+    setFeedback("Документ удалён.");
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
+      return;
+    }
+
+    setFeedback(error.message || "Не удалось удалить документ.", true);
+  } finally {
+    setDocumentUploadState({ disabled: !isDocumentUploadAllowed(currentOrder?.status) });
+  }
 }
 
 function renderOrder(order) {

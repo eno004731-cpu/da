@@ -7,6 +7,14 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface OrderRepo extends JpaRepository<OrderEntity,UUID>{
-    Optional<OrderEntity> findByIdAndClientId(UUID id,Long userId);
-    List<OrderEntity> findAllByClientIdOrderByCreateAtDesc(Long clientId);
+    Optional<OrderEntity> findByIdAndClientIdAndIsDeletedFalseAndDeletionInProgressFalse(UUID id,Long userId);
+    List<OrderEntity> findAllByClientIdAndIsDeletedFalseAndDeletionInProgressFalseOrderByCreateAtDesc(Long clientId);
+
+    default Optional<OrderEntity> findByIdAndClientId(UUID id, Long userId) {
+        return findByIdAndClientIdAndIsDeletedFalseAndDeletionInProgressFalse(id, userId);
+    }
+
+    default List<OrderEntity> findAllByClientIdOrderByCreateAtDesc(Long clientId) {
+        return findAllByClientIdAndIsDeletedFalseAndDeletionInProgressFalseOrderByCreateAtDesc(clientId);
+    }
 }

@@ -17,12 +17,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DocumentOutboxPublisher {
     private final OutboxEventRepository outboxEventRepository;
     private final DocumentOutboxStatusService statusService;
-    private final KafkaTemplate<String, DocumentStoredPayload> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final AtomicBoolean processing = new AtomicBoolean(false);
 
     @Value("${app.kafka.topics.document-stored}")
     private String documentStoredTopic;
+
+    @Value("${app.kafka.topics.document-deleted}")
+    private String documentDeletedTopic;
 
     @Scheduled(fixedDelayString = "${app.outbox-relay.fixed-delay-ms:5000}")
     public void publishAvailableEvents() {
@@ -40,12 +43,7 @@ public class DocumentOutboxPublisher {
 
     private void publishEvents(List<OutboxEventEntity> events) {
         for (OutboxEventEntity event : events) {
-            if (!"DOCUMENT_STORED".equals(event.getEventType())) {
-                statusService.markFailed(event, "Unsupported document outbox event type: " + event.getEventType());
-                continue;
-            }
-
-            DocumentStoredPayload payload = readPayload(event);
+            Object payload = readPayload(event);
             if (payload == null) {
                 continue;
             }
@@ -53,7 +51,7 @@ public class DocumentOutboxPublisher {
             UUID eventId = event.getId();
             statusService.markProcessing(event);
             try {
-                kafkaTemplate.send(documentStoredTopic, payload.getOrderId().toString(), payload)
+                kafkaTemplate.send(resolveTopic(event), resolveOrderId(payload).toString(), payload)
                         .whenComplete((result, error) -> {
                             if (error == null) {
                                 statusService.markPublished(eventId);
@@ -67,12 +65,33 @@ public class DocumentOutboxPublisher {
         }
     }
 
-    private DocumentStoredPayload readPayload(OutboxEventEntity event) {
+    private Object readPayload(OutboxEventEntity event) {
         try {
-            return objectMapper.treeToValue(event.getPayload(), DocumentStoredPayload.class);
+            if ("DOCUMENT_STORED".equals(event.getEventType())) {
+                return objectMapper.treeToValue(event.getPayload(), DocumentStoredPayload.class);
+            }
+            if ("DOCUMENT_DELETED".equals(event.getEventType())) {
+                return objectMapper.treeToValue(event.getPayload(), DocumentDeletedPayload.class);
+            }
+            statusService.markFailed(event, "Unsupported document outbox event type: " + event.getEventType());
+            return null;
         } catch (Exception e) {
             statusService.markFailed(event, e.toString());
             return null;
         }
+    }
+
+    private String resolveTopic(OutboxEventEntity event) {
+        if ("DOCUMENT_DELETED".equals(event.getEventType())) {
+            return documentDeletedTopic;
+        }
+        return documentStoredTopic;
+    }
+
+    private UUID resolveOrderId(Object payload) {
+        if (payload instanceof DocumentDeletedPayload deletedPayload) {
+            return deletedPayload.getOrderId();
+        }
+        return ((DocumentStoredPayload) payload).getOrderId();
     }
 }

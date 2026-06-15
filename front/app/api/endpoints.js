@@ -69,6 +69,8 @@ export const ENDPOINTS = {
     orderDelete: (orderId) => `/client/orders/${encodeURIComponent(orderId)}`,
     orderRework: (orderId) => `/client/orders/${encodeURIComponent(orderId)}/rework`,
     orderDocuments: (orderId) => `/client/orders/${encodeURIComponent(orderId)}/documents`,
+    orderDocumentDelete: (orderId, documentId) =>
+      `/client/orders/${encodeURIComponent(orderId)}/documents/${encodeURIComponent(documentId)}`,
   },
   staff: {
     boardTasks: "/staff/board/tasks",

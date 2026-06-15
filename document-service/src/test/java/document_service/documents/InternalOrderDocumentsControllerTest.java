@@ -18,7 +18,9 @@ import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -100,5 +102,27 @@ class InternalOrderDocumentsControllerTest {
                         .file(file)
                         .param("uploadedByUserId", "9"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void deleteOrderDocument_requiresTokenAndDelegatesToService() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/internal/orders/{orderId}/documents/{documentId}", orderId, "10")
+                        .header("X-Internal-Service-Token", "test-token"))
+                .andExpect(status().isOk());
+
+        verify(orderDocumentsService).deleteDocument(orderId, "10");
+    }
+
+    @Test
+    void deleteOrderDocuments_requiresTokenAndDelegatesToService() throws Exception {
+        UUID orderId = UUID.randomUUID();
+
+        mockMvc.perform(delete("/internal/orders/{orderId}/documents", orderId)
+                        .header("X-Internal-Service-Token", "test-token"))
+                .andExpect(status().isOk());
+
+        verify(orderDocumentsService).deleteOrderDocuments(orderId);
     }
 }

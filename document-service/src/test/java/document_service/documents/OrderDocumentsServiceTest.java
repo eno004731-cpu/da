@@ -20,8 +20,10 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -97,6 +99,66 @@ class OrderDocumentsServiceTest {
         assertEquals(1, response.size());
         assertEquals("10", response.get(0).id());
         assertEquals("act.pdf", response.get(0).fileName());
+    }
+
+    @Test
+    void deleteDocument_deletesFileAndMetadataAndCreatesOutboxEvent() throws Exception {
+        OrderDocumentsService service = new OrderDocumentsService(
+                documentRepository,
+                outboxEventRepository,
+                new DocumentOutboxEventFactory(objectMapper()),
+                tempDir.toString()
+        );
+        UUID orderId = UUID.randomUUID();
+        Path storedFile = tempDir.resolve("stored.pdf");
+        Files.writeString(storedFile, "content");
+
+        DocumentEntity entity = new DocumentEntity();
+        entity.setId(10L);
+        entity.setOrderId(orderId);
+        entity.setStorageKey("stored.pdf");
+        entity.setOriginalFileName("stored.pdf");
+        entity.setMimeType("application/pdf");
+        entity.setSizeBytes(7L);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setIsDeleted(false);
+
+        when(documentRepository.findByIdAndOrderId(10L, orderId)).thenReturn(java.util.Optional.of(entity));
+
+        service.deleteDocument(orderId, "10");
+
+        assertFalse(Files.exists(storedFile));
+        verify(documentRepository).delete(entity);
+        ArgumentCaptor<OutboxEventEntity> eventCaptor = ArgumentCaptor.forClass(OutboxEventEntity.class);
+        verify(outboxEventRepository).save(eventCaptor.capture());
+        assertEquals("DOCUMENT_DELETED", eventCaptor.getValue().getEventType());
+    }
+
+    @Test
+    void deleteDocument_deletesMetadataWhenFileAlreadyMissing() {
+        OrderDocumentsService service = new OrderDocumentsService(
+                documentRepository,
+                outboxEventRepository,
+                new DocumentOutboxEventFactory(objectMapper()),
+                tempDir.toString()
+        );
+        UUID orderId = UUID.randomUUID();
+        DocumentEntity entity = new DocumentEntity();
+        entity.setId(11L);
+        entity.setOrderId(orderId);
+        entity.setStorageKey("missing.pdf");
+        entity.setOriginalFileName("missing.pdf");
+        entity.setMimeType("application/pdf");
+        entity.setSizeBytes(7L);
+        entity.setCreatedAt(LocalDateTime.now());
+        entity.setIsDeleted(false);
+
+        when(documentRepository.findByIdAndOrderId(11L, orderId)).thenReturn(java.util.Optional.of(entity));
+
+        service.deleteDocument(orderId, "11");
+
+        verify(documentRepository).delete(entity);
+        verify(outboxEventRepository).save(any(OutboxEventEntity.class));
     }
 
     private ObjectMapper objectMapper() {

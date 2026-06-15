@@ -8,4 +8,8 @@ import java.util.UUID;
 
 public interface DocumentGateway {
     List<UploadedDocumentResponse> uploadDocuments(UUID orderId, Long uploadedByUserId, List<MultipartFile> documents);
+
+    void deleteDocument(UUID orderId, String documentId);
+
+    void deleteOrderDocuments(UUID orderId);
 }

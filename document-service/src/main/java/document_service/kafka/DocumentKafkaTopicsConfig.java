@@ -12,8 +12,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
-import document_service.events.DocumentStoredPayload;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -22,6 +20,7 @@ public class DocumentKafkaTopicsConfig {
     public static final String DOCUMENT_UPLOAD_REQUESTED_TOPIC = "document.upload.requested";
     public static final String DOCUMENT_DELETE_REQUESTED_TOPIC = "document.delete.requested";
     public static final String DOCUMENT_STORED_TOPIC = "document.stored";
+    public static final String DOCUMENT_DELETED_TOPIC = "document.deleted";
 
     @Bean
     public NewTopic documentUploadRequestedTopic() {
@@ -48,7 +47,15 @@ public class DocumentKafkaTopicsConfig {
     }
 
     @Bean
-    public ProducerFactory<String, DocumentStoredPayload> documentStoredProducerFactory(
+    public NewTopic documentDeletedTopic() {
+        return TopicBuilder.name(DOCUMENT_DELETED_TOPIC)
+                .partitions(1)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public ProducerFactory<String, Object> documentEventProducerFactory(
             @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers) {
         Map<String, Object> properties = new HashMap<>();
         properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
@@ -60,9 +67,8 @@ public class DocumentKafkaTopicsConfig {
     }
 
     @Bean
-    public KafkaTemplate<String, DocumentStoredPayload> documentStoredKafkaTemplate(
-            ProducerFactory<String, DocumentStoredPayload> documentStoredProducerFactory) {
-        // Outbox publisher требует typed template для document.stored событий.
-        return new KafkaTemplate<>(documentStoredProducerFactory);
+    public KafkaTemplate<String, Object> documentEventKafkaTemplate(
+            ProducerFactory<String, Object> documentEventProducerFactory) {
+        return new KafkaTemplate<>(documentEventProducerFactory);
     }
 }

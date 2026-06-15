@@ -870,6 +870,31 @@ body.portal-body {
   color: #7b3f32;
 }
 
+.document-row-actions {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.document-delete-button {
+  min-height: 34px;
+  padding: 0 12px;
+  border: 1px solid rgba(143, 79, 65, 0.2);
+  border-radius: 8px;
+  background: rgba(143, 79, 65, 0.08);
+  color: #7b3f32;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.document-delete-button:hover {
+  background: rgba(143, 79, 65, 0.14);
+}
+
 .empty-inline-state {
   padding: 18px;
   border-radius: 8px;

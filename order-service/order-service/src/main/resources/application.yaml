@@ -50,3 +50,4 @@ app:
       catalog-get-service-name-request: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_REQUEST:order.getServiceName.request}
       catalog-get-service-name-response: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_RESPONSE:order.getServiceName.response}
       document-stored: ${APP_KAFKA_TOPIC_DOCUMENT_STORED:document.stored}
+      document-deleted: ${APP_KAFKA_TOPIC_DOCUMENT_DELETED:document.deleted}

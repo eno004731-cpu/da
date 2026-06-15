@@ -1,6 +1,7 @@
 package document_service.documents;
 
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -30,5 +31,18 @@ public class InternalOrderDocumentsController {
             @RequestParam("documents") List<MultipartFile> documents
     ) {
         return orderDocumentsService.uploadDocuments(orderId, uploadedByUserId, documents);
+    }
+
+    @DeleteMapping("/{documentId}")
+    public void deleteOrderDocument(
+            @PathVariable UUID orderId,
+            @PathVariable String documentId
+    ) {
+        orderDocumentsService.deleteDocument(orderId, documentId);
+    }
+
+    @DeleteMapping
+    public void deleteOrderDocuments(@PathVariable UUID orderId) {
+        orderDocumentsService.deleteOrderDocuments(orderId);
     }
 }
