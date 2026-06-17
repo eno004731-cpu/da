@@ -44,9 +44,27 @@ export function getLandingDom() {
     documentsInput: document.querySelector("#application-documents"),
     documentsSummary: document.querySelector("#documents-summary"),
     backendStatus: document.querySelector("#backend-status"),
+    hero: document.querySelector(".hero"),
+    heroCopy: document.querySelector(".hero-copy"),
+    heroVisual: document.querySelector(".hero-cutout-stage"),
+    heroStats: Array.from(document.querySelectorAll(".hero-stat")),
+    problemSection: document.querySelector("[data-gsap-problem]"),
+    problemStage: document.querySelector("#problem .pinned-stage"),
+    problemCards: Array.from(document.querySelectorAll("[data-motion-card]")),
+    problemLines: Array.from(document.querySelectorAll("[data-motion-line]")),
+    problemOrbit: document.querySelector("[data-motion-orbit]"),
+    problemResult: document.querySelector("[data-motion-problem-result]"),
+    workflowSection: document.querySelector("[data-gsap-workflow]"),
+    workflowLineFill: document.querySelector(".workflow-line-fill"),
+    workflowCards: Array.from(document.querySelectorAll(".workflow-card")),
+    productSection: document.querySelector("[data-gsap-product]"),
+    productStage: document.querySelector("#product .pinned-stage"),
+    productUi: document.querySelector(".product-cutout-system"),
+    clientCasePanel: document.querySelector("[data-motion-dashboard]"),
+    gsapSections: Array.from(document.querySelectorAll("[data-gsap-section]")),
     revealTargets: Array.from(
       document.querySelectorAll(
-        ".section:not(#services), .trust-card, .benefit-card, .timeline-step, .faq-item"
+        ".section-open:not(.pinned-section), .section-split, .legal-points li, .service-card, .workflow-card, .faq-item, .contact-form-card"
       )
     ),
   };

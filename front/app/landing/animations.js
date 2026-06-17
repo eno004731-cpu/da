@@ -100,6 +100,184 @@ export function setupServiceAnimations(dom) {
   dom.serviceCards.forEach((card) => cardObserver.observe(card));
 }
 
+export function setupGsapAnimations(dom) {
+  const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  const gsap = window.gsap;
+  const ScrollTrigger = window.ScrollTrigger;
+
+  if (prefersReducedMotion || isMobile || !gsap || !ScrollTrigger) {
+    return;
+  }
+
+  gsap.registerPlugin(ScrollTrigger);
+  document.body.classList.add("motion-ready");
+
+  const getHeaderOffset = () => {
+    const headerHeight = dom.siteHeader?.getBoundingClientRect().height || 100;
+    return Math.ceil(headerHeight);
+  };
+
+  const getPinnedStart = () => `top top+=${getHeaderOffset()}`;
+
+  if (dom.hero) {
+    const heroTimeline = gsap.timeline({
+      defaults: {
+        ease: "power3.out",
+        duration: 1.1,
+      },
+    });
+
+    heroTimeline
+      .from(dom.siteHeader, { y: -24, opacity: 0 })
+      .from(dom.heroCopy, { y: 42, opacity: 0 }, "-=0.72")
+      .from(dom.heroVisual, { x: 70, y: 18, rotate: 2.5, opacity: 0 }, "-=0.82");
+
+    if (dom.heroStats.length) {
+      heroTimeline.from(dom.heroStats, { y: 18, opacity: 0, stagger: 0.1 }, "-=0.52");
+    }
+  }
+
+  if (dom.problemSection && dom.problemCards.length && dom.problemOrbit) {
+    gsap.set(dom.problemCards, {
+      x: (index) => [-130, -72, -18, -86, 46][index] || 0,
+      y: (index) => [-28, -10, 12, 34, 60][index] || 0,
+      rotate: (index) => [-4, 3, -2, 4, -3][index] || 0,
+      opacity: 0.96,
+    });
+    gsap.set(dom.problemLines, { opacity: 0 });
+    gsap.set(dom.problemOrbit, { scale: 0.88, opacity: 0.74, rotate: -8 });
+    gsap.set(dom.problemResult, { opacity: 0, y: 18 });
+
+    gsap
+      .timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: dom.problemSection,
+          start: getPinnedStart,
+          end: "+=170%",
+          pin: dom.problemStage,
+          pinSpacing: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      })
+      .to(dom.problemCards, {
+        x: 0,
+        y: 0,
+        rotate: 0,
+        stagger: 0.02,
+        duration: 0.62,
+      })
+      .to(dom.problemLines, { opacity: 1, duration: 0.52 }, "<0.08")
+      .to(dom.problemOrbit, { scale: 1.06, opacity: 1, rotate: 0, duration: 0.5 }, "<0.04")
+      .to(dom.problemOrbit, { scale: 1, duration: 0.22 })
+      .to(dom.problemResult, { opacity: 1, y: 0, duration: 0.24 }, "<");
+  }
+
+  if (dom.workflowSection && dom.workflowCards.length) {
+    if (dom.workflowLineFill) {
+      gsap.fromTo(
+        dom.workflowLineFill,
+        { scaleX: 0, transformOrigin: "left center" },
+        {
+          scaleX: 1,
+          ease: "none",
+          scrollTrigger: {
+            trigger: dom.workflowSection,
+            start: "top 68%",
+            end: "bottom 46%",
+            scrub: 0.8,
+          },
+        }
+      );
+    }
+
+    gsap.from(dom.workflowCards, {
+      y: 46,
+      opacity: 0,
+      stagger: 0.12,
+      duration: 0.9,
+      ease: "power3.out",
+      scrollTrigger: {
+        trigger: dom.workflowSection,
+        start: "top 58%",
+      },
+    });
+  }
+
+  if (dom.productSection && dom.productUi) {
+    gsap.set(dom.clientCasePanel, {
+      y: 80,
+      scale: 0.92,
+      opacity: 0.62,
+      filter: "blur(0.5px)",
+    });
+
+    gsap
+      .timeline({
+        defaults: { ease: "none" },
+        scrollTrigger: {
+          trigger: dom.productSection,
+          start: getPinnedStart,
+          end: "+=180%",
+          pin: dom.productStage,
+          pinSpacing: true,
+          scrub: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+        },
+      })
+      .to(dom.clientCasePanel, { y: 28, scale: 0.98, opacity: 0.9, filter: "blur(0px)", duration: 0.46 })
+      .to(dom.clientCasePanel, { y: 0, scale: 1, opacity: 1, duration: 0.34 });
+  }
+
+  dom.gsapSections.forEach((section) => {
+    if (!section || section === dom.problemSection || section === dom.workflowSection || section === dom.productSection) {
+      return;
+    }
+
+    const sectionIntroTargets = section.querySelectorAll(".eyebrow, h2, .section-lead, .lead");
+    if (!sectionIntroTargets.length) {
+      return;
+    }
+
+    gsap.from(sectionIntroTargets, {
+      y: 26,
+      opacity: 0,
+      stagger: 0.08,
+      duration: 0.75,
+      ease: "power2.out",
+      scrollTrigger: {
+        trigger: section,
+        start: "top 72%",
+      },
+    });
+  });
+
+  window.addEventListener(
+    "load",
+    () => {
+      ScrollTrigger.refresh();
+
+      if (!window.location.hash) {
+        return;
+      }
+
+      const hashTarget = document.querySelector(window.location.hash);
+      if (!hashTarget) {
+        return;
+      }
+
+      window.setTimeout(() => {
+        hashTarget.scrollIntoView({ block: "start", behavior: "auto" });
+      }, 80);
+    },
+    { once: true }
+  );
+}
+
 export function setCurrentYear(dom) {
   if (dom.yearNode) {
     dom.yearNode.textContent = new Date().getFullYear();

@@ -1,4 +1,9 @@
-import { setupRevealAnimations, setCurrentYear, setupServiceAnimations } from "../landing/animations.js";
+import {
+  setupGsapAnimations,
+  setupRevealAnimations,
+  setCurrentYear,
+  setupServiceAnimations,
+} from "../landing/animations.js";
 import { createAuthGateController } from "../landing/auth-gate.js";
 import { initContactForm } from "../landing/contact-form.js?v=20260605b";
 import { getLandingDom } from "../landing/dom.js";
@@ -55,3 +60,4 @@ services.resetServiceSearchOnSmallScreens();
 setupServiceAnimations(dom);
 services.filterServices(dom.serviceSearch?.value || "");
 setupRevealAnimations(dom);
+setupGsapAnimations(dom);

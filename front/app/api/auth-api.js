@@ -9,7 +9,11 @@ import {
   LOCAL_AUTH_ONLY_MODE,
 } from "./endpoints.js?v=20260528a";
 import { request } from "./http-client.js?v=20260525a";
-import { getPendingGoogleCompletion, getSession } from "../state/auth-store.js?v=20260525a";
+import {
+  getPendingGoogleCompletion,
+  getSession,
+  setSession,
+} from "../state/auth-store.js?v=20260525a";
 
 const MOCK_USERS_STORAGE_KEY = "philosophy-business-mock-users";
 
@@ -578,6 +582,41 @@ export function fetchCurrentUser() {
     () => normalizeUser(getSession()?.user || {}),
     { enabled: allowsLocalMockAuthFallback() }
   );
+}
+
+export async function refreshClientSession() {
+  const refreshToken = getSession()?.refreshToken;
+  if (!refreshToken) {
+    const error = new Error("Refresh token отсутствует. Нужно войти заново.");
+    error.status = 401;
+    error.code = "AUTH_REFRESH_REQUIRED";
+    throw error;
+  }
+
+  let response;
+  try {
+    response = await request(ENDPOINTS.auth.refresh, {
+      method: "POST",
+      json: true,
+      body: JSON.stringify({ refreshToken }),
+      ...buildAuthWriteOptions(),
+      useAuth: false,
+    });
+  } catch (error) {
+    error.code = "AUTH_REFRESH_REQUIRED";
+    throw error;
+  }
+
+  if (!response?.accessToken || !response?.user) {
+    const error = new Error("Backend вернул неподдерживаемый ответ refresh.");
+    error.status = 401;
+    error.code = "AUTH_REFRESH_REQUIRED";
+    throw error;
+  }
+
+  const session = createSessionFromAuthResponse(response);
+  setSession(session);
+  return session;
 }
 
 export function updateCurrentUserProfile(payload) {

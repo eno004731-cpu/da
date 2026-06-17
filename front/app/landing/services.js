@@ -1,4 +1,9 @@
 export const SERVICE_CODE_BY_LABEL = {
+  Договоры: "CONTRACT_DRAFTING",
+  Претензии: "CLAIM_ANALYSIS",
+  Консультации: "CORPORATE_PROCEDURES",
+  "Судебное сопровождение": "LITIGATION",
+  "Юридическое сопровождение бизнеса": "OUTSOURCE_BASIC",
   "Регистрация ООО / ИП": "REGISTRATION",
   "Изменения в учредительные документы / ЕГРЮЛ": "CORPORATE_CHANGES",
   "Смена генерального директора / состава учредителей": "DIRECTOR_CHANGE",

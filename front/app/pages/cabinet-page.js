@@ -2,9 +2,8 @@ import {
   ACCOUNT_DELETE_ENABLED,
   LOCAL_AUTH_ONLY_MODE,
   ORDERS_API_ENABLED,
-} from "../api/endpoints.js?v=20260525a";
+} from "../api/endpoints.js?v=20260615a";
 import {
-  deleteClientOrder,
   deleteClientAccount,
   fetchCurrentUser,
   isBackendUnavailableError,
@@ -12,7 +11,10 @@ import {
   logoutClient,
   shouldPreserveClientSessionOnOrdersUnauthorized,
 } from "../api/auth-api.js?v=20260525c";
-import { fetchClientOrders } from "../api/orders-api.js?v=20260512a";
+import {
+  deleteClientOrder,
+  fetchClientOrders,
+} from "../api/orders-api.js?v=20260615c";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
 import {
@@ -43,6 +45,7 @@ const statusDone = document.querySelector("#cabinet-status-done");
 const statusRejected = document.querySelector("#cabinet-status-rejected");
 const pageParams = new URLSearchParams(window.location.search);
 const orderDeletedFlash = pageParams.get("orderDeleted") === "1";
+const IS_LOCALHOST = window.location.hostname === "127.0.0.1" || window.location.hostname === "localhost";
 
 const STATUS_COUNTERS = {
   TODO: statusTodo,
@@ -131,6 +134,11 @@ async function handleDeleteOrder(order) {
     await loadOrders();
     setFeedback("Заявка удалена.");
   } catch (error) {
+    if (error?.code === "AUTH_REFRESH_REQUIRED") {
+      redirectToLoginAfterExpiredSession();
+      return;
+    }
+
     if (isUnauthorizedError(error)) {
       if (shouldPreserveClientSessionOnOrdersUnauthorized()) {
         showOrdersAuthBridgeMessage();
@@ -240,6 +248,11 @@ function showOrdersAuthBridgeMessage() {
   );
 }
 
+function redirectToLoginAfterExpiredSession() {
+  clearSession();
+  window.location.href = buildAuthUrl("login", "./cabinet.html");
+}
+
 async function loadOrders() {
   setFeedback("Загружаем ваши заказы…");
 
@@ -248,6 +261,11 @@ async function loadOrders() {
     renderOrders(orders);
     setFeedback(orderDeletedFlash ? "Заявка удалена. Список заказов обновлён." : "");
   } catch (error) {
+    if (error?.code === "AUTH_REFRESH_REQUIRED") {
+      redirectToLoginAfterExpiredSession();
+      return;
+    }
+
     if (isUnauthorizedError(error)) {
       if (shouldPreserveClientSessionOnOrdersUnauthorized()) {
         showOrdersAuthBridgeMessage();
@@ -381,7 +399,7 @@ async function init() {
   syncFeatureAvailability();
   attachEvents();
 
-  if (!ORDERS_API_ENABLED) {
+  if (!ORDERS_API_ENABLED && !IS_LOCALHOST) {
     renderOrdersUnavailableState();
     return;
   }

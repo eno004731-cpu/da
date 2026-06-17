@@ -1,7 +1,7 @@
 services:
   postgres:
     image: postgres:16-alpine
-    restart: unless-stopped
+    restart: "no"
     environment:
       POSTGRES_DB: legal_auth
       POSTGRES_USER: ${POSTGRES_USER}
@@ -17,7 +17,7 @@ services:
 
   kafka:
     image: bitnamilegacy/kafka:4.0.0-debian-12-r10
-    restart: unless-stopped
+    restart: "no"
     environment:
       KAFKA_CFG_NODE_ID: 1
       KAFKA_CFG_PROCESS_ROLES: controller,broker
@@ -38,7 +38,7 @@ services:
   frontend:
     build:
       context: ./front
-    restart: unless-stopped
+    restart: "no"
     environment:
       LEGAL_FRONTEND_PORT: 8000
     volumes:
@@ -51,7 +51,7 @@ services:
   auth-service:
     build:
       context: ./auth_service/legal_website
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
@@ -76,7 +76,7 @@ services:
   order-service:
     build:
       context: ./order-service/order-service
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
@@ -100,7 +100,7 @@ services:
   catalog-service:
     build:
       context: ./catalog-service
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
@@ -118,7 +118,7 @@ services:
   document-service:
     build:
       context: ./document-service
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy
@@ -140,7 +140,7 @@ services:
   notification-service:
     build:
       context: ./notification-service/Notification
-    restart: unless-stopped
+    restart: "no"
     depends_on:
       postgres:
         condition: service_healthy

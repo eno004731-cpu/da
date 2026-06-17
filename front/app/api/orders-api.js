@@ -1,4 +1,5 @@
-import { ENDPOINTS, LOCAL_AUTH_ONLY_MODE, ORDERS_API_ENABLED } from "./endpoints.js?v=20260512b";
+import { ENDPOINTS, LOCAL_AUTH_ONLY_MODE, ORDERS_API_ENABLED } from "./endpoints.js?v=20260615a";
+import { isUnauthorizedError, refreshClientSession } from "./auth-api.js?v=20260615a";
 import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512b";
 import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
 
@@ -90,6 +91,19 @@ function ensureOrdersApiEnabled() {
   }
 }
 
+async function withAuthRefreshRetry(requestFn) {
+  try {
+    return await requestFn();
+  } catch (error) {
+    if (!isUnauthorizedError(error)) {
+      throw error;
+    }
+
+    await refreshClientSession();
+    return requestFn();
+  }
+}
+
 export function fetchServices() {
   if (!ORDERS_API_ENABLED) {
     return Promise.resolve([]);
@@ -104,7 +118,7 @@ export function fetchServices() {
  */
 export function createClientApplication(payload) {
   ensureOrdersApiEnabled();
-  return jsonRequest(ENDPOINTS.client.applications, {
+  return withAuthRefreshRetry(() => jsonRequest(ENDPOINTS.client.applications, {
     method: "POST",
     body: {
       serviceCode: payload.serviceCode,
@@ -114,7 +128,7 @@ export function createClientApplication(payload) {
       description: payload.description,
     },
     disableCsrf: true,
-  }).then(normalizeCreatedApplicationResponse);
+  })).then(normalizeCreatedApplicationResponse);
 }
 
 export function uploadClientOrderDocuments(orderId, documents = []) {
@@ -125,34 +139,34 @@ export function uploadClientOrderDocuments(orderId, documents = []) {
     formData.append("documents", file);
   });
 
-  return formDataRequest(ENDPOINTS.client.orderDocuments(orderId), {
+  return withAuthRefreshRetry(() => formDataRequest(ENDPOINTS.client.orderDocuments(orderId), {
     method: "POST",
     body: formData,
     disableCsrf: true,
-  }).then((payload) =>
+  })).then((payload) =>
     Array.isArray(payload) ? payload.map(normalizeDocument) : []
   );
 }
 
 export function fetchClientOrders() {
   ensureOrdersApiEnabled();
-  return request(ENDPOINTS.client.orders).then((payload) =>
+  return withAuthRefreshRetry(() => request(ENDPOINTS.client.orders)).then((payload) =>
     Array.isArray(payload) ? payload.map(normalizeOrderSummary) : []
   );
 }
 
 export function fetchClientOrderDetails(orderId) {
   ensureOrdersApiEnabled();
-  return request(ENDPOINTS.client.orderDetails(orderId)).then(normalizeOrderDetails);
+  return withAuthRefreshRetry(() => request(ENDPOINTS.client.orderDetails(orderId))).then(normalizeOrderDetails);
 }
 
 export function updateClientOrder(orderId, payload) {
   ensureOrdersApiEnabled();
-  return jsonRequest(ENDPOINTS.client.orderUpdate(orderId), {
+  return withAuthRefreshRetry(() => jsonRequest(ENDPOINTS.client.orderUpdate(orderId), {
     method: "PATCH",
     body: payload,
     disableCsrf: true,
-  }).then((response) =>
+  })).then((response) =>
     response && typeof response === "object"
       ? normalizeOrderDetails(response)
       : response
@@ -161,27 +175,27 @@ export function updateClientOrder(orderId, payload) {
 
 export function deleteClientOrder(orderId) {
   ensureOrdersApiEnabled();
-  return request(ENDPOINTS.client.orderDelete(orderId), {
+  return withAuthRefreshRetry(() => request(ENDPOINTS.client.orderDelete(orderId), {
     method: "DELETE",
     disableCsrf: true,
-  });
+  }));
 }
 
 export function deleteClientOrderDocument(orderId, documentId) {
   ensureOrdersApiEnabled();
-  return request(ENDPOINTS.client.orderDocumentDelete(orderId, documentId), {
+  return withAuthRefreshRetry(() => request(ENDPOINTS.client.orderDocumentDelete(orderId, documentId), {
     method: "DELETE",
     disableCsrf: true,
-  });
+  }));
 }
 
 export function submitClientOrderRework(orderId, comment) {
   ensureOrdersApiEnabled();
-  return jsonRequest(ENDPOINTS.client.orderRework(orderId), {
+  return withAuthRefreshRetry(() => jsonRequest(ENDPOINTS.client.orderRework(orderId), {
     method: "POST",
     body: { comment },
     disableCsrf: true,
-  }).then((response) =>
+  })).then((response) =>
     response && typeof response === "object"
       ? normalizeOrderDetails(response)
       : response

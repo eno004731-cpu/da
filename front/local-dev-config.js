@@ -7,8 +7,11 @@
   }
 
   // Локально auth и orders живут отдельно, поэтому явно разводим их по разным base URL.
-  window.__LEGAL_LOCAL_AUTH_ONLY__ ??= false;
-  window.__LEGAL_DISABLE_ORDERS_API__ ??= false;
+  // Здесь намеренно не используем ??= для feature flags: runtime-config может
+  // остаться от старой auth-only сборки, а в localhost нам нужно всегда пробовать
+  // настоящий orders API, чтобы ошибки backend были видны в Network/Console.
+  window.__LEGAL_LOCAL_AUTH_ONLY__ = false;
+  window.__LEGAL_DISABLE_ORDERS_API__ = false;
   window.__LEGAL_API_BASE_URL__ ||= "http://127.0.0.1:8083/api";
   window.__LEGAL_AUTH_API_BASE_URL__ ||= "http://127.0.0.1:8081/api";
 
