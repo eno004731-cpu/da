@@ -1,4 +1,9 @@
-import { ENDPOINTS, LOCAL_AUTH_ONLY_MODE, ORDERS_API_ENABLED } from "./endpoints.js?v=20260615a";
+import {
+  DOCUMENT_API_BASE_URL,
+  ENDPOINTS,
+  LOCAL_AUTH_ONLY_MODE,
+  ORDERS_API_ENABLED,
+} from "./endpoints.js?v=20260617a";
 import { isUnauthorizedError, refreshClientSession } from "./auth-api.js?v=20260615a";
 import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512b";
 import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
@@ -134,14 +139,22 @@ export function createClientApplication(payload) {
 export function uploadClientOrderDocuments(orderId, documents = []) {
   ensureOrdersApiEnabled();
 
+  const normalizedOrderId = String(orderId || "").trim();
+  if (!normalizedOrderId) {
+    throw new Error("Не удалось загрузить документы: orderId ещё не получен.");
+  }
+
   const formData = new FormData();
   documents.forEach((file) => {
     formData.append("documents", file);
   });
 
-  return withAuthRefreshRetry(() => formDataRequest(ENDPOINTS.client.orderDocuments(orderId), {
+  // После создания заказа файлы отправляются напрямую в document-service.
+  // orderId остаётся в path, чтобы backend мог привязать файлы к заявке.
+  return withAuthRefreshRetry(() => formDataRequest(ENDPOINTS.client.orderDocuments(normalizedOrderId), {
     method: "POST",
     body: formData,
+    baseUrl: DOCUMENT_API_BASE_URL,
     disableCsrf: true,
   })).then((payload) =>
     Array.isArray(payload) ? payload.map(normalizeDocument) : []

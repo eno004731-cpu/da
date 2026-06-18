@@ -23,7 +23,6 @@ app:
   internal:
     service-token: ${APP_INTERNAL_SERVICE_TOKEN:local-dev-internal-token}
   external:
-    catalog-service-base-url: ${APP_CATALOG_SERVICE_BASE_URL:http://127.0.0.1:8084}
     document-service-base-url: ${APP_DOCUMENT_SERVICE_BASE_URL:http://127.0.0.1:8085}
   kafka:
     topics:

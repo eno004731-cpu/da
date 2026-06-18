@@ -14,7 +14,7 @@ import {
 import {
   deleteClientOrder,
   fetchClientOrders,
-} from "../api/orders-api.js?v=20260615c";
+} from "../api/orders-api.js?v=20260617a";
 import { formatDateTime } from "../lib/date.js";
 import { getOrderStatusLabel } from "../lib/status.js";
 import {

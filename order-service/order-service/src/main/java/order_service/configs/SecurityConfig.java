@@ -24,6 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final InternalServiceTokenFilter internalServiceTokenFilter;
 
     @Value("${app.cors.allowed-origin-patterns:http://127.0.0.1:*,http://localhost:*}")
     private String allowedOriginPatterns;
@@ -34,6 +35,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/api/services").permitAll()
                         .requestMatchers("/actuator/health").permitAll()
+                        // Internal endpoint защищён отдельным service-token фильтром.
+                        .requestMatchers("/api/internal/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
@@ -46,6 +49,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
+                .addFilterBefore(internalServiceTokenFilter, JwtAuthenticationFilter.class)
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }

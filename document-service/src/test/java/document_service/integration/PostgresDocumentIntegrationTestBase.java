@@ -1,10 +1,10 @@
 package document_service.integration;
 
-import document_service.documents.DocumentRepository;
-import document_service.documents.OrderDocumentsService;
-import document_service.events.DocumentOutboxEventFactory;
-import document_service.events.DocumentOutboxStatusService;
-import document_service.events.OutboxEventRepository;
+import document_service.persistence.document.DocumentRepository;
+import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.services.documents.OrderDocumentsService;
+import document_service.services.events.DocumentOutboxEventFactory;
+import document_service.services.events.DocumentOutboxStatusService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;

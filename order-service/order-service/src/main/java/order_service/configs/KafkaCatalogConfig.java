@@ -45,7 +45,7 @@ public class KafkaCatalogConfig {
     ) {
         return TopicBuilder.name(responseTopic)
                 .partitions(5)
-                .           .build();
+                .replicas(1)           .build();
     }
 
     @Bean

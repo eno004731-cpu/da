@@ -40,6 +40,7 @@ app:
       document-deleted: ${APP_KAFKA_TOPIC_DOCUMENT_DELETED:document.deleted}
   outbox-relay:
     fixed-delay-ms: ${APP_OUTBOX_RELAY_FIXED_DELAY_MS:5000}
-
+  external:
+    order-service-base-url: w:http://127.0.0.1:8083}
 server:
   port: ${SERVER_PORT:8085}

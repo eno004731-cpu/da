@@ -1,11 +1,11 @@
 package document_service.integration;
 
-import document_service.documents.DocumentEntity;
-import document_service.documents.DocumentRepository;
-import document_service.documents.OrderDocumentsService;
-import document_service.documents.UploadedDocumentResponse;
-import document_service.events.OutboxEventEntity;
-import document_service.events.OutboxEventRepository;
+import document_service.dto.response.UploadedDocumentResponse;
+import document_service.persistence.document.DocumentEntity;
+import document_service.persistence.document.DocumentRepository;
+import document_service.persistence.events.outbox.OutboxEventEntity;
+import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.services.documents.OrderDocumentsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mock.web.MockMultipartFile;

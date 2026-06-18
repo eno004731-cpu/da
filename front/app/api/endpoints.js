@@ -27,6 +27,8 @@ export const API_BASE_URL = window.__LEGAL_API_BASE_URL__ || `${window.location.
 // Auth can be moved to a separate service. If no dedicated URL is provided,
 // fallback to the same API host to preserve the old monolith contract.
 export const AUTH_API_BASE_URL = window.__LEGAL_AUTH_API_BASE_URL__ || API_BASE_URL;
+// Documents are uploaded directly to document-service after order-service returns orderId.
+export const DOCUMENT_API_BASE_URL = window.__LEGAL_DOCUMENT_API_BASE_URL__ || API_BASE_URL;
 export const AUTH_USES_SAME_BACKEND = AUTH_API_BASE_URL === API_BASE_URL;
 export const AUTH_USES_DEDICATED_SERVICE = AUTH_API_BASE_URL !== API_BASE_URL;
 export const LOCAL_AUTH_ONLY_MODE = readBooleanFlag(window.__LEGAL_LOCAL_AUTH_ONLY__, false);

@@ -6,11 +6,18 @@ CREATE TABLE order_documents (
     storage_key VARCHAR(255) NOT NULL UNIQUE,
     mime_type VARCHAR(100) NOT NULL,
     size_bytes BIGINT NOT NULL,
+    status VARCHAR(25) NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     deleted_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-
+CONSTRAINT chk_document_status CHECK(
+    status IN(
+        'STORED'
+        'DELETED'
+        'REJECTED'
+    )
+)
 CREATE INDEX idx_order_documents_order_id_created_at
     ON order_documents(order_id, created_at ASC);
 

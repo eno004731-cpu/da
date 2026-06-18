@@ -6,7 +6,7 @@ import {
   submitClientOrderRework,
   updateClientOrder,
   uploadClientOrderDocuments,
-} from "../api/orders-api.js?v=20260512a";
+} from "../api/orders-api.js?v=20260617a";
 import {
   LOCAL_AUTH_ONLY_MODE,
   ORDERS_API_ENABLED,
