@@ -25,6 +25,7 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 import order_service.dto.payload.GetServiceNamePayload;
 import order_service.dto.payload.DocumentStoredPayload;
 import order_service.dto.payload.DocumentDeletedPayload;
+import order_service.dto.payload.DocumentToDeletePayload;
 
 @Configuration
 public class KafkaCatalogConfig {
@@ -59,6 +60,17 @@ public class KafkaCatalogConfig {
     }
 
     @Bean
+    public NewTopic documentDeleteRequestedTopic(
+            @Value("${app.kafka.topics.document-delete-requested}") String documentDeleteRequestedTopic
+    ) {
+        // Это отдельный command-топик: order-service просит document-service удалить документ.
+        return TopicBuilder.name(documentDeleteRequestedTopic)
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
     public NewTopic documentDeletedTopic(
             @Value("${app.kafka.topics.document-deleted}") String documentDeletedTopic
     ) {
@@ -82,6 +94,36 @@ public class KafkaCatalogConfig {
     @Bean
     public KafkaTemplate<String,GetServiceNamePayload> kafkaTemplateCatalog(ProducerFactory<String, GetServiceNamePayload> producerFactory){
         return new KafkaTemplate<>(producerFactory);
+    }
+
+    @Bean
+    public ProducerFactory<String, DocumentToDeletePayload> documentToDeleteProducerFactory(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers
+    ) {
+        Map<String, Object> properties = new HashMap<>();
+
+        // Адрес Kafka-кластера, куда producer будет отправлять команды на удаление документов.
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+
+        // Ключ сообщения оставляем строкой: например, documentId или orderId.
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+
+        // Payload автоматически преобразуется Jackson-сериализатором в JSON.
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+
+        // Java-тип не добавляем в Kafka headers, чтобы контракт не зависел
+        // от package/class name конкретного сервиса.
+        properties.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(properties);
+    }
+
+    @Bean
+    public KafkaTemplate<String, DocumentToDeletePayload> documentToDeleteKafkaTemplate(
+            ProducerFactory<String, DocumentToDeletePayload> documentToDeleteProducerFactory
+    ) {
+        // KafkaTemplate — основной Spring API для отправки DocumentToDeletePayload в Kafka.
+        return new KafkaTemplate<>(documentToDeleteProducerFactory);
     }
 
     @Bean

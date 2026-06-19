@@ -28,7 +28,7 @@ import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.EventStatusService;
+import order_service.services.events.outbox.EventStatusService;
 
 @ExtendWith(MockitoExtension.class)
 class ListenCatalogServiceTest {

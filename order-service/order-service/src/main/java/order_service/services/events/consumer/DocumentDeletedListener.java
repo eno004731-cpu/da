@@ -1,7 +1,8 @@
-package order_service.services.events;
+package order_service.services.events.consumer;
 
 import lombok.RequiredArgsConstructor;
 import order_service.dto.payload.DocumentDeletedPayload;
+import order_service.services.events.handler.DocumentDeletedEventService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;

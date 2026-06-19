@@ -10,6 +10,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -50,9 +52,9 @@ public class IncomingEventEntity {
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "payload", columnDefinition = "JSONB")
     private JsonNode payload;
-
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private Status status;
 
     @Column(name = "retry_count", nullable = false)
     private Integer retryCount;
@@ -68,4 +70,7 @@ public class IncomingEventEntity {
 
     @Column(name = "processed_at")
     private LocalDateTime processedAt;
+    public enum Status{
+        RECEIVED,PROCESSED,FAILED,DEAD,ON_DELETE
+    }
 }

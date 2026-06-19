@@ -24,7 +24,7 @@ CREATE TABLE incoming_events (
     CONSTRAINT uq_incoming_events_topic_partition_offset
         UNIQUE (topic, partition_no, message_offset),
     CONSTRAINT chk_incoming_events_status CHECK (
-        status IN ('RECEIVED', 'PROCESSED', 'FAILED', 'DEAD')
+        status IN ('RECEIVED', 'PROCESSED', 'FAILED', 'DEAD','ON_DELETE')
     )
 );
 

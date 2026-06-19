@@ -78,15 +78,15 @@ public class SaveDocumentsService {
         SaveResponse response = new SaveResponse();
 
         // Идентификатор уже создан БД и может использоваться для проверки статуса.
-        response.setDocumentId(Long.valueOf(document.id()));
+        response.setDocumentId(Long.valueOf(document.getId()));
         response.setOrderId(orderId);
-        response.setFileName(document.fileName());
-        response.setMimeType(document.mimeType());
-        response.setSize(document.size());
-        response.setUploadedAt(document.uploadedAt());
-        response.setDownloadUrl(document.downloadUrl());
+        response.setFileName(document.getFileName());
+        response.setMimeType(document.getMimeType());
+        response.setSize(document.getSize());
+        response.setUploadedAt(document.getUploadedAt());
+        response.setDownloadUrl(document.getDownloadUrl());
         response.setDeleted(document.isDeleted());
-        response.setDeletedAt(document.deletedAt());
+        response.setDeletedAt(document.getDeletedAt());
 
         return response;
     }

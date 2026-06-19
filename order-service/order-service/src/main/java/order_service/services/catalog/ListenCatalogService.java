@@ -16,9 +16,10 @@ import lombok.extern.slf4j.Slf4j;
 import order_service.dto.payload.GetServiceNamePayload;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.persistence.events.incoming.IncomingEventEntity.Status;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.EventStatusService;
+import order_service.services.events.outbox.EventStatusService;
 
 @Service
 @RequiredArgsConstructor
@@ -87,7 +88,7 @@ public class ListenCatalogService {
         incomingEvent.setAggregateId(payload.getOrderId());
         incomingEvent.setEventType("SERVICE_NAME_RESOLVED");
         incomingEvent.setPayload(objectMapper.valueToTree(payload));
-        incomingEvent.setStatus("RECEIVED");
+        incomingEvent.setStatus(Status.RECEIVED);
         incomingEvent.setRetryCount(0);
         incomingEvent.setReceivedAt(LocalDateTime.now());
         incomingEventRepo.save(incomingEvent);

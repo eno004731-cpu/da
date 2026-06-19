@@ -7,7 +7,7 @@ import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.DocumentStoredEventService;
+import order_service.services.events.handler.DocumentStoredEventService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

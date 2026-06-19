@@ -53,6 +53,7 @@ export function getLandingDom() {
     problemCards: Array.from(document.querySelectorAll("[data-motion-card]")),
     problemLines: Array.from(document.querySelectorAll("[data-motion-line]")),
     problemOrbit: document.querySelector("[data-motion-orbit]"),
+    problemCase: document.querySelector("[data-motion-problem-case]"),
     problemResult: document.querySelector("[data-motion-problem-result]"),
     workflowSection: document.querySelector("[data-gsap-workflow]"),
     workflowLineFill: document.querySelector(".workflow-line-fill"),
@@ -61,6 +62,7 @@ export function getLandingDom() {
     productStage: document.querySelector("#product .pinned-stage"),
     productUi: document.querySelector(".product-cutout-system"),
     clientCasePanel: document.querySelector("[data-motion-dashboard]"),
+    productKanban: document.querySelector("[data-motion-kanban]"),
     gsapSections: Array.from(document.querySelectorAll("[data-gsap-section]")),
     revealTargets: Array.from(
       document.querySelectorAll(

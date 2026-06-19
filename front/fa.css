@@ -418,6 +418,10 @@ p {
   grid-template-columns: minmax(0, 0.38fr) minmax(0, 0.62fr);
   gap: clamp(36px, 5vw, 88px);
   align-items: center;
+  /* ScrollTrigger переводит stage в fixed. Явная ширина не даёт
+     контейнеру схлопнуться до ширины первой grid-колонки во время pin. */
+  width: 100%;
+  min-width: 0;
   min-height: var(--pinned-height);
   padding: clamp(18px, 2.4vw, 38px) 0;
 }
@@ -429,6 +433,7 @@ p {
 
 .motion-ready .pinned-stage {
   position: relative;
+  width: 100%;
   min-height: var(--pinned-height);
   height: var(--pinned-height);
   padding: clamp(18px, 2.4vw, 38px) 0;
@@ -436,7 +441,8 @@ p {
 }
 
 .problem-stage {
-  grid-template-columns: minmax(420px, 0.34fr) minmax(720px, 0.66fr);
+  justify-self: stretch;
+  grid-template-columns: minmax(350px, 0.34fr) minmax(0, 0.66fr);
 }
 
 .problem-copy h2,
@@ -477,7 +483,8 @@ p {
 }
 
 .problem-cutout,
-.problem-orbit-cutout {
+.problem-orbit-cutout,
+.problem-case-cutout {
   position: absolute;
   z-index: 2;
   filter: drop-shadow(0 22px 34px rgba(54, 45, 32, 0.13));
@@ -523,14 +530,23 @@ p {
   filter: drop-shadow(0 26px 40px rgba(181, 138, 82, 0.24));
 }
 
+/* Финальная карточка завершает визуальный маршрут от хаоса к единому делу. */
+.problem-case-cutout {
+  right: -2%;
+  top: 8%;
+  z-index: 2;
+  width: clamp(250px, 22vw, 350px);
+  filter: drop-shadow(0 30px 58px rgba(53, 45, 34, 0.17));
+}
+
 .problem-result {
   position: absolute;
-  right: 16%;
-  bottom: 2%;
+  right: 2%;
+  bottom: 0;
   z-index: 4;
   margin: 0;
   color: var(--ink-soft);
-  max-width: 360px;
+  max-width: 350px;
   font-size: 1.02rem;
   opacity: 0;
 }
@@ -698,6 +714,12 @@ p {
   grid-template-columns: minmax(0, 0.42fr) minmax(0, 0.58fr);
   gap: clamp(40px, 5vw, 90px);
   align-items: center;
+}
+
+/* В pinned-сценарии две колонки находятся внутри .problem-stage.
+   Сама секция должна оставаться полноширинным контейнером для ScrollTrigger. */
+.pinned-section.problem-section {
+  display: block;
 }
 
 .feature-strip {
@@ -1113,6 +1135,10 @@ p {
   display: block;
 }
 
+.product-stage {
+  justify-self: stretch;
+}
+
 .product-features,
 .contact-trust {
   display: grid;
@@ -1138,18 +1164,31 @@ p {
   min-height: min(680px, calc(var(--pinned-height) - 18px));
 }
 
+.product-kanban-cutout,
 .product-dashboard-cutout {
   position: absolute;
   pointer-events: none;
   will-change: transform, opacity, filter;
 }
 
+/* Канбан служит большим задним слоем двухэкранной композиции. */
+.product-kanban-cutout {
+  right: -5%;
+  top: 0;
+  z-index: 1;
+  width: min(980px, 98%);
+  filter: drop-shadow(0 34px 70px rgba(53, 45, 34, 0.15));
+  transform: rotate(1.2deg);
+  transform-origin: 58% 48%;
+}
+
 .product-dashboard-cutout {
-  right: 0;
-  top: 4%;
-  z-index: 2;
-  width: min(1040px, 94%);
-  filter: drop-shadow(0 34px 70px rgba(53, 45, 34, 0.16));
+  left: -7%;
+  top: 34%;
+  z-index: 3;
+  width: min(850px, 84%);
+  filter: drop-shadow(0 38px 78px rgba(53, 45, 34, 0.2));
+  transform: rotate(-0.45deg);
   transform-origin: 54% 58%;
 }
 
@@ -1633,12 +1672,9 @@ p {
     width: 100%;
   }
 
-  .pinned-stage {
-    gap: 34px;
-  }
-
   .problem-stage {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(320px, 0.4fr) minmax(0, 0.6fr);
+    gap: 28px;
   }
 
   .services-grid {
@@ -1679,6 +1715,14 @@ p {
     min-height: min(540px, calc(var(--pinned-height) - 16px));
   }
 
+  .problem-case-cutout {
+    width: min(280px, 23vw);
+  }
+
+  .product-kanban-cutout {
+    width: min(760px, 94%);
+  }
+
   .problem-chat-cutout,
   .problem-mail-cutout,
   .problem-pdf-cutout,
@@ -1692,7 +1736,50 @@ p {
   }
 
   .product-dashboard-cutout {
-    width: min(700px, 72%);
+    left: -3%;
+    top: 36%;
+    width: min(650px, 78%);
+  }
+}
+
+/* На ширине ноутбука отключённый pin превращается в безопасную вертикальную композицию. */
+@media (max-width: 1100px) and (min-width: 901px) {
+  .pinned-section {
+    padding: 58px 0;
+  }
+
+  .pinned-stage,
+  .motion-ready .pinned-stage {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: auto;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .problem-copy,
+  .product-copy {
+    max-width: 720px;
+  }
+
+  .problem-cutout-system,
+  .product-cutout-system {
+    min-height: 680px;
+  }
+
+  .problem-case-cutout {
+    right: 1%;
+    width: min(320px, 31vw);
+  }
+
+  .product-kanban-cutout {
+    right: 0;
+    width: min(900px, 94%);
+  }
+
+  .product-dashboard-cutout {
+    left: 0;
+    width: min(760px, 78%);
   }
 }
 
@@ -1840,8 +1927,21 @@ p {
     min-height: 640px;
   }
 
+  .product-kanban-cutout {
+    right: 0;
+    top: 0;
+    width: min(720px, 96%);
+  }
+
   .product-dashboard-cutout {
-    width: min(720px, 88%);
+    left: 0;
+    top: 34%;
+    width: min(640px, 84%);
+  }
+
+  .problem-case-cutout {
+    right: 0;
+    width: min(290px, 46vw);
   }
 
   .kanban-preview,

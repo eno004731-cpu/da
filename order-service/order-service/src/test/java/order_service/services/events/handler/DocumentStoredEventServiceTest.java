@@ -1,4 +1,4 @@
-package order_service.services.events;
+package order_service.services.events.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import order_service.dto.payload.DocumentStoredPayload;
@@ -7,6 +7,7 @@ import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.order.OrderRepo;
+import order_service.services.events.outbox.EventStatusService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

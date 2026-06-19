@@ -33,7 +33,7 @@ import order_service.persistence.events.outbox.OutboxEventEntity;
 import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.events.EventStatusService;
+import order_service.services.events.outbox.EventStatusService;
 
 @ExtendWith(MockitoExtension.class)
 class SendEventForGetServiceNameTest {

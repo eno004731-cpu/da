@@ -102,11 +102,12 @@ export function setupServiceAnimations(dom) {
 
 export function setupGsapAnimations(dom) {
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const isMobile = window.matchMedia("(max-width: 900px)").matches;
+  // На компактной ширине секции идут обычным потоком: pin не обрезает второй экран.
+  const isCompactLayout = window.matchMedia("(max-width: 1100px)").matches;
   const gsap = window.gsap;
   const ScrollTrigger = window.ScrollTrigger;
 
-  if (prefersReducedMotion || isMobile || !gsap || !ScrollTrigger) {
+  if (prefersReducedMotion || isCompactLayout || !gsap || !ScrollTrigger) {
     return;
   }
 
@@ -147,6 +148,7 @@ export function setupGsapAnimations(dom) {
     });
     gsap.set(dom.problemLines, { opacity: 0 });
     gsap.set(dom.problemOrbit, { scale: 0.88, opacity: 0.74, rotate: -8 });
+    gsap.set(dom.problemCase, { x: 96, scale: 0.96, opacity: 0.3 });
     gsap.set(dom.problemResult, { opacity: 0, y: 18 });
 
     gsap
@@ -156,7 +158,8 @@ export function setupGsapAnimations(dom) {
           trigger: dom.problemSection,
           start: getPinnedStart,
           end: "+=170%",
-          pin: dom.problemStage,
+          // Секция сохраняет ширину page-shell; внутренний grid больше не схлопывается при fixed.
+          pin: dom.problemSection,
           pinSpacing: true,
           scrub: 1,
           anticipatePin: 1,
@@ -173,6 +176,7 @@ export function setupGsapAnimations(dom) {
       .to(dom.problemLines, { opacity: 1, duration: 0.52 }, "<0.08")
       .to(dom.problemOrbit, { scale: 1.06, opacity: 1, rotate: 0, duration: 0.5 }, "<0.04")
       .to(dom.problemOrbit, { scale: 1, duration: 0.22 })
+      .to(dom.problemCase, { x: 0, scale: 1, opacity: 1, duration: 0.42 }, "<0.02")
       .to(dom.problemResult, { opacity: 1, y: 0, duration: 0.24 }, "<");
   }
 
@@ -208,11 +212,21 @@ export function setupGsapAnimations(dom) {
   }
 
   if (dom.productSection && dom.productUi) {
+    // Сначала проявляется общий список дел, затем поверх него раскрывается выбранное дело.
+    gsap.set(dom.productKanban, {
+      x: 90,
+      y: -34,
+      rotate: 3,
+      scale: 0.94,
+      opacity: 0.56,
+    });
     gsap.set(dom.clientCasePanel, {
-      y: 80,
-      scale: 0.92,
-      opacity: 0.62,
-      filter: "blur(0.5px)",
+      x: -42,
+      y: 118,
+      rotate: -1.2,
+      scale: 0.9,
+      opacity: 0.22,
+      filter: "blur(1px)",
     });
 
     gsap
@@ -222,15 +236,17 @@ export function setupGsapAnimations(dom) {
           trigger: dom.productSection,
           start: getPinnedStart,
           end: "+=180%",
-          pin: dom.productStage,
+          // Фиксируем полноширинную секцию, а не внутренний визуальный контейнер.
+          pin: dom.productSection,
           pinSpacing: true,
           scrub: 1,
           anticipatePin: 1,
           invalidateOnRefresh: true,
         },
       })
-      .to(dom.clientCasePanel, { y: 28, scale: 0.98, opacity: 0.9, filter: "blur(0px)", duration: 0.46 })
-      .to(dom.clientCasePanel, { y: 0, scale: 1, opacity: 1, duration: 0.34 });
+      .to(dom.productKanban, { x: 0, y: 0, rotate: 1.2, scale: 1, opacity: 1, duration: 0.48 })
+      .to(dom.clientCasePanel, { x: 0, y: 34, scale: 0.98, opacity: 0.92, filter: "blur(0px)", duration: 0.5 }, "<0.12")
+      .to(dom.clientCasePanel, { y: 0, rotate: -0.45, scale: 1, opacity: 1, duration: 0.28 });
   }
 
   dom.gsapSections.forEach((section) => {

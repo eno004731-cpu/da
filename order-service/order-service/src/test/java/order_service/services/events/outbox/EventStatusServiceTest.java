@@ -1,4 +1,4 @@
-package order_service.services.events;
+package order_service.services.events.outbox;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;

@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import order_service.persistence.events.outbox.OutboxEventEntity;
 import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderEntity;
-import order_service.services.events.EventStatusService;
-import order_service.services.events.OutboxWakeUpEvent;
+import order_service.services.events.outbox.EventStatusService;
+import order_service.services.events.outbox.OutboxWakeUpEvent;
 
 @ExtendWith(MockitoExtension.class)
 class ServiceNameOutboxServiceTest {

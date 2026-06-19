@@ -4,6 +4,8 @@ import lombok.Data;
 
 import java.util.UUID;
 
+import document_service.persistence.document.DocumentEntity;
+
 @Data
 public class DocumentStoredPayload {
     private UUID eventId;
@@ -15,4 +17,6 @@ public class DocumentStoredPayload {
     private Long sizeBytes;
     private String uploadedAt;
     private Boolean isDeleted;
+    private DocumentEntity.Status status;
+    private DocumentEntity.ValidationStatus validationStatus;
 }

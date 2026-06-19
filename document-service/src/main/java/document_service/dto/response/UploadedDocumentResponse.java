@@ -1,16 +1,19 @@
 package document_service.dto.response;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+
 import java.time.LocalDateTime;
 
-public record UploadedDocumentResponse(
-        String id,
-        String fileName,
-        String mimeType,
-        long size,
-        LocalDateTime uploadedAt,
-        String downloadUrl,
-        boolean isDeleted,
-        LocalDateTime deletedAt
-        
-) {
+@Data
+@AllArgsConstructor
+public class UploadedDocumentResponse {
+    private String id;
+    private String fileName;
+    private String mimeType;
+    private long size;
+    private LocalDateTime uploadedAt;
+    private String downloadUrl;
+    private boolean isDeleted;
+    private LocalDateTime deletedAt;
 }

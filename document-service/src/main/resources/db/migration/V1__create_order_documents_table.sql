@@ -7,15 +7,23 @@ CREATE TABLE order_documents (
     mime_type VARCHAR(100) NOT NULL,
     size_bytes BIGINT NOT NULL,
     status VARCHAR(25) NOT NULL,
+    validation_status VARCHAR(30) NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     deleted_at TIMESTAMP NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
-CONSTRAINT chk_document_status CHECK(
+CONSTRAINT document_status CHECK(
     status IN(
         'STORED'
         'DELETED'
         'REJECTED'
+    )
+)
+CONSTRAINT document_validation_status CHECK(
+    validation_status IN(
+        'DOCUMENT_VALIDATION_REQUESTED'
+        'DOCUMENT_VALIDATED'
+        'DOCUMENT_REJECTED'
     )
 )
 CREATE INDEX idx_order_documents_order_id_created_at

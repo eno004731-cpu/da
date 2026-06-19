@@ -1,6 +1,8 @@
 package document_service.api;
 
 import document_service.dto.response.UploadedDocumentResponse;
+import document_service.services.documents.OrderDocumentDeleteService;
+import document_service.services.documents.OrderDocumentsQueryService;
 import document_service.services.documents.OrderDocumentsService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,10 +22,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class InternalOrderDocumentsController {
     private final OrderDocumentsService orderDocumentsService;
+    private final OrderDocumentsQueryService orderDocumentsQueryService;
+    private final OrderDocumentDeleteService orderDocumentDeleteService;
 
     @GetMapping
     public List<UploadedDocumentResponse> getOrderDocuments(@PathVariable UUID orderId) {
-        return orderDocumentsService.listDocuments(orderId);
+        return orderDocumentsQueryService.listDocuments(orderId);
     }
 
     @PostMapping
@@ -40,11 +44,11 @@ public class InternalOrderDocumentsController {
             @PathVariable UUID orderId,
             @PathVariable String documentId
     ) {
-        orderDocumentsService.deleteDocument(orderId, documentId);
+        orderDocumentDeleteService.deleteDocument(orderId, documentId);
     }
 
     @DeleteMapping
     public void deleteOrderDocuments(@PathVariable UUID orderId) {
-        orderDocumentsService.deleteOrderDocuments(orderId);
+        orderDocumentDeleteService.deleteOrderDocuments(orderId);
     }
 }

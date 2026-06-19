@@ -49,10 +49,23 @@ public class DocumentEntity {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    public enum status{
-        STORED,DELETED,REJECTED
+
+    public enum Status {
+        STORED,
+        DELETED,
+        REJECTED
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 25)
+    private Status status;
+
+    public enum ValidationStatus {
+        DOCUMENT_VALIDATION_REQUESTED,
+        DOCUMENT_VALIDATED,
+        DOCUMENT_REJECTED
     }
     @Enumerated(EnumType.STRING)
-    @Column(name = "status",nullable = false,length = 25)
-    private String status;
+    @Column(name = "validation_status",nullable = false,length = 30)
+    private ValidationStatus validationStatus;
 }

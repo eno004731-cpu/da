@@ -12,6 +12,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import document_service.configs.InternalServiceTokenFilter;
 import document_service.dto.response.UploadedDocumentResponse;
+import document_service.services.documents.OrderDocumentDeleteService;
+import document_service.services.documents.OrderDocumentsQueryService;
 import document_service.services.documents.OrderDocumentsService;
 
 import java.time.LocalDateTime;
@@ -33,6 +35,12 @@ class InternalOrderDocumentsControllerTest {
 
     @Mock
     private OrderDocumentsService orderDocumentsService;
+
+    @Mock
+    private OrderDocumentsQueryService orderDocumentsQueryService;
+
+    @Mock
+    private OrderDocumentDeleteService orderDocumentDeleteService;
 
     @InjectMocks
     private InternalOrderDocumentsController controller;
@@ -61,7 +69,7 @@ class InternalOrderDocumentsControllerTest {
                 null
         );
 
-        when(orderDocumentsService.listDocuments(orderId)).thenReturn(List.of(response));
+        when(orderDocumentsQueryService.listDocuments(orderId)).thenReturn(List.of(response));
 
         mockMvc.perform(get("/internal/orders/{orderId}/documents", orderId)
                         .header("X-Internal-Service-Token", "test-token"))
@@ -114,7 +122,7 @@ class InternalOrderDocumentsControllerTest {
                         .header("X-Internal-Service-Token", "test-token"))
                 .andExpect(status().isOk());
 
-        verify(orderDocumentsService).deleteDocument(orderId, "10");
+        verify(orderDocumentDeleteService).deleteDocument(orderId, "10");
     }
 
     @Test
@@ -125,6 +133,6 @@ class InternalOrderDocumentsControllerTest {
                         .header("X-Internal-Service-Token", "test-token"))
                 .andExpect(status().isOk());
 
-        verify(orderDocumentsService).deleteOrderDocuments(orderId);
+        verify(orderDocumentDeleteService).deleteOrderDocuments(orderId);
     }
 }

@@ -2,6 +2,8 @@ package document_service.integration;
 
 import document_service.persistence.document.DocumentRepository;
 import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.services.documents.DocumentFileStorage;
+import document_service.services.documents.DocumentResponseMapper;
 import document_service.services.documents.OrderDocumentsService;
 import document_service.services.events.DocumentOutboxEventFactory;
 import document_service.services.events.DocumentOutboxStatusService;
@@ -32,6 +34,8 @@ import java.nio.file.Path;
         IntegrationTestConfig.class,
         DocumentOutboxEventFactory.class,
         DocumentOutboxStatusService.class,
+        DocumentFileStorage.class,
+        DocumentResponseMapper.class,
         OrderDocumentsService.class
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)

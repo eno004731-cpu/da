@@ -1,4 +1,4 @@
-package order_service.services.events;
+package order_service.services.events.handler;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
@@ -25,6 +25,7 @@ import order_service.persistence.document.OrderDocumentMetadataEntity;
 import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.services.events.outbox.EventStatusService;
 
 @ExtendWith(MockitoExtension.class)
 class DocumentDeletedEventServiceTest {

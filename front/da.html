@@ -9,12 +9,12 @@
       content="Юридическая помощь без хаоса: заявки, документы, статусы и следующие шаги в одном понятном процессе."
     />
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-    <link rel="stylesheet" href="fa.css?v=20260615b" />
+    <link rel="stylesheet" href="fa.css?v=20260619c" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
     <script src="./runtime-config.js?v=20260601a"></script>
     <script src="./local-dev-config.js"></script>
-    <script type="module" defer src="./app/pages/landing-page.js?v=20260615b"></script>
+    <script type="module" defer src="./app/pages/landing-page.js?v=20260619a"></script>
   </head>
   <body>
     <div class="page-shell">
@@ -108,6 +108,7 @@
                 <path data-motion-line d="M160 284 C300 284 370 278 438 270" />
                 <path data-motion-line d="M160 386 C306 394 380 342 438 294" />
                 <path data-motion-line d="M160 492 C300 470 380 378 438 316" />
+                <path data-motion-line d="M510 276 C584 276 630 276 710 276" />
               </svg>
 
               <img class="cutout-img problem-cutout problem-chat-cutout" data-motion-card src="./assets/landing/cutouts/problem-chat.png" alt="" loading="lazy" />
@@ -116,6 +117,8 @@
               <img class="cutout-img problem-cutout problem-xls-cutout" data-motion-card src="./assets/landing/cutouts/problem-xls.png" alt="" loading="lazy" />
               <img class="cutout-img problem-cutout problem-date-cutout" data-motion-card src="./assets/landing/cutouts/problem-date.png" alt="" loading="lazy" />
               <img class="cutout-img problem-orbit-cutout" data-motion-orbit src="./assets/landing/cutouts/problem-orbit.png" alt="" loading="lazy" />
+              <!-- Финальная карточка показывает, куда собираются разрозненные документы и сообщения. -->
+              <img class="cutout-img problem-case-cutout" data-motion-problem-case src="./assets/landing/cutouts/problem-case.png" alt="" loading="lazy" />
 
               <p class="problem-result" data-motion-problem-result>
                 Один кабинет. Вся информация. Полный контроль.
@@ -337,6 +340,8 @@
             </div>
 
             <div class="product-cutout-system" aria-label="Макет личного кабинета клиента">
+              <!-- Канбан остаётся задним планом, а выбранное дело поднимается поверх него. -->
+              <img class="cutout-img product-kanban-cutout" data-motion-kanban src="./assets/landing/cutouts/product-kanban.png" alt="" loading="lazy" />
               <img class="cutout-img product-dashboard-cutout" data-motion-dashboard src="./assets/landing/cutouts/product-dashboard.png" alt="" loading="lazy" />
             </div>
           </div>

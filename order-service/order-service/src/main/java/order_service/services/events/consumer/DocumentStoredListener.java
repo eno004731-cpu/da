@@ -1,6 +1,7 @@
-package order_service.services.events;
+package order_service.services.events.consumer;
 
 import order_service.dto.payload.DocumentStoredPayload;
+import order_service.services.events.handler.DocumentStoredEventService;
 import lombok.RequiredArgsConstructor;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;

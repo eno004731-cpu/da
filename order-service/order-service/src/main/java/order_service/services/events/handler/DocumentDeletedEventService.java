@@ -1,4 +1,4 @@
-package order_service.services.events;
+package order_service.services.events.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +8,9 @@ import order_service.persistence.document.OrderDocumentMetadataEntity;
 import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.persistence.events.incoming.IncomingEventEntity.Status;
+import order_service.services.events.outbox.EventStatusService;
+
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -61,7 +64,7 @@ public class DocumentDeletedEventService {
         incomingEvent.setAggregateId(payload.getOrderId());
         incomingEvent.setEventType("DOCUMENT_DELETED");
         incomingEvent.setPayload(objectMapper.valueToTree(payload));
-        incomingEvent.setStatus("RECEIVED");
+        incomingEvent.setStatus(Status.RECEIVED);
         incomingEvent.setRetryCount(0);
         incomingEvent.setReceivedAt(LocalDateTime.now());
         return incomingEventRepo.save(incomingEvent);
