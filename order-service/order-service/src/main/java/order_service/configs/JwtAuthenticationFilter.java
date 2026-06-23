@@ -5,6 +5,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -17,6 +18,7 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private final JwtTokenService jwtTokenService;
 
@@ -45,6 +47,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
         } catch (RuntimeException ex) {
             SecurityContextHolder.clearContext();
+            // Не логируем JWT и детали криптографической ошибки во избежание утечки.
+            log.warn("JWT authentication failed method={} uri={} remoteAddress={}",
+                    request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
             // Фильтр сам завершает запрос с 401, чтобы не зависеть от SecurityConfig.
             // Так мы не создаём цикл bean-ов SecurityConfig -> filter -> AuthenticationEntryPoint.
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid access token");

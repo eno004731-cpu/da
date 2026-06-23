@@ -49,8 +49,11 @@ public class SecurityConfig {
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
-                .addFilterBefore(internalServiceTokenFilter, JwtAuthenticationFilter.class)
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                // Сначала назначаем JWT-фильтру позицию относительно стандартного фильтра Spring.
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // Теперь позиция JwtAuthenticationFilter известна, поэтому internal-filter
+                // можно безопасно поставить непосредственно перед ним.
+                .addFilterBefore(internalServiceTokenFilter, JwtAuthenticationFilter.class);
         return http.build();
     }
 

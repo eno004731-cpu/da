@@ -11,9 +11,11 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class InternalServiceTokenFilter extends OncePerRequestFilter {
     // Spring подставляет общий секрет для внутренних межсервисных запросов.
     @Value("${app.internal.service-token}")
@@ -33,6 +35,9 @@ public class InternalServiceTokenFilter extends OncePerRequestFilter {
 
         String providedToken = request.getHeader("X-Internal-Service-Token");
         if (!internalServiceToken.equals(providedToken)) {
+            // Сам token никогда не записываем в лог.
+            log.warn("Internal request rejected method={} uri={} remoteAddress={}",
+                    request.getMethod(), request.getRequestURI(), request.getRemoteAddr());
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid internal service token");
             return;
         }
