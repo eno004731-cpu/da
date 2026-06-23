@@ -140,16 +140,40 @@ export function setupGsapAnimations(dom) {
   }
 
   if (dom.problemSection && dom.problemCards.length && dom.problemOrbit) {
+    const cardStates = [
+      { x: -172, y: -96, rotate: -13, scale: 0.92, opacity: 0.98 },
+      { x: -116, y: -34, rotate: 9, scale: 0.94, opacity: 0.96 },
+      { x: -74, y: 30, rotate: -8, scale: 0.95, opacity: 0.97 },
+      { x: -138, y: 94, rotate: 11, scale: 0.93, opacity: 0.95 },
+      { x: -18, y: 152, rotate: -10, scale: 0.91, opacity: 0.94 },
+    ];
+
     gsap.set(dom.problemCards, {
-      x: (index) => [-130, -72, -18, -86, 46][index] || 0,
-      y: (index) => [-28, -10, 12, 34, 60][index] || 0,
-      rotate: (index) => [-4, 3, -2, 4, -3][index] || 0,
-      opacity: 0.96,
+      x: (index) => cardStates[index]?.x || 0,
+      y: (index) => cardStates[index]?.y || 0,
+      rotate: (index) => cardStates[index]?.rotate || 0,
+      scale: (index) => cardStates[index]?.scale || 1,
+      opacity: (index) => cardStates[index]?.opacity || 1,
+      transformOrigin: "50% 50%",
     });
-    gsap.set(dom.problemLines, { opacity: 0 });
-    gsap.set(dom.problemOrbit, { scale: 0.88, opacity: 0.74, rotate: -8 });
-    gsap.set(dom.problemCase, { x: 96, scale: 0.96, opacity: 0.3 });
-    gsap.set(dom.problemResult, { opacity: 0, y: 18 });
+    gsap.set(dom.problemLines, {
+      opacity: 0.08,
+      strokeDashoffset: (index) => 34 + index * 10,
+    });
+    gsap.set(dom.problemOrbit, {
+      scale: 0.58,
+      opacity: 0.34,
+      rotate: -16,
+      filter: "drop-shadow(0 18px 28px rgba(181, 138, 82, 0.12))",
+    });
+    gsap.set(dom.problemCase, {
+      x: 118,
+      y: 18,
+      scale: 0.92,
+      opacity: 0.22,
+      filter: "blur(1.6px) drop-shadow(0 22px 36px rgba(53, 45, 34, 0.08))",
+    });
+    gsap.set(dom.problemResult, { opacity: 0, y: 24 });
 
     gsap
       .timeline({
@@ -157,7 +181,7 @@ export function setupGsapAnimations(dom) {
         scrollTrigger: {
           trigger: dom.problemSection,
           start: getPinnedStart,
-          end: "+=170%",
+          end: "+=180%",
           // Секция сохраняет ширину page-shell; внутренний grid больше не схлопывается при fixed.
           pin: dom.problemSection,
           pinSpacing: true,
@@ -166,18 +190,37 @@ export function setupGsapAnimations(dom) {
           invalidateOnRefresh: true,
         },
       })
-      .to(dom.problemCards, {
+      .to(dom.problemCards[0], { x: -74, y: -22, rotate: -4, scale: 0.98, duration: 0.18 })
+      .to(dom.problemCards[1], { x: -38, y: -10, rotate: 3, scale: 0.985, duration: 0.18 }, "<")
+      .to(dom.problemCards[2], { x: -10, y: 0, rotate: -2, scale: 0.99, duration: 0.18 }, "<")
+      .to(dom.problemCards[3], { x: -34, y: 10, rotate: 2, scale: 0.985, duration: 0.18 }, "<")
+      .to(dom.problemCards[4], { x: 20, y: 18, rotate: -3, scale: 0.98, duration: 0.18 }, "<")
+      .to(dom.problemLines, { opacity: 0.42, strokeDashoffset: 14, stagger: 0.02, duration: 0.16 }, "<0.02")
+      .to(dom.problemOrbit, { scale: 0.86, opacity: 0.72, rotate: -4, duration: 0.16 }, "<")
+      .to(dom.problemCase, { x: 72, y: 10, scale: 0.96, opacity: 0.46, filter: "blur(0.8px) drop-shadow(0 26px 42px rgba(53, 45, 34, 0.12))", duration: 0.18 }, "<0.02")
+      .to(dom.problemCards[0], { x: 0, y: 0, rotate: 0, scale: 1, duration: 0.22 })
+      .to(dom.problemCards[1], { x: 0, y: 0, rotate: 0, scale: 1, duration: 0.22 }, "<0.03")
+      .to(dom.problemCards[2], { x: 0, y: 0, rotate: 0, scale: 1, duration: 0.22 }, "<0.03")
+      .to(dom.problemCards[3], { x: 0, y: 0, rotate: 0, scale: 1, duration: 0.22 }, "<0.03")
+      .to(dom.problemCards[4], { x: 0, y: 0, rotate: 0, scale: 1, duration: 0.22 }, "<0.03")
+      .to(dom.problemLines, { opacity: 1, strokeDashoffset: 0, stagger: 0.02, duration: 0.2 }, "<0.04")
+      .to(dom.problemOrbit, {
+        scale: 1.08,
+        opacity: 1,
+        rotate: 0,
+        filter: "drop-shadow(0 30px 48px rgba(181, 138, 82, 0.24))",
+        duration: 0.2,
+      }, "<0.04")
+      .to(dom.problemOrbit, { scale: 1, duration: 0.08 })
+      .to(dom.problemCase, {
         x: 0,
         y: 0,
-        rotate: 0,
-        stagger: 0.02,
-        duration: 0.62,
-      })
-      .to(dom.problemLines, { opacity: 1, duration: 0.52 }, "<0.08")
-      .to(dom.problemOrbit, { scale: 1.06, opacity: 1, rotate: 0, duration: 0.5 }, "<0.04")
-      .to(dom.problemOrbit, { scale: 1, duration: 0.22 })
-      .to(dom.problemCase, { x: 0, scale: 1, opacity: 1, duration: 0.42 }, "<0.02")
-      .to(dom.problemResult, { opacity: 1, y: 0, duration: 0.24 }, "<");
+        scale: 1,
+        opacity: 1,
+        filter: "blur(0px) drop-shadow(0 30px 58px rgba(53, 45, 34, 0.17))",
+        duration: 0.22,
+      }, "<0.02")
+      .to(dom.problemResult, { opacity: 1, y: 0, duration: 0.16 }, "<0.02");
   }
 
   if (dom.workflowSection && dom.workflowCards.length) {

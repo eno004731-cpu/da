@@ -464,13 +464,14 @@ p {
 
 .problem-lines {
   position: absolute;
-  left: 15%;
+  left: 14%;
   top: 50%;
-  width: 58%;
-  height: 76%;
+  width: 60%;
+  height: 78%;
   transform: translateY(-50%);
   z-index: 1;
   overflow: visible;
+  pointer-events: none;
 }
 
 .problem-lines path {
@@ -482,46 +483,50 @@ p {
   opacity: 0;
 }
 
-.problem-cutout,
-.problem-orbit-cutout,
-.problem-case-cutout {
+.problem-card,
+.problem-gold-center,
+.problem-case-panel {
   position: absolute;
-  z-index: 2;
-  filter: drop-shadow(0 22px 34px rgba(54, 45, 32, 0.13));
   will-change: transform, opacity, filter;
 }
 
-.problem-chat-cutout {
-  left: 2%;
-  top: 6%;
-  width: clamp(210px, 16vw, 280px);
+.problem-card {
+  z-index: 2;
+  border-radius: 24px;
+  filter: drop-shadow(0 24px 38px rgba(54, 45, 32, 0.14));
 }
 
-.problem-mail-cutout {
-  left: 7%;
-  top: 25%;
-  width: clamp(210px, 16vw, 280px);
+.problem-card--whatsapp {
+  left: 1%;
+  top: 7%;
+  width: clamp(206px, 15.5vw, 270px);
 }
 
-.problem-pdf-cutout {
-  left: 16%;
+.problem-card--email {
+  left: 5%;
+  top: 24%;
+  width: clamp(206px, 15.5vw, 270px);
+}
+
+.problem-card--pdf {
+  left: 15%;
   top: 43%;
-  width: clamp(210px, 16vw, 280px);
+  width: clamp(206px, 15.5vw, 270px);
 }
 
-.problem-xls-cutout {
+.problem-card--excel {
   left: 8%;
   top: 62%;
-  width: clamp(210px, 16vw, 280px);
+  width: clamp(206px, 15.5vw, 270px);
 }
 
-.problem-date-cutout {
-  left: 29%;
-  top: 78%;
-  width: clamp(210px, 16vw, 280px);
+.problem-card--calendar {
+  left: 28%;
+  top: 79%;
+  width: clamp(206px, 15.5vw, 270px);
 }
 
-.problem-orbit-cutout {
+.problem-gold-center {
   left: 56%;
   top: 47%;
   z-index: 3;
@@ -531,11 +536,12 @@ p {
 }
 
 /* Финальная карточка завершает визуальный маршрут от хаоса к единому делу. */
-.problem-case-cutout {
+.problem-case-panel {
   right: -2%;
   top: 8%;
   z-index: 2;
   width: clamp(250px, 22vw, 350px);
+  border-radius: 30px;
   filter: drop-shadow(0 30px 58px rgba(53, 45, 34, 0.17));
 }
 
@@ -1426,10 +1432,65 @@ p {
 
 .auth-gate-card,
 .auth-session-card,
-.contact-form {
-  padding: clamp(28px, 4vw, 54px);
-  border-radius: 28px;
-}
+  .problem-cutout-system {
+    min-height: 720px;
+  }
+
+  .problem-lines {
+    left: 2%;
+    top: 42%;
+    width: 96%;
+    height: 50%;
+  }
+
+  .problem-card {
+    width: min(210px, 62vw);
+  }
+
+  .problem-card--whatsapp {
+    left: 0;
+    top: 2%;
+  }
+
+  .problem-card--email {
+    left: 10%;
+    top: 18%;
+  }
+
+  .problem-card--pdf {
+    left: 0;
+    top: 38%;
+  }
+
+  .problem-card--excel {
+    left: 12%;
+    top: 56%;
+  }
+
+  .problem-card--calendar {
+    left: 2%;
+    top: 76%;
+  }
+
+  .problem-gold-center {
+    left: 66%;
+    top: 48%;
+    width: min(118px, 28vw);
+  }
+
+  .problem-case-panel {
+    top: 12%;
+    width: min(220px, 42vw);
+  }
+
+  .problem-result {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    margin-top: 22px;
+    max-width: none;
+  }
+
 
 .auth-gate-card h3,
 .auth-session-card h3 {
@@ -1715,7 +1776,7 @@ p {
     min-height: min(540px, calc(var(--pinned-height) - 16px));
   }
 
-  .problem-case-cutout {
+  .problem-case-panel {
     width: min(280px, 23vw);
   }
 
@@ -1723,15 +1784,11 @@ p {
     width: min(760px, 94%);
   }
 
-  .problem-chat-cutout,
-  .problem-mail-cutout,
-  .problem-pdf-cutout,
-  .problem-xls-cutout,
-  .problem-date-cutout {
+  .problem-card {
     width: min(218px, 21vw);
   }
 
-  .problem-orbit-cutout {
+  .problem-gold-center {
     width: min(136px, 13vw);
   }
 
@@ -1767,7 +1824,7 @@ p {
     min-height: 680px;
   }
 
-  .problem-case-cutout {
+  .problem-case-panel {
     right: 1%;
     width: min(320px, 31vw);
   }
@@ -1862,25 +1919,48 @@ p {
   }
 
   .problem-cutout-system {
-    min-height: 680px;
+    min-height: 760px;
   }
 
   .problem-lines {
-    left: 4%;
-    width: 88%;
-    height: 64%;
+    left: 8%;
+    top: 44%;
+    width: 82%;
+    height: 54%;
   }
 
-  .problem-chat-cutout,
-  .problem-mail-cutout,
-  .problem-pdf-cutout,
-  .problem-xls-cutout,
-  .problem-date-cutout {
-    width: min(230px, 42vw);
+  .problem-card {
+    width: min(232px, 58vw);
   }
 
-  .problem-orbit-cutout {
-    left: 58%;
+  .problem-card--whatsapp {
+    left: 0;
+    top: 0;
+  }
+
+  .problem-card--email {
+    left: 14%;
+    top: 16%;
+  }
+
+  .problem-card--pdf {
+    left: 2%;
+    top: 35%;
+  }
+
+  .problem-card--excel {
+    left: 22%;
+    top: 53%;
+  }
+
+  .problem-card--calendar {
+    left: 6%;
+    top: 73%;
+  }
+
+  .problem-gold-center {
+    left: 62%;
+    top: 48%;
     width: min(138px, 26vw);
   }
 
@@ -1888,6 +1968,12 @@ p {
     right: 0;
     bottom: 0;
     max-width: 320px;
+  }
+
+  .problem-case-panel {
+    right: 0;
+    top: 14%;
+    width: min(290px, 46vw);
   }
 
   .chaos-card {
@@ -1939,7 +2025,7 @@ p {
     width: min(640px, 84%);
   }
 
-  .problem-case-cutout {
+  .problem-case-panel {
     right: 0;
     width: min(290px, 46vw);
   }

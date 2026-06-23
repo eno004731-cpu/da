@@ -1,7 +1,7 @@
 import {
   createClientApplication,
   uploadClientOrderDocuments,
-} from "../api/orders-api.js?v=20260617a";
+} from "../api/orders-api.js?v=20260622a";
 import {
   isBackendUnavailableError,
   isUnauthorizedError,
