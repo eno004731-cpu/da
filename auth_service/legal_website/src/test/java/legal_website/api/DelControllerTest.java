@@ -15,7 +15,7 @@ import org.springframework.security.web.method.annotation.AuthenticationPrincipa
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import legal_website.services.auth.DelService;
+import legal_website.services.delete.DelService;
 import legal_website.common.GlobalExceptionHandler;
 
 @ExtendWith(MockitoExtension.class)

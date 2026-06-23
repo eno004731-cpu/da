@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import legal_website.services.auth.DelService;
+import legal_website.services.delete.DelService;
 import lombok.RequiredArgsConstructor;
 
 @RestController

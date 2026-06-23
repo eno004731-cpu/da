@@ -9,6 +9,10 @@ import static org.mockito.Mockito.when;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import legal_website.persistence.deletion.UserDeletionProcessRepo;
+import legal_website.persistence.outbox_events.OutboxEventsRepo;
+import legal_website.services.delete.DelService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -33,6 +37,15 @@ class DelServiceTest {
 
     @Mock
     private OAuthAccountRepo oAuthAccountRepo;
+
+    @Mock
+    private UserDeletionProcessRepo userDeletionProcessRepo;
+
+    @Mock
+    private OutboxEventsRepo outboxEventsRepo;
+
+    @Mock
+    private ObjectMapper objectMapper;
 
     @InjectMocks
     private DelService delService;
