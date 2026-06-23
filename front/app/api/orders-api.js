@@ -3,9 +3,9 @@ import {
   ENDPOINTS,
   LOCAL_AUTH_ONLY_MODE,
   ORDERS_API_ENABLED,
-} from "./endpoints.js?v=20260617a";
+} from "./endpoints.js?v=20260621a";
 import { isUnauthorizedError, refreshClientSession } from "./auth-api.js?v=20260615a";
-import { formDataRequest, jsonRequest, request } from "./http-client.js?v=20260512b";
+import { blobRequest, formDataRequest, jsonRequest, request } from "./http-client.js?v=20260622a";
 import { normalizeOrderStatus } from "../lib/status.js?v=20260512a";
 
 function normalizeDocument(documentItem = {}) {
@@ -18,6 +18,11 @@ function normalizeDocument(documentItem = {}) {
     downloadUrl: documentItem.downloadUrl || null,
     isDeleted: Boolean(documentItem.isDeleted ?? documentItem.deleted),
     deletedAt: documentItem.deletedAt || null,
+    validationStatus: String(
+      documentItem.validationStatus ||
+      documentItem.validation_status ||
+      "DOCUMENT_VALIDATION_REQUESTED"
+    ).toUpperCase(),
   };
 }
 
@@ -149,8 +154,9 @@ export function uploadClientOrderDocuments(orderId, documents = []) {
     formData.append("documents", file);
   });
 
-  // После создания заказа файлы отправляются напрямую в document-service.
-  // orderId остаётся в path, чтобы backend мог привязать файлы к заявке.
+  // Document-service сначала сохраняет файл со статусом ожидания проверки.
+  // Затем order-service проверяет заявку через Kafka и при отказе отправляет
+  // обратную Kafka-команду на удаление документа.
   return withAuthRefreshRetry(() => formDataRequest(ENDPOINTS.client.orderDocuments(normalizedOrderId), {
     method: "POST",
     body: formData,
@@ -170,7 +176,20 @@ export function fetchClientOrders() {
 
 export function fetchClientOrderDetails(orderId) {
   ensureOrdersApiEnabled();
-  return withAuthRefreshRetry(() => request(ENDPOINTS.client.orderDetails(orderId))).then(normalizeOrderDetails);
+  return withAuthRefreshRetry(async () => {
+    // Заказ и документы принадлежат разным сервисам, поэтому читаем их параллельно.
+    const [order, documents] = await Promise.all([
+      request(ENDPOINTS.client.orderDetails(orderId)),
+      request(ENDPOINTS.client.orderDocuments(orderId), {
+        baseUrl: DOCUMENT_API_BASE_URL,
+      }),
+    ]);
+
+    return normalizeOrderDetails({
+      ...order,
+      documents: Array.isArray(documents) ? documents : [],
+    });
+  });
 }
 
 export function updateClientOrder(orderId, payload) {
@@ -198,7 +217,21 @@ export function deleteClientOrderDocument(orderId, documentId) {
   ensureOrdersApiEnabled();
   return withAuthRefreshRetry(() => request(ENDPOINTS.client.orderDocumentDelete(orderId, documentId), {
     method: "DELETE",
+    // Физическим владельцем документа является document-service.
+    baseUrl: DOCUMENT_API_BASE_URL,
     disableCsrf: true,
+  }));
+}
+
+export function downloadClientOrderDocument(downloadUrl) {
+  ensureOrdersApiEnabled();
+
+  if (!downloadUrl) {
+    throw new Error("Документ пока недоступен для скачивания.");
+  }
+
+  return withAuthRefreshRetry(() => blobRequest(downloadUrl, {
+    baseUrl: DOCUMENT_API_BASE_URL,
   }));
 }
 

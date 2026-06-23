@@ -1,12 +1,13 @@
 import {
   deleteClientOrder,
   deleteClientOrderDocument,
+  downloadClientOrderDocument,
   fetchClientOrderDetails,
   fetchServices,
   submitClientOrderRework,
   updateClientOrder,
   uploadClientOrderDocuments,
-} from "../api/orders-api.js?v=20260617a";
+} from "../api/orders-api.js?v=20260622b";
 import {
   LOCAL_AUTH_ONLY_MODE,
   ORDERS_API_ENABLED,
@@ -121,6 +122,24 @@ function getDocumentSize(documentItem = {}) {
   return Number(documentItem.size ?? documentItem.sizeBytes ?? 0);
 }
 
+function getDocumentValidationStatus(documentItem = {}) {
+  return String(
+    documentItem.validationStatus || "DOCUMENT_VALIDATION_REQUESTED"
+  ).toUpperCase();
+}
+
+function getDocumentValidationLabel(validationStatus) {
+  if (validationStatus === "DOCUMENT_VALIDATED") {
+    return "Проверен";
+  }
+
+  if (validationStatus === "DOCUMENT_REJECTED") {
+    return "Не прошёл проверку";
+  }
+
+  return "Проверяется";
+}
+
 function mergeDocuments(existingDocuments = [], uploadedDocuments = []) {
   const documentsByKey = new Map();
 
@@ -208,6 +227,8 @@ function renderDocuments(documents, status) {
     const row = document.createElement("article");
     row.className = "document-row";
     const availability = documentItem.isDeleted || unavailableDocuments;
+    const validationStatus = getDocumentValidationStatus(documentItem);
+    const isValidated = validationStatus === "DOCUMENT_VALIDATED";
 
     const icon = document.createElement("span");
     icon.className = "document-file-icon";
@@ -232,14 +253,13 @@ function renderDocuments(documents, status) {
 
     const action = document.createElement("div");
     action.className = "document-row-actions";
-    if (documentItem.downloadUrl && !availability) {
-      const openLink = document.createElement("a");
-      openLink.className = "text-link";
-      openLink.href = documentItem.downloadUrl;
-      openLink.target = "_blank";
-      openLink.rel = "noreferrer";
-      openLink.textContent = "Открыть";
-      action.append(openLink);
+    if (documentItem.downloadUrl && isValidated && !availability) {
+      const downloadButton = document.createElement("button");
+      downloadButton.type = "button";
+      downloadButton.className = "text-link document-download-button";
+      downloadButton.textContent = "Скачать";
+      downloadButton.addEventListener("click", () => handleDownloadDocument(documentItem));
+      action.append(downloadButton);
     } else {
       const statusTag = document.createElement("span");
       statusTag.className = availability ? "document-deleted-tag" : "document-status-tag";
@@ -247,7 +267,7 @@ function renderDocuments(documents, status) {
         ? isRejectedStatus(status)
           ? "Недоступно"
           : "Удалено"
-        : "Загружен";
+        : getDocumentValidationLabel(validationStatus);
       action.append(statusTag);
     }
 
@@ -263,6 +283,38 @@ function renderDocuments(documents, status) {
     row.append(icon, body, action);
     orderDocuments.append(row);
   });
+}
+
+async function handleDownloadDocument(documentItem) {
+  if (getDocumentValidationStatus(documentItem) !== "DOCUMENT_VALIDATED") {
+    setFeedback("Документ можно скачать только после успешной проверки.", true);
+    return;
+  }
+
+  setFeedback("Подготавливаем документ…");
+
+  try {
+    const fileBlob = await downloadClientOrderDocument(documentItem.downloadUrl);
+    const objectUrl = URL.createObjectURL(fileBlob);
+    const downloadLink = document.createElement("a");
+
+    // Временная browser-ссылка живёт только до начала скачивания.
+    downloadLink.href = objectUrl;
+    downloadLink.download = documentItem.fileName || "document";
+    document.body.append(downloadLink);
+    downloadLink.click();
+    downloadLink.remove();
+    URL.revokeObjectURL(objectUrl);
+
+    setFeedback("Скачивание документа началось.");
+  } catch (error) {
+    if (isUnauthorizedError(error)) {
+      handleOrdersUnauthorized(window.location.pathname + window.location.search);
+      return;
+    }
+
+    setFeedback(error.message || "Не удалось скачать документ.", true);
+  }
 }
 
 async function handleDeleteDocument(documentItem) {
@@ -553,7 +605,12 @@ async function handleEditSubmit(event) {
     const response = await updateClientOrder(orderId, payload);
     const nextOrder =
       response && typeof response === "object" && response.id
-        ? response
+        ? {
+            // Order-service больше не возвращает документы, поэтому сохраняем
+            // уже загруженный список из состояния страницы.
+            ...response,
+            documents: currentOrder.documents,
+          }
         : {
             ...currentOrder,
             ...payload,
@@ -592,7 +649,11 @@ async function handleReworkSubmit(event) {
 
   try {
     const order = await submitClientOrderRework(orderId, comment);
-    renderOrder(order);
+    renderOrder({
+      // Ответ изменения статуса приходит только из order-service.
+      ...order,
+      documents: currentOrder?.documents || [],
+    });
     reworkForm.reset();
     setFeedback("Замечание отправлено. Заказ переведён в статус «На доработке».");
   } catch (error) {

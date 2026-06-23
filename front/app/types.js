@@ -59,6 +59,7 @@
  * @property {string | null} downloadUrl
  * @property {boolean} isDeleted
  * @property {string | null} deletedAt
+ * @property {"DOCUMENT_VALIDATION_REQUESTED" | "DOCUMENT_VALIDATED" | "DOCUMENT_REJECTED"} validationStatus
  */
 
 /**

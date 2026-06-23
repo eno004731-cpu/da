@@ -139,6 +139,40 @@ export async function request(path, options = {}) {
   return parseResponse(response);
 }
 
+/**
+ * Выполняет авторизованный GET бинарного файла.
+ * В отличие от обычной ссылки, fetch добавляет Bearer token из текущей сессии.
+ */
+export async function blobRequest(path, options = {}) {
+  const {
+    baseUrl = API_BASE_URL,
+    includeCredentials = true,
+    headers,
+    useAuth = true,
+  } = options;
+
+  const finalHeaders = new Headers(headers || {});
+  const session = useAuth ? getSession() : null;
+  const accessToken = session?.accessToken || null;
+
+  if (accessToken && !finalHeaders.has("Authorization")) {
+    finalHeaders.set("Authorization", `Bearer ${accessToken}`);
+  }
+
+  const response = await fetch(buildUrl(path, baseUrl), {
+    method: "GET",
+    headers: finalHeaders,
+    credentials: includeCredentials ? "include" : "omit",
+  });
+
+  if (!response.ok) {
+    // Общий parser сформирует такое же исключение, как для JSON API.
+    return parseResponse(response);
+  }
+
+  return response.blob();
+}
+
 export function jsonRequest(path, { method = "GET", body, ...options } = {}) {
   return request(path, {
     method,

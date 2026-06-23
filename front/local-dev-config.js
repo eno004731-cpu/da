@@ -14,6 +14,7 @@
   window.__LEGAL_DISABLE_ORDERS_API__ = false;
   window.__LEGAL_API_BASE_URL__ ||= "http://127.0.0.1:8083/api";
   window.__LEGAL_AUTH_API_BASE_URL__ ||= "http://127.0.0.1:8081/api";
+  // Документы загружаются напрямую в document-service, минуя старый REST proxy order-service.
   window.__LEGAL_DOCUMENT_API_BASE_URL__ ||= "http://127.0.0.1:8085/api";
 
   // Google auth уже можно проверять локально даже в auth-only режиме,
