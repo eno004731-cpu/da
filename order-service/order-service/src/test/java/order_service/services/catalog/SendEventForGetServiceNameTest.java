@@ -65,8 +65,10 @@ class SendEventForGetServiceNameTest {
     void sendEvent_processesNewAndRetryableFailedEvents() {
         OutboxEventEntity newEvent = createEvent("CONSULT");
         OutboxEventEntity failedEvent = createEvent("DOCUMENT");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(newEvent));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(newEvent));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of(failedEvent));
         when(orderRepo.findById(any(UUID.class))).thenReturn(Optional.of(new OrderEntity()));
         when(kafkaTemplateCatalog.send(anyString(), anyString(), any(GetServiceNamePayload.class)))
@@ -82,8 +84,10 @@ class SendEventForGetServiceNameTest {
     @Test
     void sendEvent_marksEventDeadWhenServiceCodeIsBlank() {
         OutboxEventEntity event = createEvent(" ");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(event));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(event));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of());
 
         service.sendEvent();
@@ -96,8 +100,10 @@ class SendEventForGetServiceNameTest {
     @Test
     void sendEvent_marksEventDeadWhenOrderDoesNotExist() {
         OutboxEventEntity event = createEvent("CONSULT");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(event));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(event));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of());
         when(orderRepo.findById(event.getAggregateId())).thenReturn(Optional.empty());
 
@@ -112,8 +118,10 @@ class SendEventForGetServiceNameTest {
         ObjectMapper brokenMapper = org.mockito.Mockito.mock(ObjectMapper.class);
         ReflectionTestUtils.setField(service, "objectmapper", brokenMapper);
         OutboxEventEntity event = createEvent("CONSULT");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(event));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(event));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of());
         when(brokenMapper.treeToValue(any(JsonNode.class), eq(GetServiceNamePayload.class)))
                 .thenThrow(new RuntimeException("bad payload"));
@@ -127,8 +135,10 @@ class SendEventForGetServiceNameTest {
     @Test
     void sendEvent_marksEventPublishedWhenKafkaSendSucceeds() {
         OutboxEventEntity event = createEvent("CONSULT");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(event));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(event));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of());
         when(orderRepo.findById(event.getAggregateId())).thenReturn(Optional.of(new OrderEntity()));
         CompletableFuture<SendResult<String, GetServiceNamePayload>> successFuture = CompletableFuture.completedFuture(null);
@@ -142,8 +152,10 @@ class SendEventForGetServiceNameTest {
     @Test
     void sendEvent_marksEventFailedWhenKafkaSendFails() {
         OutboxEventEntity event = createEvent("CONSULT");
-        when(eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW")).thenReturn(List.of(event));
-        when(eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(eq("FAILED"), any(LocalDateTime.class)))
+        when(eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+                "NEW", "SERVICE_NAME_REQUESTED")).thenReturn(List.of(event));
+        when(eventRepo.findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                eq("FAILED"), eq("SERVICE_NAME_REQUESTED"), any(LocalDateTime.class)))
                 .thenReturn(List.of());
         when(orderRepo.findById(event.getAggregateId())).thenReturn(Optional.of(new OrderEntity()));
         CompletableFuture<SendResult<String, GetServiceNamePayload>> failedFuture = new CompletableFuture<>();
