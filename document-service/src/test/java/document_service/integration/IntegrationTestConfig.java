@@ -8,6 +8,6 @@ import org.springframework.context.annotation.Bean;
 class IntegrationTestConfig {
     @Bean
     ObjectMapper objectMapper() {
-        return new ObjectMapper();
+        return new ObjectMapper().findAndRegisterModules();
     }
 }

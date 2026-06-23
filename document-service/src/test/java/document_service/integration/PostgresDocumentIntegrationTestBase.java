@@ -2,11 +2,12 @@ package document_service.integration;
 
 import document_service.persistence.document.DocumentRepository;
 import document_service.persistence.events.outbox.OutboxEventRepository;
-import document_service.services.documents.DocumentFileStorage;
+import document_service.persistence.events.incoming.ProcessedEventRepository;
 import document_service.services.documents.DocumentResponseMapper;
-import document_service.services.documents.OrderDocumentsService;
+import document_service.services.documents.store.DocumentFileStorage;
+import document_service.services.documents.store.OrderDocumentsService;
 import document_service.services.events.DocumentOutboxEventFactory;
-import document_service.services.events.DocumentOutboxStatusService;
+import document_service.services.events.DocumentStatusService;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
@@ -33,7 +34,7 @@ import java.nio.file.Path;
 @Import({
         IntegrationTestConfig.class,
         DocumentOutboxEventFactory.class,
-        DocumentOutboxStatusService.class,
+        DocumentStatusService.class,
         DocumentFileStorage.class,
         DocumentResponseMapper.class,
         OrderDocumentsService.class
@@ -65,8 +66,12 @@ abstract class PostgresDocumentIntegrationTestBase {
     @Autowired
     private OutboxEventRepository outboxEventRepository;
 
+    @Autowired
+    private ProcessedEventRepository processedEventRepository;
+
     @BeforeEach
     void cleanState() {
+        processedEventRepository.deleteAll();
         outboxEventRepository.deleteAll();
         documentRepository.deleteAll();
         FileSystemUtils.deleteRecursively(documentsDir.toFile());

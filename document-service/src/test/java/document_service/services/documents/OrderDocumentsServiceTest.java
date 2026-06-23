@@ -14,6 +14,8 @@ import document_service.persistence.document.DocumentEntity;
 import document_service.persistence.document.DocumentRepository;
 import document_service.persistence.events.outbox.OutboxEventEntity;
 import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.services.documents.store.DocumentFileStorage;
+import document_service.services.documents.store.OrderDocumentsService;
 import document_service.services.events.DocumentOutboxEventFactory;
 
 import java.nio.file.Files;
@@ -23,7 +25,9 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -67,12 +71,32 @@ class OrderDocumentsServiceTest {
         assertEquals("contract.pdf", savedEntity.getOriginalFileName());
         assertTrue(Files.exists(tempDir.resolve(savedEntity.getStorageKey())));
         assertEquals(1, response.size());
-        assertEquals("contract.pdf", response.get(0).fileName());
+        // Проверяем внешний DTO, а не только аргумент, переданный в repository.
+        assertEquals("contract.pdf", response.get(0).getFileName());
 
         ArgumentCaptor<OutboxEventEntity> eventCaptor = ArgumentCaptor.forClass(OutboxEventEntity.class);
         verify(outboxEventRepository).save(eventCaptor.capture());
         assertEquals("DOCUMENT_STORED", eventCaptor.getValue().getEventType());
         assertEquals("NEW", eventCaptor.getValue().getStatus());
+    }
+
+    @Test
+    void uploadDocuments_rejectsEmptyListBeforeStorageAndRepositories() {
+        OrderDocumentsService service = new OrderDocumentsService(
+                documentRepository,
+                outboxEventRepository,
+                new DocumentOutboxEventFactory(objectMapper()),
+                new DocumentFileStorage(tempDir.toString()),
+                new DocumentResponseMapper()
+        );
+
+        // Проверяем само исключение, поэтому его нельзя случайно проглотить внутри теста.
+        assertThatThrownBy(() -> service.uploadDocuments(UUID.randomUUID(), 7L, List.of()))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class)
+                .hasMessageContaining("Нужно передать хотя бы один документ");
+
+        // Валидация должна сработать до любых операций с БД.
+        verifyNoInteractions(documentRepository, outboxEventRepository);
     }
 
     private ObjectMapper objectMapper() {
