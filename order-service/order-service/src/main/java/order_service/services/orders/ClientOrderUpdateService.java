@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import order_service.dto.request.UpdateClientOrderRequest;
 import order_service.dto.response.ClientOrderDetailsResponse;
 import order_service.persistence.order.OrderEntity;
@@ -14,6 +15,7 @@ import order_service.persistence.order.OrderRepo;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ClientOrderUpdateService {
     private final ClientOrderAccessService clientOrderAccessService;
     private final ClientOrderDetailsService clientOrderDetailsService;
@@ -33,6 +35,9 @@ public class ClientOrderUpdateService {
         order.setUpdatedAt(LocalDateTime.now());
         order.setDeletionError(null);
         orderRepo.save(order);
+        // Не логируем описание, имя и контакт клиента, так как это чувствительные данные.
+        log.info("Order updated orderId={} clientId={} serviceCode={}",
+                orderId, clientId, order.getServiceCode());
 
         return clientOrderDetailsService.getOrderDetails(orderId, clientId);
     }

@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import order_service.dto.payload.GetServiceNamePayload;
 import order_service.persistence.events.outbox.OutboxEventEntity;
 import order_service.persistence.events.outbox.OutboxEventRepo;
@@ -18,6 +19,7 @@ import order_service.services.events.outbox.OutboxWakeUpEvent;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ServiceNameOutboxService {
     private final ObjectMapper objectMapper;
     private final EventStatusService eventStatusService;
@@ -46,6 +48,9 @@ public class ServiceNameOutboxService {
         }
         event.setStatus("NEW");
         eventRepo.save(event);
+        // Логируем только технические идентификаторы, без данных клиента.
+        log.info("Service name outbox event created eventId={} orderId={} serviceCode={}",
+                event.getId(), order.getId(), order.getServiceCode());
         // Будим publisher только после коммита транзакции, чтобы он видел уже сохранённую запись outbox.
         applicationEventPublisher.publishEvent(new OutboxWakeUpEvent(event.getId()));
     }

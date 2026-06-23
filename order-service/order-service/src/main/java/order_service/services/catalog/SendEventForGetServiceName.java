@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import order_service.dto.payload.GetServiceNamePayload;
 import order_service.persistence.events.outbox.OutboxEventEntity;
 import order_service.persistence.events.outbox.OutboxEventRepo;
@@ -22,7 +23,10 @@ import order_service.services.events.outbox.EventStatusService;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class SendEventForGetServiceName {
+    private static final String EVENT_TYPE = "SERVICE_NAME_REQUESTED";
+
     private final ObjectMapper objectmapper;
     private final OutboxEventRepo eventRepo;
     private final KafkaTemplate<String,GetServiceNamePayload> kafkaTemplateCatalog;
@@ -41,14 +45,27 @@ public class SendEventForGetServiceName {
     public void processAvailableEvents() {
         // Не даём scheduler и wake-up listener одновременно гонять один и тот же polling.
         if (!processing.compareAndSet(false, true)) {
+            log.debug("Catalog outbox polling skipped because another polling cycle is running");
             return;
         }
 
         try {
-        List< OutboxEventEntity>newEvents = eventRepo.findTop100ByStatusOrderByCreatedAtAsc("NEW");
-        List<OutboxEventEntity> failedEvents = eventRepo.findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc("FAILED", LocalDateTime.now());
-        sendEvents(newEvents);
-        sendEvents(failedEvents);
+            List<OutboxEventEntity> newEvents =
+                    eventRepo.findTop100ByStatusAndEventTypeOrderByCreatedAtAsc("NEW", EVENT_TYPE);
+            List<OutboxEventEntity> failedEvents = eventRepo
+                    .findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+                            "FAILED",
+                            EVENT_TYPE,
+                            LocalDateTime.now()
+                    );
+
+            // Размер пачки помогает диагностировать backlog, не раскрывая содержимое событий.
+            if (!newEvents.isEmpty() || !failedEvents.isEmpty()) {
+                log.debug("Catalog outbox events found newCount={} retryCount={} topic={}",
+                        newEvents.size(), failedEvents.size(), requestTopic);
+            }
+            sendEvents(newEvents);
+            sendEvents(failedEvents);
         } finally {
             processing.set(false);
         }
