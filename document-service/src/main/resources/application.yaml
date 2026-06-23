@@ -28,8 +28,20 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+  servlet:
+    multipart:
+      # Ограничение применяется к одному файлу.
+      max-file-size: ${APP_DOCUMENT_MAX_FILE_SIZE:10MB}
+      # Общий лимит запроса позволяет отправлять несколько файлов.
+      max-request-size: ${APP_DOCUMENT_MAX_REQUEST_SIZE:30MB}
+
+jwt:
+  # Document-service самостоятельно проверяет тот же access token, что и другие API.
+  secret: ${JWT_SECRET}
 
 app:
+  cors:
+    allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:http://127.0.0.1:*,http://localhost:*}
   internal:
     service-token: ${APP_INTERNAL_SERVICE_TOKEN:local-dev-internal-token}
   storage:
@@ -37,10 +49,13 @@ app:
   kafka:
     topics:
       document-stored: ${APP_KAFKA_TOPIC_DOCUMENT_STORED:document.stored}
+      document-delete-requested: ${APP_KAFKA_TOPIC_DOCUMENT_DELETE_REQUESTED:document.delete-requested}
       document-deleted: ${APP_KAFKA_TOPIC_DOCUMENT_DELETED:document.deleted}
+      document-validation-result: ${APP_KAFKA_TOPIC_DOCUMENT_VALIDATION_RESULT}
   outbox-relay:
-    fixed-delay-ms: ${APP_OUTBOX_RELAY_FIXED_DELAY_MS:5000}
-  external:
-    order-service-base-url: w:http://127.0.0.1:8083}
+    fixed-delay-ms: ${APP_DOCUMENT_OUTBOX_RELAY_DELAY_MS}
+  validation:
+    retry-scan-delay-ms: ${APP_DOCUMENT_VALIDATION_RETRY_SCAN_DELAY_MS}
+    retry-after-seconds: ${APP_DOCUMENT_VALIDATION_RETRY_AFTER_SECONDS}
 server:
   port: ${SERVER_PORT:8085}
