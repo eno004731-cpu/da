@@ -1,10 +1,11 @@
 package order_service.integration;
 
 import order_service.dto.payload.DocumentStoredPayload;
-import order_service.persistence.document.OrderDocumentMetadataEntity;
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
+import order_service.persistence.events.incoming.IncomingEventEntity.Status;
 import order_service.persistence.events.incoming.IncomingEventRepo;
+import order_service.persistence.events.outbox.OutboxEventEntity;
+import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.events.handler.DocumentStoredEventService;
@@ -25,45 +26,44 @@ class DocumentStoredEventServiceIntegrationTest extends PostgresIntegrationTestB
     private OrderRepo orderRepo;
 
     @Autowired
-    private OrderDocumentMetadataRepo documentMetadataRepo;
-
-    @Autowired
     private IncomingEventRepo incomingEventRepo;
 
+    @Autowired
+    private OutboxEventRepo outboxEventRepo;
+
     @Test
-    void handleDocumentStored_savesIncomingEventAndDocumentMetadataOnce() {
+    void handleDocumentStored_savesIncomingEventOnce() {
         OrderEntity order = orderRepo.save(orderForClient(7L));
         UUID eventId = UUID.randomUUID();
-        DocumentStoredPayload payload = payload(eventId, order.getId(), "document-101");
+        DocumentStoredPayload payload = payload(eventId, order.getId(), "101");
 
         documentStoredEventService.handleDocumentStored(record(payload, 15L));
         documentStoredEventService.handleDocumentStored(record(payload, 16L));
 
         assertThat(incomingEventRepo.findAll()).hasSize(1);
         IncomingEventEntity incomingEvent = incomingEventRepo.findByEventId(eventId).orElseThrow();
-        assertThat(incomingEvent.getStatus()).isEqualTo("PROCESSED");
+        assertThat(incomingEvent.getStatus()).isEqualTo(Status.PROCESSED);
         assertThat(incomingEvent.getAggregateId()).isEqualTo(order.getId());
-
-        assertThat(documentMetadataRepo.findAll()).hasSize(1);
-        OrderDocumentMetadataEntity metadata = documentMetadataRepo.findByDocumentId("document-101").orElseThrow();
-        assertThat(metadata.getOrderId()).isEqualTo(order.getId());
-        assertThat(metadata.getUploadedByUserId()).isEqualTo(7L);
-        assertThat(metadata.getFileName()).isEqualTo("contract.pdf");
-        assertThat(metadata.getMetadata().get("eventId").asText()).isEqualTo(eventId.toString());
+        assertThat(outboxEventRepo.findAll()).hasSize(1);
+        OutboxEventEntity outboxEvent = outboxEventRepo.findAll().get(0);
+        assertThat(outboxEvent.getEventType()).isEqualTo("DOCUMENT_VALIDATION_RESULT");
+        assertThat(outboxEvent.getStatus()).isEqualTo("NEW");
+        assertThat(outboxEvent.getPayload().get("documentId").asLong()).isEqualTo(101L);
+        assertThat(outboxEvent.getPayload().get("validationPassed").asBoolean()).isTrue();
     }
 
     @Test
-    void handleDocumentStored_marksEventDeadWhenOrderDoesNotExist() {
+    void handleDocumentStored_marksEventForDeletionWhenOrderDoesNotExist() {
         UUID missingOrderId = UUID.randomUUID();
         UUID eventId = UUID.randomUUID();
-        DocumentStoredPayload payload = payload(eventId, missingOrderId, "document-404");
+        DocumentStoredPayload payload = payload(eventId, missingOrderId, "404");
 
         documentStoredEventService.handleDocumentStored(record(payload, 20L));
 
         IncomingEventEntity incomingEvent = incomingEventRepo.findByEventId(eventId).orElseThrow();
-        assertThat(incomingEvent.getStatus()).isEqualTo("DEAD");
+        assertThat(incomingEvent.getStatus()).isEqualTo(Status.ON_DELETE);
         assertThat(incomingEvent.getLastError()).contains("Заказ для document.stored не найден");
-        assertThat(documentMetadataRepo.findByDocumentId("document-404")).isEmpty();
+        assertThat(outboxEventRepo.findAll()).isEmpty();
     }
 
     private ConsumerRecord<String, DocumentStoredPayload> record(DocumentStoredPayload payload, long offset) {

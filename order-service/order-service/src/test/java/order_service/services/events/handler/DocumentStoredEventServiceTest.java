@@ -2,16 +2,14 @@ package order_service.services.events.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import order_service.dto.payload.DocumentStoredPayload;
-import order_service.persistence.document.OrderDocumentMetadataEntity;
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.events.outbox.EventStatusService;
+import order_service.services.events.outbox.DocumentValidationOutboxService;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -19,9 +17,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -31,16 +27,16 @@ class DocumentStoredEventServiceTest {
     private IncomingEventRepo incomingEventRepo;
 
     @Mock
-    private OrderDocumentMetadataRepo documentMetadataRepo;
-
-    @Mock
     private OrderRepo orderRepo;
 
     @Mock
     private EventStatusService eventStatusService;
 
+    @Mock
+    private DocumentValidationOutboxService documentValidationOutboxService;
+
     @Test
-    void handleDocumentStored_savesMetadataAndMarksEventProcessed() {
+    void handleDocumentStored_marksValidEventProcessed() {
         DocumentStoredEventService service = createService();
         UUID eventId = UUID.randomUUID();
         UUID orderId = UUID.randomUUID();
@@ -49,17 +45,14 @@ class DocumentStoredEventServiceTest {
                 new ConsumerRecord<>("document.stored", 0, 15L, orderId.toString(), payload);
 
         when(incomingEventRepo.existsByEventId(eventId)).thenReturn(false);
-        when(orderRepo.existsById(orderId)).thenReturn(true);
-        when(documentMetadataRepo.existsByDocumentId("101")).thenReturn(false);
+        when(orderRepo.existsByIdAndClientIdAndIsDeletedFalseAndDeletionInProgressFalse(orderId, 7L))
+                .thenReturn(true);
         when(incomingEventRepo.save(any(IncomingEventEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         service.handleDocumentStored(record);
 
-        ArgumentCaptor<OrderDocumentMetadataEntity> metadataCaptor = ArgumentCaptor.forClass(OrderDocumentMetadataEntity.class);
-        verify(documentMetadataRepo).save(metadataCaptor.capture());
-        assertEquals("101", metadataCaptor.getValue().getDocumentId());
-        assertEquals(orderId, metadataCaptor.getValue().getOrderId());
         verify(eventStatusService).saveProcessedIncomingEvent(any(IncomingEventEntity.class));
+        verify(documentValidationOutboxService).createSuccessfulValidationEvent(payload);
     }
 
     @Test
@@ -75,7 +68,7 @@ class DocumentStoredEventServiceTest {
 
         service.handleDocumentStored(record);
 
-        verify(documentMetadataRepo, never()).save(any());
+        verify(incomingEventRepo).existsByEventId(eventId);
     }
 
     private DocumentStoredPayload payload(UUID eventId, UUID orderId) {
@@ -95,10 +88,10 @@ class DocumentStoredEventServiceTest {
     private DocumentStoredEventService createService() {
         DocumentStoredEventService service = new DocumentStoredEventService(
                 incomingEventRepo,
-                documentMetadataRepo,
                 orderRepo,
                 new ObjectMapper().findAndRegisterModules(),
-                eventStatusService
+                eventStatusService,
+                documentValidationOutboxService
         );
         ReflectionTestUtils.setField(service, "consumerGroup", "order-service");
         return service;
