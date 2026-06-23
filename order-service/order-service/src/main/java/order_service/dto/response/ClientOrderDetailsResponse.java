@@ -1,7 +1,6 @@
 package order_service.dto.response;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import lombok.Data;
@@ -20,5 +19,4 @@ public class ClientOrderDetailsResponse {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private int revisionCount;
-    private List<UploadedDocumentResponse> documents;
 }

@@ -22,8 +22,6 @@ server:
 app:
   internal:
     service-token: ${APP_INTERNAL_SERVICE_TOKEN:local-dev-internal-token}
-  external:
-    document-service-base-url: ${APP_DOCUMENT_SERVICE_BASE_URL:http://127.0.0.1:8085}
   kafka:
     topics:
       catalog-get-service-name-request: ${APP_KAFKA_TOPIC_CATALOG_GET_SERVICE_NAME_REQUEST:order.getServiceName.request}

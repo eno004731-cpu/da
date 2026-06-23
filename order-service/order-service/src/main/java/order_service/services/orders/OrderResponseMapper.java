@@ -1,27 +1,20 @@
 package order_service.services.orders;
 
-import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 import order_service.dto.response.ClientOrderDetailsResponse;
 import order_service.dto.response.ClientOrderSummaryResponse;
-import order_service.dto.response.UploadedDocumentResponse;
 import order_service.persistence.order.OrderEntity;
 
 @Component
 public class OrderResponseMapper {
-    public ClientOrderDetailsResponse toDetailsResponse(
-            OrderEntity order,
-            List<UploadedDocumentResponse> documents
-    ) {
+    public ClientOrderDetailsResponse toDetailsResponse(OrderEntity order) {
         ClientOrderDetailsResponse response = new ClientOrderDetailsResponse();
         mapCommonFields(order, response);
         response.setClientName(order.getClientName());
         response.setContact(order.getContact());
         response.setCompanyName(order.getCompanyName());
         response.setProblemDescription(order.getProblemDescription());
-        response.setDocuments(documents);
         return response;
     }
 
