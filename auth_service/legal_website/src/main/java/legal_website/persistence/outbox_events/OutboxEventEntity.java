@@ -40,8 +40,16 @@ public class OutboxEventEntity {
     private LocalDateTime nextRetryAt;
     @Column(name = "last_error", nullable = true)
     private String lastError;
+    @Column(name = "last_error_at", nullable = true)
+    private LocalDateTime lastErrorAt;
+    @Column(name = "processing_started_at", nullable = true)
+    private LocalDateTime processingStartedAt;
+    @Column(name = "processing_token", nullable = true)
+    private UUID processingToken;
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
     @Column(name = "published_at", nullable = true)
     private LocalDateTime publishedAt;
+
+
 }
