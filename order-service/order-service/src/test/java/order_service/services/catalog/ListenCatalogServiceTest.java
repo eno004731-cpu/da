@@ -78,7 +78,9 @@ class ListenCatalogServiceTest {
         assertEquals(eventId, savedIncomingEvent.getEventId());
         assertEquals(orderId, savedIncomingEvent.getAggregateId());
         assertEquals("SERVICE_NAME_RESOLVED", savedIncomingEvent.getEventType());
-        assertEquals("RECEIVED", savedIncomingEvent.getStatus());
+        // Status хранится как enum, поэтому тест проверяет контракт доменной модели,
+        // а не строковое представление значения.
+        assertEquals(IncomingEventEntity.Status.RECEIVED, savedIncomingEvent.getStatus());
         assertEquals("order-service-tests", savedIncomingEvent.getConsumerGroup());
         assertNotNull(savedIncomingEvent.getReceivedAt());
 

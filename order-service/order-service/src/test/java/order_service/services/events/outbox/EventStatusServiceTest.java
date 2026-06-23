@@ -95,7 +95,8 @@ class EventStatusServiceTest {
 
         service.saveProcessedIncomingEvent(event);
 
-        assertEquals("PROCESSED", event.getStatus());
+        // Сравниваем enum с enum: строка здесь скрывала ошибку типов в тесте.
+        assertEquals(IncomingEventEntity.Status.PROCESSED, event.getStatus());
         assertNotNull(event.getProcessedAt());
         assertNull(event.getLastError());
         assertNull(event.getNextRetryAt());
@@ -109,7 +110,8 @@ class EventStatusServiceTest {
 
         service.saveDeadIncomingEvent(event, "catalog response is invalid");
 
-        assertEquals("DEAD", event.getStatus());
+        // DEAD является состоянием inbox-event, а не произвольной строкой.
+        assertEquals(IncomingEventEntity.Status.DEAD, event.getStatus());
         assertEquals(3, event.getRetryCount());
         assertEquals("catalog response is invalid", event.getLastError());
         assertNull(event.getNextRetryAt());
