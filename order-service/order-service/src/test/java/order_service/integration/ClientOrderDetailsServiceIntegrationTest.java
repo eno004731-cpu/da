@@ -1,9 +1,6 @@
 package order_service.integration;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import order_service.dto.response.ClientOrderDetailsResponse;
-import order_service.persistence.document.OrderDocumentMetadataEntity;
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.order.OrderEntity;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.orders.ClientOrderDetailsService;
@@ -24,27 +21,15 @@ class ClientOrderDetailsServiceIntegrationTest extends PostgresIntegrationTestBa
     @Autowired
     private OrderRepo orderRepo;
 
-    @Autowired
-    private OrderDocumentMetadataRepo documentMetadataRepo;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
     @Test
-    void getOrderDetails_readsOnlyClientOrderAndDocumentsFromPostgres() {
+    void getOrderDetails_readsOnlyClientOrderFromPostgres() {
         OrderEntity order = orderRepo.save(orderForClient(7L, "CONSULT"));
         orderRepo.save(orderForClient(99L, "OTHER"));
-        documentMetadataRepo.save(document(order.getId(), "doc-2", "second.pdf", LocalDateTime.parse("2026-06-11T12:10:00")));
-        documentMetadataRepo.save(document(order.getId(), "doc-1", "first.pdf", LocalDateTime.parse("2026-06-11T12:00:00")));
 
         ClientOrderDetailsResponse response = clientOrderDetailsService.getOrderDetails(order.getId(), 7L);
 
         assertThat(response.getId()).isEqualTo(order.getId());
         assertThat(response.getServiceCode()).isEqualTo("CONSULT");
-        assertThat(response.getDocuments())
-                .extracting("id")
-                .containsExactly("doc-1", "doc-2");
-        assertThat(response.getDocuments().get(0).getDownloadUrl()).isNull();
     }
 
     @Test
@@ -70,22 +55,5 @@ class ClientOrderDetailsServiceIntegrationTest extends PostgresIntegrationTestBa
         order.setCreateAt(now);
         order.setUpdatedAt(now);
         return order;
-    }
-
-    private OrderDocumentMetadataEntity document(UUID orderId, String documentId, String fileName, LocalDateTime uploadedAt) {
-        LocalDateTime now = LocalDateTime.now();
-        OrderDocumentMetadataEntity document = new OrderDocumentMetadataEntity();
-        document.setDocumentId(documentId);
-        document.setOrderId(orderId);
-        document.setUploadedByUserId(7L);
-        document.setFileName(fileName);
-        document.setMimeType("application/pdf");
-        document.setSizeBytes(100L);
-        document.setUploadedAt(uploadedAt);
-        document.setIsDeleted(false);
-        document.setMetadata(objectMapper.createObjectNode().put("documentId", documentId));
-        document.setCreatedAt(now);
-        document.setUpdatedAt(now);
-        return document;
     }
 }

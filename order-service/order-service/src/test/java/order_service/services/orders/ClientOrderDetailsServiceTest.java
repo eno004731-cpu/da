@@ -8,13 +8,9 @@ import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 import order_service.dto.response.ClientOrderDetailsResponse;
-import order_service.persistence.document.OrderDocumentMetadataEntity;
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.order.OrderEntity;
-import order_service.services.documents.DocumentMetadataMapper;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -27,12 +23,6 @@ class ClientOrderDetailsServiceTest {
     @Mock
     private ClientOrderAccessService clientOrderAccessService;
 
-    @Mock
-    private OrderDocumentMetadataRepo documentMetadataRepo;
-
-    @Mock
-    private DocumentMetadataMapper documentMetadataMapper;
-
     @Spy
     private OrderResponseMapper orderResponseMapper = new OrderResponseMapper();
 
@@ -40,7 +30,7 @@ class ClientOrderDetailsServiceTest {
     private ClientOrderDetailsService service;
 
     @Test
-    void getOrderDetails_returnsMappedOrderAndDocuments() {
+    void getOrderDetails_returnsMappedOrder() {
         UUID orderId = UUID.randomUUID();
         OrderEntity order = new OrderEntity();
         order.setId(orderId);
@@ -54,17 +44,7 @@ class ClientOrderDetailsServiceTest {
         order.setStatus("ON_REVIEW");
         order.setCreateAt(LocalDateTime.now().minusHours(1));
         order.setUpdatedAt(LocalDateTime.now());
-        OrderDocumentMetadataEntity document = new OrderDocumentMetadataEntity();
-        document.setDocumentId("1");
-        document.setFileName("contract.pdf");
-        document.setMimeType("application/pdf");
-        document.setSizeBytes(123L);
-        document.setUploadedAt(LocalDateTime.now());
-        document.setIsDeleted(false);
-
         when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L)).thenReturn(order);
-        when(documentMetadataRepo.findAllByOrderIdOrderByUploadedAtAsc(orderId)).thenReturn(List.of(document));
-        when(documentMetadataMapper.toResponse(document)).thenCallRealMethod();
 
         ClientOrderDetailsResponse response = service.getOrderDetails(orderId, 7L);
 
@@ -72,8 +52,6 @@ class ClientOrderDetailsServiceTest {
         assertEquals("Consultation", response.getTitle());
         assertEquals("CONSULT", response.getServiceCode());
         assertEquals("Юридическая консультация", response.getServiceName());
-        assertEquals(1, response.getDocuments().size());
-        assertEquals("contract.pdf", response.getDocuments().get(0).getFileName());
     }
 
     @Test

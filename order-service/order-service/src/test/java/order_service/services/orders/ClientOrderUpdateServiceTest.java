@@ -46,7 +46,6 @@ class ClientOrderUpdateServiceTest {
 
         ClientOrderDetailsResponse response = new ClientOrderDetailsResponse();
         response.setId(orderId);
-        response.setDocuments(List.of());
 
         when(clientOrderAccessService.getClientOrderOrThrow(orderId, 7L)).thenReturn(order);
         when(clientOrderDetailsService.getOrderDetails(orderId, 7L)).thenReturn(response);

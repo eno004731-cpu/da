@@ -1,15 +1,12 @@
 package order_service.integration;
 
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.events.outbox.OutboxEventRepo;
 import order_service.persistence.order.OrderRepo;
-import order_service.services.documents.DocumentMetadataMapper;
-import order_service.services.documents.OrderDocumentDeleteService;
 import order_service.services.catalog.ServiceNameOutboxService;
-import order_service.services.events.handler.DocumentDeletedEventService;
 import order_service.services.events.handler.DocumentStoredEventService;
 import order_service.services.events.outbox.EventStatusService;
+import order_service.services.events.outbox.DocumentValidationOutboxService;
 import order_service.services.orders.ClientOrderAccessService;
 import order_service.services.orders.ClientOrderDetailsService;
 import order_service.services.orders.ClientOrderDeleteService;
@@ -45,11 +42,9 @@ import org.testcontainers.containers.PostgreSQLContainer;
         ClientOrdersQueryService.class,
         ClientOrderUpdateService.class,
         ClientOrderDeleteService.class,
-        OrderDocumentDeleteService.class,
         OrderResponseMapper.class,
-        DocumentMetadataMapper.class,
-        DocumentStoredEventService.class,
-        DocumentDeletedEventService.class
+        DocumentValidationOutboxService.class,
+        DocumentStoredEventService.class
 })
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 abstract class PostgresIntegrationTestBase {
@@ -71,9 +66,6 @@ abstract class PostgresIntegrationTestBase {
     }
 
     @Autowired
-    private OrderDocumentMetadataRepo documentMetadataRepo;
-
-    @Autowired
     private IncomingEventRepo incomingEventRepo;
 
     @Autowired
@@ -84,8 +76,7 @@ abstract class PostgresIntegrationTestBase {
 
     @BeforeEach
     void cleanDatabase() {
-        // Удаляем зависимые read-model/inbox/outbox записи раньше агрегата заказа.
-        documentMetadataRepo.deleteAll();
+        // Удаляем inbox/outbox записи раньше агрегата заказа.
         incomingEventRepo.deleteAll();
         outboxEventRepo.deleteAll();
         orderRepo.deleteAll();
