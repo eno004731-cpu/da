@@ -15,12 +15,35 @@ import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 
 import legal_website.dto.verifyemail.VerifyEmailPayload;
+import legal_website.dto.DeletePayload;
 
 @Configuration
 public class KafkaApplication {
     @Bean
     public NewTopic verificationCodesEventsTopic() {
         return TopicBuilder.name("auth.email-verification.requested")
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic deleteUserOrdersTopic(
+            @Value("${app.kafka.topics.delete-user-orders}")
+            String topic
+    ) {
+        return TopicBuilder.name(topic)
+                .partitions(5)
+                .replicas(1)
+                .build();
+    }
+
+    @Bean
+    public NewTopic deleteUserDocumentsTopic(
+            @Value("${app.kafka.topics.delete-user-documents}")
+            String topic
+    ) {
+        return TopicBuilder.name(topic)
                 .partitions(5)
                 .replicas(1)
                 .build();
@@ -48,5 +71,34 @@ public class KafkaApplication {
         // SendEventService зависит именно от KafkaTemplate<String, VerifyEmailPayload>,
         // поэтому создаём typed bean явно, а не полагаемся на общий auto-configured template.
         return new KafkaTemplate<>(verificationEmailProducerFactory);
+    }
+
+    @Bean
+    public ProducerFactory<String, DeletePayload> deletePayloadProducerFactory(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers
+    ) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(
+                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                bootstrapServers
+        );
+        properties.put(
+                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                org.apache.kafka.common.serialization.StringSerializer.class
+        );
+        properties.put(
+                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                JsonSerializer.class
+        );
+        properties.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+
+        return new DefaultKafkaProducerFactory<>(properties);
+    }
+
+    @Bean
+    public KafkaTemplate<String, DeletePayload> deletePayloadKafkaTemplate(
+            ProducerFactory<String, DeletePayload> deletePayloadProducerFactory
+    ) {
+        return new KafkaTemplate<>(deletePayloadProducerFactory);
     }
 }
