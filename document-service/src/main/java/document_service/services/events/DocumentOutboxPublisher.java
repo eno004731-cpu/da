@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 @RequiredArgsConstructor
 public class DocumentOutboxPublisher {
     private final OutboxEventRepository outboxEventRepository;
-    private final DocumentOutboxStatusService statusService;
+    private final DocumentStatusService statusService;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final ObjectMapper objectMapper;
     private final AtomicBoolean processing = new AtomicBoolean(false);
@@ -31,7 +31,7 @@ public class DocumentOutboxPublisher {
     @Value("${app.kafka.topics.document-deleted}")
     private String documentDeletedTopic;
 
-    @Scheduled(fixedDelayString = "${app.outbox-relay.fixed-delay-ms:5000}")
+    @Scheduled(fixedDelayString = "${app.outbox-relay.fixed-delay-ms}")
     public void publishAvailableEvents() {
         if (!processing.compareAndSet(false, true)) {
             return;

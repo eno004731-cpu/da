@@ -6,7 +6,6 @@ import lombok.Data;
 import java.time.LocalDateTime;
 
 @Data
-@AllArgsConstructor
 public class UploadedDocumentResponse {
     private String id;
     private String fileName;
@@ -16,4 +15,5 @@ public class UploadedDocumentResponse {
     private String downloadUrl;
     private boolean isDeleted;
     private LocalDateTime deletedAt;
+    private String validationStatus;
 }

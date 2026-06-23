@@ -1,4 +1,4 @@
-package document_service.services.documents;
+package document_service.services.documents.store;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -87,6 +87,7 @@ public class SaveDocumentsService {
         response.setDownloadUrl(document.getDownloadUrl());
         response.setDeleted(document.isDeleted());
         response.setDeletedAt(document.getDeletedAt());
+        response.setValidationStatus(document.getValidationStatus());
 
         return response;
     }

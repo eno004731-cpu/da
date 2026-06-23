@@ -19,9 +19,11 @@ public class OrderDocumentsQueryService {
     private final DocumentResponseMapper responseMapper;
 
     @Transactional(readOnly = true)
-    public List<UploadedDocumentResponse> listDocuments(UUID orderId) {
+    public List<UploadedDocumentResponse> listDocuments(UUID orderId, Long uploadedByUserId) {
         // Entity не выходит за пределы service-слоя: наружу возвращается DTO.
-        return documentRepository.findAllByOrderIdOrderByCreatedAtAsc(orderId).stream()
+        return documentRepository
+                .findAllByOrderIdAndUploadedByUserIdOrderByCreatedAtAsc(orderId, uploadedByUserId)
+                .stream()
                 .map(responseMapper::toResponse)
                 .toList();
     }

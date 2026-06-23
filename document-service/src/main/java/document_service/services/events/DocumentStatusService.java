@@ -2,6 +2,8 @@ package document_service.services.events;
 
 import document_service.persistence.events.outbox.OutboxEventEntity;
 import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.persistence.events.incoming.ProcessedEventEntity;
+import document_service.persistence.events.incoming.ProcessedEventRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -11,8 +13,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class DocumentOutboxStatusService {
+public class DocumentStatusService {
     private final OutboxEventRepository outboxEventRepository;
+    private final ProcessedEventRepository processedEventRepository;
 
     @Transactional
     public void markProcessing(OutboxEventEntity event) {
@@ -61,5 +64,31 @@ public class DocumentOutboxStatusService {
             event.setNextRetryAt(LocalDateTime.now().plusSeconds(5));
         }
         outboxEventRepository.save(event);
+    }
+
+    @Transactional
+    public void markFailed(ProcessedEventEntity event, String errorMessage) {
+        // FAILED оставляет событие доступным для контролируемого повторного запуска.
+        event.setStatus("FAILED");
+        event.setErrorMessage(errorMessage);
+        processedEventRepository.save(event);
+    }
+
+    @Transactional
+    public void markDead(ProcessedEventEntity event, String errorMessage) {
+        // DEAD означает, что автоматический повтор уже не сможет исправить событие.
+        event.setStatus("DEAD");
+        event.setErrorMessage(errorMessage);
+        event.setNextRetryAt(null);
+        processedEventRepository.save(event);
+    }
+
+    @Transactional
+    public void markProcessed(ProcessedEventEntity event) {
+        // После успешной обработки очищаем диагностические поля предыдущих попыток.
+        event.setStatus("PROCESSED");
+        event.setErrorMessage(null);
+        event.setNextRetryAt(null);
+        processedEventRepository.save(event);
     }
 }

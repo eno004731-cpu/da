@@ -12,6 +12,11 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
 @Entity
 @Table(name = "processed_events")
 @Getter
@@ -42,6 +47,18 @@ public class ProcessedEventEntity {
     @Column(name = "status", nullable = false, length = 20)
     private String status;
 
+    @Column(name = "retry_count",nullable = false)
+    private Integer retryCount;
+
+    @Column(name = "next_retry_at")
+    private LocalDateTime nextRetryAt;
+
     @Column(name = "error_message", columnDefinition = "TEXT")
     private String errorMessage;
+    // Явное snake_case имя сохраняет единый стиль PostgreSQL-схемы.
+    @Column(name = "event_type", nullable = false, length = 40)
+    private String eventType;
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "payload", nullable = false, columnDefinition = "JSONB")
+    private JsonNode payload;
 }

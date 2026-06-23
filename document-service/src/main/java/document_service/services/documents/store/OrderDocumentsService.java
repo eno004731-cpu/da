@@ -1,4 +1,4 @@
-package document_service.services.documents;
+package document_service.services.documents.store;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -9,9 +9,9 @@ import org.springframework.web.server.ResponseStatusException;
 import document_service.dto.response.UploadedDocumentResponse;
 import document_service.persistence.document.DocumentEntity;
 import document_service.persistence.document.DocumentRepository;
-import document_service.persistence.document.DocumentEntity.Status;
-import document_service.persistence.document.DocumentEntity.ValidationStatus;
+import document_service.persistence.document.DocumentValidationStatus;
 import document_service.persistence.events.outbox.OutboxEventRepository;
+import document_service.services.documents.DocumentResponseMapper;
 import document_service.services.events.DocumentOutboxEventFactory;
 import lombok.RequiredArgsConstructor;
 
@@ -47,15 +47,16 @@ public class OrderDocumentsService {
         DocumentEntity entity = new DocumentEntity();
         entity.setOrderId(orderId);
         entity.setUploadedByUserId(uploadedByUserId);
-        entity.setOriginalFileName(storedFile.originalFileName());
-        entity.setStorageKey(storedFile.storageKey());
-        entity.setMimeType(storedFile.mimeType());
-        entity.setSizeBytes(storedFile.size());
+        entity.setOriginalFileName(storedFile.getOriginalFileName());
+        entity.setStorageKey(storedFile.getStorageKey());
+        entity.setMimeType(storedFile.getMimeType());
+        entity.setSizeBytes(storedFile.getSize());
         entity.setIsDeleted(false);
+        entity.setDocumentDeleted(false);
         entity.setCreatedAt(LocalDateTime.now());
-        entity.setStatus(Status.STORED);
-        entity.setValidationStatus(ValidationStatus.DOCUMENT_VALIDATION_REQUESTED);
-
+        entity.setValidationRequestedAt(LocalDateTime.now());
+        entity.setValidationStatus(DocumentValidationStatus.DOCUMENT_VALIDATION_REQUESTED);
+        
         // Сначала фиксируем документ, затем создаём связанное outbox-событие с его ID.
         DocumentEntity savedEntity = documentRepository.save(entity);
         outboxEventRepository.save(outboxEventFactory.documentStored(savedEntity));

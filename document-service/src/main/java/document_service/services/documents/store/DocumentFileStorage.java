@@ -1,11 +1,16 @@
-package document_service.services.documents;
+package document_service.services.documents.store;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -68,6 +73,18 @@ public class DocumentFileStorage {
         }
     }
 
+    public Resource loadAsResource(String storageKey) {
+        Path storagePath = resolveStoragePath(storageKey);
+
+        // Запись в БД может сохраниться после внешнего удаления файла,
+        // поэтому проверяем фактическое наличие и читаемость.
+        if (!Files.isRegularFile(storagePath) || !Files.isReadable(storagePath)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Файл документа не найден");
+        }
+
+        return new FileSystemResource(storagePath);
+    }
+
     private Path resolveStoragePath(String storageKey) {
         Path storagePath = documentsDir.resolve(storageKey).normalize();
 
@@ -101,11 +118,12 @@ public class DocumentFileStorage {
     /**
      * Результат физического сохранения, необходимый для создания записи в БД.
      */
-    public record StoredDocumentFile(
-            String originalFileName,
-            String storageKey,
-            String mimeType,
-            long size
-    ) {
+    @Data
+    @AllArgsConstructor
+    public static class StoredDocumentFile {
+        private String originalFileName;
+        private String storageKey;
+        private String mimeType;
+        private long size;
     }
 }

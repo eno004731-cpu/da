@@ -14,6 +14,8 @@ import java.util.UUID;
 @Component
 @RequiredArgsConstructor
 public class DocumentOutboxEventFactory {
+    public static final String DOCUMENT_STORED_EVENT_TYPE = "DOCUMENT_STORED";
+
     private final ObjectMapper objectMapper;
     
     public OutboxEventEntity documentStored(DocumentEntity document) {
@@ -28,13 +30,12 @@ public class DocumentOutboxEventFactory {
         payload.setSizeBytes(document.getSizeBytes());
         payload.setUploadedAt(document.getCreatedAt().toString());
         payload.setIsDeleted(Boolean.TRUE.equals(document.getIsDeleted()));
-        payload.setStatus(document.getStatus());
         payload.setValidationStatus(document.getValidationStatus());
         OutboxEventEntity event = new OutboxEventEntity();
         event.setId(eventId);
         event.setAggregateType("DOCUMENT");
         event.setAggregateId(String.valueOf(document.getId()));
-        event.setEventType("DOCUMENT_STORED");
+        event.setEventType(DOCUMENT_STORED_EVENT_TYPE);
         event.setPayload(objectMapper.valueToTree(payload));
         event.setStatus("NEW");
         event.setRetryCount(0);

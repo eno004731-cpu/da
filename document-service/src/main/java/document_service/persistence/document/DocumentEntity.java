@@ -44,28 +44,22 @@ public class DocumentEntity {
     @Column(name = "is_deleted", nullable = false)
     private Boolean isDeleted;
 
+    @Column(name = "is_document_deleted",nullable = false)
+    private boolean isDocumentDeleted;
+
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
-    public enum Status {
-        STORED,
-        DELETED,
-        REJECTED
-    }
+    @Column(name = "validation_requested_at", nullable = false)
+    private LocalDateTime validationRequestedAt;
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 25)
-    private Status status;
-
-    public enum ValidationStatus {
-        DOCUMENT_VALIDATION_REQUESTED,
-        DOCUMENT_VALIDATED,
-        DOCUMENT_REJECTED
-    }
     @Enumerated(EnumType.STRING)
     @Column(name = "validation_status",nullable = false,length = 30)
-    private ValidationStatus validationStatus;
+    private DocumentValidationStatus validationStatus;
+
+    @Column(name = "validated_at")
+    private LocalDateTime validatedAt;
 }

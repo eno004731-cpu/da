@@ -16,4 +16,5 @@ public class SaveResponse {
     private String downloadUrl;
     private boolean isDeleted;
     private LocalDateTime deletedAt;
+    private String validationStatus;
 }

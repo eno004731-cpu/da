@@ -9,23 +9,23 @@ CREATE TABLE order_documents (
     status VARCHAR(25) NOT NULL,
     validation_status VARCHAR(30) NOT NULL,
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
+    is_document_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     deleted_at TIMESTAMP NULL,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    -- Ограничение не позволяет записать неизвестное состояние жизненного цикла документа.
+    CONSTRAINT chk_order_documents_status CHECK (
+        status IN ('STORED', 'DELETED', 'REJECTED')
+    ),
+    -- Validation status хранится отдельно от основного статуса документа.
+    CONSTRAINT chk_order_documents_validation_status CHECK (
+        validation_status IN (
+            'DOCUMENT_VALIDATION_REQUESTED',
+            'DOCUMENT_VALIDATED',
+            'DOCUMENT_REJECTED'
+        )
+    )
 );
-CONSTRAINT document_status CHECK(
-    status IN(
-        'STORED'
-        'DELETED'
-        'REJECTED'
-    )
-)
-CONSTRAINT document_validation_status CHECK(
-    validation_status IN(
-        'DOCUMENT_VALIDATION_REQUESTED'
-        'DOCUMENT_VALIDATED'
-        'DOCUMENT_REJECTED'
-    )
-)
+
 CREATE INDEX idx_order_documents_order_id_created_at
     ON order_documents(order_id, created_at ASC);
 
