@@ -26,7 +26,8 @@ class DocumentOutboxPublisherTest {
     @Test
     void publishAvailableEvents_sendsDocumentStoredEventAndMarksPublished() {
         OutboxEventRepository outboxEventRepository = mock(OutboxEventRepository.class);
-        DocumentOutboxStatusService statusService = mock(DocumentOutboxStatusService.class);
+        // Publisher теперь использует общий сервис статусов для outbox и incoming events.
+        DocumentStatusService statusService = mock(DocumentStatusService.class);
         KafkaTemplate<String, Object> kafkaTemplate = mock(KafkaTemplate.class);
         ObjectMapper objectMapper = new ObjectMapper();
         DocumentOutboxPublisher publisher = new DocumentOutboxPublisher(
