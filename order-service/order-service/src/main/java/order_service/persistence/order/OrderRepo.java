@@ -17,4 +17,6 @@ public interface OrderRepo extends JpaRepository<OrderEntity,UUID>{
     default List<OrderEntity> findAllByClientIdOrderByCreateAtDesc(Long clientId) {
         return findAllByClientIdAndIsDeletedFalseAndDeletionInProgressFalseOrderByCreateAtDesc(clientId);
     }
+    // Имя части IsDeleted должно точно совпадать с полем isDeleted в OrderEntity.
+    boolean existsByIdAndClientIdAndIsDeletedFalseAndDeletionInProgressFalse(UUID id, Long userId);
 }

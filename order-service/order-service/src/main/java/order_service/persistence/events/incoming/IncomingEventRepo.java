@@ -12,10 +12,17 @@ public interface IncomingEventRepo extends JpaRepository<IncomingEventEntity, UU
 
     boolean existsByEventId(UUID eventId);
 
-    List<IncomingEventEntity> findTop100ByStatusOrderByReceivedAtAsc(String status);
-    List<IncomingEventEntity> findTop100ByStatusAndTopicOrderByReceivedAtAsc(String status,String topic);
+    List<IncomingEventEntity> findTop100ByStatusOrderByReceivedAtAsc(
+            IncomingEventEntity.Status status
+    );
+
+    List<IncomingEventEntity> findTop100ByStatusAndTopicOrderByReceivedAtAsc(
+            IncomingEventEntity.Status status,
+            String topic
+    );
+
     List<IncomingEventEntity> findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(
-            String status,
+            IncomingEventEntity.Status status,
             LocalDateTime time
     );
 }

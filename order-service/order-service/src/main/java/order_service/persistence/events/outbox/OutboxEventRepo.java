@@ -12,8 +12,19 @@ public interface OutboxEventRepo extends JpaRepository<OutboxEventEntity, UUID> 
 
     List<OutboxEventEntity> findTop100ByStatusOrderByCreatedAtAsc(String status);
 
+    List<OutboxEventEntity> findTop100ByStatusAndEventTypeOrderByCreatedAtAsc(
+            String status,
+            String eventType
+    );
+
     List<OutboxEventEntity> findTop100ByStatusAndNextRetryAtBeforeOrderByNextRetryAtAsc(
             String status,
+            LocalDateTime time
+    );
+
+    List<OutboxEventEntity> findTop100ByStatusAndEventTypeAndNextRetryAtBeforeOrderByNextRetryAtAsc(
+            String status,
+            String eventType,
             LocalDateTime time
     );
 }

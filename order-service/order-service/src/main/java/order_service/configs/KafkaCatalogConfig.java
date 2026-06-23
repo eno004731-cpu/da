@@ -24,8 +24,8 @@ import org.springframework.kafka.support.serializer.JsonDeserializer;
 
 import order_service.dto.payload.GetServiceNamePayload;
 import order_service.dto.payload.DocumentStoredPayload;
-import order_service.dto.payload.DocumentDeletedPayload;
 import order_service.dto.payload.DocumentToDeletePayload;
+import order_service.dto.payload.DocumentValidationResultPayload;
 
 @Configuration
 public class KafkaCatalogConfig {
@@ -71,10 +71,10 @@ public class KafkaCatalogConfig {
     }
 
     @Bean
-    public NewTopic documentDeletedTopic(
-            @Value("${app.kafka.topics.document-deleted}") String documentDeletedTopic
+    public NewTopic documentValidationResultTopic(
+            @Value("${app.kafka.topics.document-validation-result}") String topic
     ) {
-        return TopicBuilder.name(documentDeletedTopic)
+        return TopicBuilder.name(topic)
                 .partitions(5)
                 .replicas(1)
                 .build();
@@ -124,6 +124,29 @@ public class KafkaCatalogConfig {
     ) {
         // KafkaTemplate — основной Spring API для отправки DocumentToDeletePayload в Kafka.
         return new KafkaTemplate<>(documentToDeleteProducerFactory);
+    }
+
+    @Bean
+    public ProducerFactory<String, DocumentValidationResultPayload>
+    documentValidationResultProducerFactory(
+            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers
+    ) {
+        Map<String, Object> properties = new HashMap<>();
+        properties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
+        properties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+        properties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+        // Межсервисный контракт не зависит от Java package producer-а.
+        properties.put(JsonSerializer.ADD_TYPE_INFO_HEADERS, false);
+        return new DefaultKafkaProducerFactory<>(properties);
+    }
+
+    @Bean
+    public KafkaTemplate<String, DocumentValidationResultPayload>
+    documentValidationResultKafkaTemplate(
+            ProducerFactory<String, DocumentValidationResultPayload>
+                    documentValidationResultProducerFactory
+    ) {
+        return new KafkaTemplate<>(documentValidationResultProducerFactory);
     }
 
     @Bean
@@ -188,34 +211,4 @@ public class KafkaCatalogConfig {
         return factory;
     }
 
-    @Bean
-    public ConsumerFactory<String, DocumentDeletedPayload> documentDeletedConsumerFactory(
-            @Value("${spring.kafka.bootstrap-servers}") String bootstrapServers,
-            @Value("${spring.kafka.consumer.group-id}") String groupId
-    ) {
-        Map<String, Object> properties = new HashMap<>();
-        properties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-        properties.put(ConsumerConfig.GROUP_ID_CONFIG, groupId);
-        properties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
-        properties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
-        properties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        properties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
-        properties.put(JsonDeserializer.TRUSTED_PACKAGES, "order_service.dto.payload");
-        properties.put(JsonDeserializer.VALUE_DEFAULT_TYPE, DocumentDeletedPayload.class.getName());
-        properties.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, false);
-
-        return new DefaultKafkaConsumerFactory<>(properties);
-    }
-
-    @Bean(name = "documentDeletedKafkaListenerContainerFactory")
-    public ConcurrentKafkaListenerContainerFactory<String, DocumentDeletedPayload> documentDeletedKafkaListenerContainerFactory(
-            ConsumerFactory<String, DocumentDeletedPayload> documentDeletedConsumerFactory
-    ) {
-        ConcurrentKafkaListenerContainerFactory<String, DocumentDeletedPayload> factory =
-                new ConcurrentKafkaListenerContainerFactory<>();
-
-        factory.setConsumerFactory(documentDeletedConsumerFactory);
-        factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
-        return factory;
-    }
 }

@@ -2,13 +2,12 @@ package order_service.services.events.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import order_service.dto.payload.DocumentStoredPayload;
-import order_service.persistence.document.OrderDocumentMetadataEntity;
-import order_service.persistence.document.OrderDocumentMetadataRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity;
 import order_service.persistence.events.incoming.IncomingEventRepo;
 import order_service.persistence.events.incoming.IncomingEventEntity.Status;
 import order_service.persistence.order.OrderRepo;
 import order_service.services.events.outbox.EventStatusService;
+import order_service.services.events.outbox.DocumentValidationOutboxService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -24,10 +23,10 @@ import java.time.format.DateTimeParseException;
 @Slf4j
 public class DocumentStoredEventService {
     private final IncomingEventRepo incomingEventRepo;
-    private final OrderDocumentMetadataRepo documentMetadataRepo;
     private final OrderRepo orderRepo;
     private final ObjectMapper objectMapper;
     private final EventStatusService eventStatusService;
+    private final DocumentValidationOutboxService documentValidationOutboxService;
 
     @Value("${spring.kafka.consumer.group-id}")
     private String consumerGroup;
@@ -66,18 +65,17 @@ public class DocumentStoredEventService {
             return;
         }
 
-        if (!orderRepo.existsById(payload.getOrderId())) {
+        if (!orderRepo.existsByIdAndClientIdAndIsDeletedFalseAndDeletionInProgressFalse(
+                payload.getOrderId(),
+                payload.getUploadedByUserId()
+        )) {
             // Файл относится к несуществующему заказу и должен быть удалён в document-service.
             eventStatusService.saveOnDeleteIncomingEvent(incomingEvent,
                     "Заказ для document.stored не найден");
             return;
         }
-        if (documentMetadataRepo.existsByDocumentId(payload.getDocumentId())) {
-            eventStatusService.saveProcessedIncomingEvent(incomingEvent);
-            return;
-        }
-
-        documentMetadataRepo.save(toMetadataEntity(payload));
+        // Inbox и outbox сохраняются в одной транзакции: либо фиксируются оба, либо ни один.
+        documentValidationOutboxService.createSuccessfulValidationEvent(payload);
         eventStatusService.saveProcessedIncomingEvent(incomingEvent);
     }
 
@@ -91,6 +89,11 @@ public class DocumentStoredEventService {
                 || payload.getSizeBytes() == null || payload.getSizeBytes() < 0
                 || payload.getUploadedAt() == null || payload.getUploadedAt().isBlank()) {
             return "В событии document.stored отсутствуют обязательные метаданные документа";
+        }
+        try {
+            Long.parseLong(payload.getDocumentId());
+        } catch (NumberFormatException exception) {
+            return "В событии document.stored поле documentId должно быть числом";
         }
         try {
             // Проверяем формат заранее, чтобы ошибка парсинга не откатила сохранённый inbox-event.
@@ -115,23 +118,5 @@ public class DocumentStoredEventService {
         incomingEvent.setRetryCount(0);
         incomingEvent.setReceivedAt(LocalDateTime.now());
         return incomingEventRepo.save(incomingEvent);
-    }
-
-    private OrderDocumentMetadataEntity toMetadataEntity(DocumentStoredPayload payload) {
-        LocalDateTime now = LocalDateTime.now();
-        OrderDocumentMetadataEntity entity = new OrderDocumentMetadataEntity();
-        entity.setDocumentId(payload.getDocumentId());
-        entity.setOrderId(payload.getOrderId());
-        entity.setUploadedByUserId(payload.getUploadedByUserId());
-        entity.setFileName(payload.getFileName());
-        entity.setMimeType(payload.getMimeType());
-        entity.setSizeBytes(payload.getSizeBytes());
-        entity.setUploadedAt(LocalDateTime.parse(payload.getUploadedAt()));
-        entity.setIsDeleted(Boolean.TRUE.equals(payload.getIsDeleted()));
-        entity.setDeletedAt(null);
-        entity.setMetadata(objectMapper.valueToTree(payload));
-        entity.setCreatedAt(now);
-        entity.setUpdatedAt(now);
-        return entity;
     }
 }

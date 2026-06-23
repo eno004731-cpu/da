@@ -26,11 +26,11 @@ public class DocumentPublishToDelete {
     private final KafkaTemplate<String,DocumentToDeletePayload> kafkaTemplate;
     @Value("${APP_KAFKA_TOPIC_DOCUMENT_DELETE_REQUESTED:document.delete-requested}")
     private String topic;
-    //TODO добавить логи и проверки если что были в 
+
     @Scheduled(fixedDelay = 10000)
     public void sendDoc(){
         List<OutboxEventEntity> events= outboxEventRepo.findTop100ByStatusOrderByCreatedAtAsc("ON_DELETE");
-        //log
+        log.debug("Found document deletion outbox events count={} topic={}", events.size(), topic);
         for (OutboxEventEntity outboxEventEntity : events) {
             sendEvent(outboxEventEntity);
         }
@@ -40,9 +40,19 @@ public class DocumentPublishToDelete {
     private void sendEvent(OutboxEventEntity event){
         DocumentStoredPayload payload = getPayload(event);
         if (payload == null) {
-            //log
             return ;
         }
+        if (payload.getDocumentId() == null || payload.getDocumentId().isBlank()) {
+            eventStatusService.saveDeadEvent(event,
+                    "В событии удаления документа отсутствует documentId");
+            return;
+        }
+        if (payload.getOrderId() == null) {
+            eventStatusService.saveDeadEvent(event,
+                    "В событии удаления документа отсутствует orderId");
+            return;
+        }
+
         DocumentToDeletePayload payload2 = new DocumentToDeletePayload();
         payload2.setDocumentId(payload.getDocumentId());
         payload2.setEventId(event.getId());
@@ -50,10 +60,8 @@ public class DocumentPublishToDelete {
         try {
             kafkaTemplate.send(topic,payload2.getOrderId().toString(),payload2).whenComplete((result,error)->{
                 if (error ==null) {
-                    
                     eventStatusService.savePublishedEvent(event);
                 }else{
-                    
                     eventStatusService.saveFailedEvent(event, error.toString());
                 }
             });
@@ -66,8 +74,8 @@ public class DocumentPublishToDelete {
         DocumentStoredPayload payload;
         try {
             payload = objectMapper.treeToValue(event.getPayload(), DocumentStoredPayload.class);
+            log.debug("Document deletion event payload deserialized eventId={}", event.getId());
             return payload;
-            //log
         } catch (Exception e) {
             eventStatusService.saveFailedEvent(event, e.toString());
             return null;
