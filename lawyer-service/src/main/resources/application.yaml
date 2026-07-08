@@ -1,0 +1,65 @@
+spring:
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+  application:
+    name: lawyer-service
+
+  # DataSource - это основной источник соединений приложения с PostgreSQL.
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/lawyer_service}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:10}
+      minimum-idle: ${DB_POOL_MIN_IDLE:2}
+
+  # Redis будет использоваться Spring Cache и RedisTemplate.
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      database: ${REDIS_DATABASE:0}
+      username: ${REDIS_USERNAME:}
+      password: ${REDIS_PASSWORD:}
+      timeout: ${REDIS_TIMEOUT:2s}
+
+  cache:
+    type: redis
+    redis:
+      time-to-live: ${CACHE_TTL:10m}
+
+  # Kafka настройки разделены на producer/consumer, как обычно делают в enterprise-сервисах.
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:lawyer-service}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+  # Flyway начнет применять миграции, когда в проекте появится datasource.
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+
+  # JPA/Hibernate работает поверх схемы, которую создает Flyway.
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9090}
+    reflection-service-enabled: ${GRPC_REFLECTION_ENABLED:true}
